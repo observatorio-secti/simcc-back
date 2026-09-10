@@ -907,7 +907,7 @@ def dim_research_project():
     )
 
     csv_path = os.path.join(PATH, 'dim_research_project.csv')
-    csv.to_csv(csv_path, encoding='utf-8')
+    csv.to_csv(csv_path, encoding='utf-8-sig')
 
 
 def fat_research_project_foment():
