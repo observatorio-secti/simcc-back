@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Query
 
 from simcc.core.dependencies import AsyncSession, Filters
+from simcc.schemas.research_group import ResearchGroupAreaCount
 from simcc.schemas.researcher import (
     AcademicDegree,
     ArticleMetric,
@@ -15,7 +16,7 @@ from simcc.schemas.researcher import (
     SpeakerMetric,
     YearlyMetric,
 )
-from simcc.services import researcher_service
+from simcc.services import research_group_service, researcher_service
 
 router = APIRouter(tags=['Metrics'])
 
@@ -181,3 +182,14 @@ async def get_lattes_update(session: AsyncSession, filters: Filters):
 )
 async def get_metrics_scholarship(session: AsyncSession, filters: Filters):
     return await researcher_service.get_metrics_scholarship(session, filters)
+
+
+@router.get(
+    '/metrics/research-group/chart',
+    response_model=list[ResearchGroupAreaCount],
+)
+@router.get('/metrics/research_group/chart', include_in_schema=False)
+async def get_research_group_chart(session: AsyncSession, filters: Filters):
+    return await research_group_service.count_research_groups_by_area(
+        session, filters
+    )

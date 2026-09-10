@@ -24,8 +24,13 @@ class BaseQuery:
         return re.sub(r'%\(([^)]+)\)s', r':\1', sql_string)
 
     def apply_filters(self, filters: Any):
+        if not filters:
+            return
         for field in self.SUPPORTED_FILTERS:
-            value = getattr(filters, field, None)
+            if isinstance(filters, dict):
+                value = filters.get(field)
+            else:
+                value = getattr(filters, field, None)
             # Skip None AND empty strings to avoid errors from frontend
             if value is not None and value != str():
                 method_name = f'_apply_{field}_filter'
@@ -35,7 +40,11 @@ class BaseQuery:
                     print('filter_implementation_missing')
 
     def apply_pagination(self, pagination: Any):
-        if pagination:
+        if (
+            pagination
+            and hasattr(pagination, 'offset')
+            and hasattr(pagination, 'limit')
+        ):
             self.pagination_sql = (
                 f'OFFSET {pagination.offset} LIMIT {pagination.limit}'
             )

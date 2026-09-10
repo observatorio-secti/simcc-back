@@ -32,5 +32,13 @@ async def list_research_lines(
 @router.get(
     '/research_group/count', response_model=list[ResearchGroupAreaCount]
 )
-async def get_research_group_count(session: AsyncSession):
-    return await research_group_service.count_research_groups_by_area(session)
+@router.get(
+    '/research_group/chart', response_model=list[ResearchGroupAreaCount]
+)
+async def get_research_group_count(
+    session: AsyncSession,
+    filters: Filters,
+):
+    return await research_group_service.count_research_groups_by_area(
+        session, filters
+    )
