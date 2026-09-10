@@ -4,6 +4,7 @@ set -e
 
 ROUTINES=(
     "sync_admin/sync_graduate_programs.py"
+    "sync_admin/sync_rating_programs.py"
     "sync_admin/sync_gp_researchers.py"
     "soap_lattes.py"
 )
