@@ -89,7 +89,7 @@ A telemetria do SIMCC é vendor-neutral, permitindo direcionar traces e métrica
 | Variável | Valor Padrão | Descrição |
 |:---|:---|:---|
 | `OTEL_ENABLED` | `true` | Habilita ou desabilita toda a instrumentação de telemetria |
-| `OTEL_EXPORTER_TYPE` | `console` | Destino dos **traces** (`console`, `otlp`, `in_memory`, `none`) |
+| `OTEL_EXPORTER_TYPE` | `none` | Destino dos **traces** (`none`, `console`, `otlp`, `in_memory`) |
 | `OTEL_METRICS_EXPORTER_TYPE` | `none` | Destino das **métricas** (`none`, `console`, `otlp`, `in_memory`) |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | `http://localhost:4317` | Endereço gRPC de um OpenTelemetry Collector externo (caso use `otlp`) |
 | `OTEL_EXPORTER_OTLP_INSECURE` | `true` | Conexão gRPC sem TLS para rede interna ou desenvolvimento |
@@ -97,10 +97,13 @@ A telemetria do SIMCC é vendor-neutral, permitindo direcionar traces e métrica
 
 ### Modos de Execução
 
-1. **Desenvolvimento Local / Padrão (`OTEL_EXPORTER_TYPE=console`)**:
+1. **Padrão Silencioso (`OTEL_EXPORTER_TYPE=none`)**:
+   Contexto de traces (`trace_id`, `span_id`) é mantido e correlacionado aos logs JSONL, mas nenhum span cru/verboso é impresso no terminal/stdout.
+
+2. **Desenvolvimento Local Verboso (`OTEL_EXPORTER_TYPE=console`)**:
    Spans são exibidos no console/stdout com formatação legível, sem depender de coletores ou serviços adicionais.
 
-2. **Integração com Coletor Externo (`OTEL_EXPORTER_TYPE=otlp`)**:
+3. **Integração com Coletor Externo (`OTEL_EXPORTER_TYPE=otlp`)**:
    Caso deseje enviar spans para um OpenTelemetry Collector corporativo, Grafana Tempo, SigNoz ou Datadog, basta configurar o endpoint no `.env`:
    ```bash
    OTEL_EXPORTER_TYPE=otlp

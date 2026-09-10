@@ -23,9 +23,9 @@ class TelemetryConfig:
 def get_telemetry_config() -> TelemetryConfig:
     settings = Settings()
 
-    exporter_raw = getattr(settings, 'OTEL_EXPORTER_TYPE', 'console').lower()
+    exporter_raw = getattr(settings, 'OTEL_EXPORTER_TYPE', 'none').lower()
     if exporter_raw not in {'console', 'otlp', 'in_memory', 'none'}:
-        exporter_raw = 'console'
+        exporter_raw = 'none'
 
     metrics_exporter_raw = getattr(
         settings, 'OTEL_METRICS_EXPORTER_TYPE', 'none'

@@ -44,7 +44,7 @@ class Settings(BaseSettings, extra='ignore'):
 
     # Configurações de Telemetria (OpenTelemetry)
     OTEL_ENABLED: bool = True
-    OTEL_EXPORTER_TYPE: str = 'console'
+    OTEL_EXPORTER_TYPE: str = 'none'
     OTEL_METRICS_EXPORTER_TYPE: str = 'none'
     OTEL_EXPORTER_OTLP_ENDPOINT: str = 'http://localhost:4317'
     OTEL_EXPORTER_OTLP_INSECURE: bool = True

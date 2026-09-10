@@ -42,7 +42,7 @@ services:
       ADMIN_DATABASE_URL: postgresql+asyncpg://postgres:postgres@simcc-admin-db:5432/${COMPOSE_PROJECT_NAME}_admin
       REDIS_URL: redis://redis:6379/0
       OTEL_ENABLED: "true"
-      OTEL_EXPORTER_TYPE: "console"
+      OTEL_EXPORTER_TYPE: "none"
     volumes:
       - xml:/app/storage/xml
       - logs:/app/logs
