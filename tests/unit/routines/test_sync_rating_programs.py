@@ -75,14 +75,14 @@ def test_process_rating_row_missing_rating():
     data, error = process_rating_row(
         {'code': '42051010002P0', 'rating': ''}, programs_map
     )
-    assert data is None
-    assert 'Erro: Nota do programa vazia ou ausente' in error
+    assert error is None
+    assert data == {'code': '42051010002P0', 'rating': 'Não informado'}
 
     data, error = process_rating_row(
         {'code': '42051010002P0', 'rating': None}, programs_map
     )
-    assert data is None
-    assert 'Erro: Nota do programa vazia ou ausente' in error
+    assert error is None
+    assert data == {'code': '42051010002P0', 'rating': 'Não informado'}
 
 
 @pytest.mark.unit
