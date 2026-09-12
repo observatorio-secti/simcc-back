@@ -95,6 +95,7 @@ from simcc.core.db.models.researcher import (
 from simcc.core.db.models.researcher_custom_attributes import (
     ResearcherCustomAttributes,
 )
+from simcc.core.db.models.researcher_institution import ResearcherInstitution
 
 __all__ = [
     'AdvisoryActivity',
@@ -154,6 +155,7 @@ __all__ = [
     'ResearcherAddress',
     'ResearcherAreaExpertise',
     'ResearcherIndProd',
+    'ResearcherInstitution',
     'ResearcherCustomAttributes',
     'ResearcherProduction',
     'ResearcherProfessionalExperience',

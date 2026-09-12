@@ -136,13 +136,15 @@ class ResearcherInstitution(BaseModel):
     acronym: Optional[str] = None
     image: Optional[str] = None
     cover: Optional[str] = None
+    territorio_identidade: Optional[str] = None
+    carga_horaria: Optional[float] = None
 
 
 class Researcher(BaseModel):
     id: UUID
     institution_id: Optional[UUID] = None
-    lattes_id: str
-    lattes_10_id: str
+    lattes_id: Optional[str]
+    lattes_10_id: Optional[str]
     orcid: Optional[str] = None
     scopus: Optional[str] = None
     openalex: Optional[str] = None

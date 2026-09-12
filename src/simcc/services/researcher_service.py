@@ -129,6 +129,7 @@ async def enrich_researchers(session, researchers: list):
     inst_obj_data = await researcher_repo.list_institutions_by_ids(
         session, inst_ids
     )
+    link_data = {str(row['id']): row for row in inst_data}
     # Mapeamentos
     maps = {
         'gp': {str(row['id']): row['graduate_programs'] for row in gp_data},
@@ -160,7 +161,7 @@ async def enrich_researchers(session, researchers: list):
         r['custom_attributes'] = maps['inst'].get(rid, None)
 
         if inst_id and inst_id in maps['inst_obj']:
-            r['institution'] = maps['inst_obj'][inst_id]
+            r['institution'] = dict(maps['inst_obj'][inst_id])
         elif r.get('institution_id') or r.get('university'):
             acronym = r.get('university')
             logo_url = get_institution_logo_url(acronym) or r.get(
@@ -176,6 +177,13 @@ async def enrich_researchers(session, researchers: list):
             }
         else:
             r['institution'] = None
+
+        if r.get('institution'):
+            link = link_data.get(rid, {})
+            r['institution']['territorio_identidade'] = link.get(
+                'territorio_identidade'
+            )
+            r['institution']['carga_horaria'] = link.get('carga_horaria')
 
         if r.get('institution') and r['institution'].get('image'):
             r['image_university'] = r['institution']['image']

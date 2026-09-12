@@ -358,24 +358,35 @@ async def list_institution_data_by_researcher_ids(
     if not researcher_ids:
         return []
 
-    try:
-        SCRIPT_SQL = """
-            SELECT
-                researcher_id AS id,
-                gender,
-                zip_code,
-                work_regime,
-                custom_attributes
-            FROM researcher_custom_attributes
-            WHERE researcher_id = ANY(:researcher_ids);
-        """
-        result = await session.execute(
-            text(SCRIPT_SQL),
-            {'researcher_ids': [UUID(str(rid)) for rid in researcher_ids]},
-        )
-        return result.mappings().all()
-    except Exception:
-        return []
+    # Older databases may not have the optional custom attributes table.
+    has_custom_attributes = await session.scalar(
+        text("SELECT to_regclass('researcher_custom_attributes')")
+    )
+    custom_columns = (
+        'ca.gender, ca.zip_code, ca.work_regime, ca.custom_attributes'
+        if has_custom_attributes
+        else 'NULL AS gender, NULL AS zip_code, NULL AS work_regime, '
+        'NULL AS custom_attributes'
+    )
+    custom_join = (
+        'LEFT JOIN researcher_custom_attributes ca ON ca.researcher_id = r.id'
+        if has_custom_attributes
+        else ''
+    )
+    query = f"""
+        SELECT r.id, {custom_columns},
+            ri.territorio_identidade, ri.carga_horaria
+        FROM researcher r
+        {custom_join}
+        LEFT JOIN researcher_institution ri ON ri.researcher_id = r.id
+            AND ri.institution_id = r.institution_id
+        WHERE r.id = ANY(:researcher_ids)
+    """
+    result = await session.execute(
+        text(query),
+        {'researcher_ids': [UUID(str(rid)) for rid in researcher_ids]},
+    )
+    return result.mappings().all()
 
 
 async def get_researcher_filter(session):

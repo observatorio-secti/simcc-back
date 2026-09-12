@@ -32,12 +32,16 @@ services:
   api:
     build: .
     image: ${COMPOSE_PROJECT_NAME}
-    entrypoint: ./entrypoint.sh
+    entrypoint: ["/bin/sh", "/app/entrypoint.sh"]
     ports:
       - "127.0.0.1:${API_PORT}:8000"
     env_file:
       - .env
     environment:
+      URL: ${URL}
+      OPENAI_API_KEY: ${OPENAI_API_KEY}
+      CORS_ALLOW_ORIGINS: '["*"]'
+      ALTERNATIVE_CNPQ_SERVICE: ${ALTERNATIVE_CNPQ_SERVICE}
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/${COMPOSE_PROJECT_NAME}
       ADMIN_DATABASE_URL: postgresql+asyncpg://postgres:postgres@simcc-admin-db:5432/${COMPOSE_PROJECT_NAME}_admin
       REDIS_URL: redis://redis:6379/0

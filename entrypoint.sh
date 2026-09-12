@@ -1,7 +1,8 @@
 #!/bin/sh
+set -e
 
-# Executa as migrações do banco de dados
+# Run database migrations before starting the API.
 alembic upgrade head
 
-# Inicia a aplicação
-fastapi run src/simcc --host 0.0.0.0 --workers 4 
+# Replace the shell process so container signals reach FastAPI.
+exec fastapi run src/simcc --host 0.0.0.0 --workers 4

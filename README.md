@@ -228,6 +228,29 @@ A suíte de testes utiliza **Pytest**, **Testcontainers** e **FactoryBoy**, orga
   ```
 
 ---
+### Comandos de Scripts
+
+#### Importação de docentes por instituição
+**Opções da CLI:**
+
+| Opção | Obrigatória | Descrição |
+| --- | --- | --- |
+| `--file` ou `-f` | Sim | Caminho do arquivo CSV ou `.xlsx`. Use aspas quando houver espaços. |
+| `--inst` | Sim | Sigla cadastrada no banco e em `INSTITUTION_FORMATS`, como `EBMSP` ou `UFOB`. |
+| `--dry-run` | Não | Consulta o banco e o ViaCEP e gera o relatório sem gravar alterações no banco. |
+
+**Simular a importação:** substitua os caminhos dos exemplos pelos arquivos recebidos.
+
+```powershell
+poetry run python scripts/ingest/ingest_researcher_affiliations.py --inst EBMSP --file "storage/docentes_ebmsp.csv" 
+poetry run python scripts/ingest/ingest_researcher_affiliations.py --inst UFOB --file "storage/docentes_ufob.xlsx" 
+```
+
+**Gravar os dados:** execute o mesmo comando sem `--dry-run`.
+
+```powershell
+poetry run python scripts/ingest/ingest_researcher_affiliations.py --inst EBMSP --file "storage/docentes_ebmsp.csv"
+```
 
 ## 🏛️ Estrutura Arquitetural
 

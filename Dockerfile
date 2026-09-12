@@ -44,7 +44,9 @@ COPY alembic.ini .
 COPY entrypoint.sh .
 COPY storage ./storage
 
-RUN useradd --create-home appuser && \
+RUN sed -i 's/\r$//' entrypoint.sh && \
+    chmod +x entrypoint.sh && \
+    useradd --create-home appuser && \
     mkdir -p storage/xml/zip storage/xml/current storage/openalex/researcher storage/openalex/article logs && \
     chown -R appuser:appuser /app
 
