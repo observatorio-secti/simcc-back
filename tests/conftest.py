@@ -1,4 +1,5 @@
 import os
+
 import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
@@ -171,24 +172,16 @@ async def async_client(
 
 
 @pytest.fixture
-def live_client(settings, engine):
+def live_planner(settings):
     """
-    TestClient para testes E2E reais conectados à API da OpenAI.
-    Sobrescreve apenas a sessão do banco de dados.
+    Instância real do QueryPlanner conectada à API da OpenAI para testes ai_live.
     """
-    if not settings.OPENAI_API_KEY:
-        pytest.skip('OPENAI_API_KEY não configurada')
-
-    async def get_session_override():
-        async_session_factory = sessionmaker(
-            engine, class_=AsyncSession, expire_on_commit=False
+    api_key = os.getenv('OPENAI_API_KEY') or settings.OPENAI_API_KEY
+    if not api_key or api_key.startswith('dummy'):
+        pytest.skip(
+            'OPENAI_API_KEY real não configurada (definida como dummy ou ausente)'
         )
-        async with async_session_factory() as s:
-            yield s
 
-    app.dependency_overrides[get_async_session] = get_session_override
+    from simcc.ai.query_planner import QueryPlanner
 
-    with TestClient(app) as test_client:
-        yield test_client
-
-    app.dependency_overrides.clear()
+    return QueryPlanner(api_key=api_key)

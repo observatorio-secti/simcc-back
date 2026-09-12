@@ -57,10 +57,44 @@ sequenceDiagram
 ## 🧠 Estágios Detalhados
 
 ### 1. Planejador de Consultas (`QueryPlanner`)
-O usuário expressa sua dúvida de forma livre (ex: *"Quais pesquisadores da UFBA atuam com biotecnologia marinha?"*). O `QueryPlanner` traduz essa intenção em uma estrutura semântica [`QueryPlan`](file:///home/jaspion/Observatorio/Simcc/simcc-back/src/simcc/ai/query_planner.py):
-* **Intenção**: Identifica se a busca foca em pesquisadores (`researcher_search`), produções (`production_search`) ou conversa geral (`general_chat`).
-* **Termos Conceituais**: Isola a expressão semântica para geração de embeddings (`"biotecnologia marinha"`).
-* **Filtros Relacionais**: Extrai restrições categóricas, como siglas de instituições (`["UFBA"]`) ou tipos de produção (`["PATENT", "ARTICLE"]`).
+O usuário expressa sua dúvida de forma livre em linguagem natural. O [`QueryPlanner`](file:///home/jaspion/Observatorio/Simcc/simcc-back/src/simcc/ai/query_planner.py) traduz essa intenção em uma estrutura semântica validada pelo Pydantic ([`QueryPlan`](file:///home/jaspion/Observatorio/Simcc/simcc-back/src/simcc/ai/query_planner.py#L32-L42)) utilizando saída estruturada (*Structured Outputs*) via LangChain e modelo `gpt-4o-mini` com temperatura zero.
+
+A estrutura é composta por:
+* **`intent`**: Classificação taxonômica da intenção do usuário;
+* **`semantic_query`**: Termos conceituais higienizados para geração de embeddings (removendo saudações e siglas de instituições já filtradas);
+* **`filters`**: Objeto [`SearchFilters`](file:///home/jaspion/Observatorio/Simcc/simcc-back/src/simcc/ai/query_planner.py#L8-L30) contendo restrições categóricas, institucionais, temporais e espaciais aplicadas no SQL relacional.
+
+#### Classificação de Intenções (`intent`)
+
+| Intenção (`intent`) | Descrição e Comportamento | Exemplo de Consulta |
+|:---|:---|:---|
+| `researcher_search` | Busca temático-institucional para localizar ou comparar pesquisadores por área, competência ou instituição. | *"Quais pesquisadores da UNEB trabalham com linguística?"* |
+| `production_search` | Busca focada em produções científicas e tecnológicas (artigos, livros, patentes, softwares, relatórios). | *"Quais patentes e registros foram desenvolvidos na UFBA?"* |
+| `researcher_profile` | Perfil acadêmico, biografia científica ou trajetória de um indivíduo específico. | *"Quem é Eduardo Manuel de Freitas Jorge e quais são suas áreas de atuação?"* |
+| `aggregation` | Consultas analíticas, volumétricas e estatísticas sobre o ecossistema de dados. | *"Quantos artigos foram publicados na Bahia em 2023?"* |
+| `general_question` | Saudações, apresentações institucionais ou dúvidas gerais sobre as funcionalidades do SIMCC. | *"Olá MarIA, como você pode me ajudar a explorar a ciência baiana?"* |
+
+#### Filtros Estruturados (`SearchFilters`)
+
+| Campo | Tipo | Descrição | Exemplos Aceitos |
+|:---|:---|:---|:---|
+| `institutions` | `List[str]` | Lista de siglas ou nomes de instituições mencionadas na consulta. | `["UFBA"]`, `["UNEB", "UEFS"]`, `["UFRB"]`, `["UESB"]` |
+| `researcher_name` | `Optional[str]` | Nome específico do pesquisador quando a consulta é direcionada a um indivíduo. | `"Eduardo Manuel de Freitas Jorge"`, `"Adilson"` |
+| `production_types` | `List[str]` | Lista de tipos específicos de produção catalogados (vazio busca em todas). | `["ARTICLE"]`, `["PATENT"]`, `["BOOK", "BOOK_CHAPTER"]` |
+| `city` | `Optional[str]` | Polo municipal ou cidade do Estado da Bahia mencionada. | `"Salvador"`, `"Feira de Santana"`, `"Ilhéus"` |
+| `year_from` | `Optional[int]` | Ano inicial para recorte temporal da busca. | `2019`, `2024` |
+| `year_to` | `Optional[int]` | Ano final para recorte temporal da pesquisa. | `2023`, `2026` |
+
+#### Tipos de Produção Suportados (`production_types`)
+
+| Tipo (`production_type`) | Descrição | Termos Comuns Identificados |
+|:---|:---|:---|
+| `ARTICLE` | Artigos publicados em periódicos científicos | *"artigos", "papers", "publicações"* |
+| `BOOK` | Livros completos publicados | *"livros", "obras completas"* |
+| `BOOK_CHAPTER` | Capítulos de livros e coletâneas | *"capítulos de livros", "capítulos publicados"* |
+| `PATENT` | Patentes e registros de propriedade intelectual | *"patentes", "invenções", "propriedade intelectual"* |
+| `SOFTWARE` | Programas de computador e sistemas registrados | *"softwares", "programas", "sistemas"* |
+| `REPORT` | Relatórios técnicos e de pesquisa | *"relatórios técnicos", "relatórios de projetos"* |
 
 ### 2. Busca Vetorial Híbrida (`AISearchService`)
 Integrada ao PostgreSQL 17 utilizando a extensão **`pgvector`**:

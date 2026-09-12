@@ -198,7 +198,6 @@ class MariaService:
                 if plan.intent in {
                     'researcher_search',
                     'researcher_profile',
-                    'researcher_comparison',
                     'aggregation',
                 }:
                     researchers = (
@@ -224,7 +223,7 @@ class MariaService:
 
             # 3. Síntese
             async with tracer.trace_stage('synthesis'):
-                if plan.intent in {'thematic_chat', 'general_question'}:
+                if plan.intent == 'general_question':
                     synthesis_prompt = build_synthesis_prompt(
                         query=query,
                         intent=plan.intent,
@@ -309,7 +308,6 @@ class MariaService:
                 if plan.intent in {
                     'researcher_search',
                     'researcher_profile',
-                    'researcher_comparison',
                     'aggregation',
                 }:
                     researchers = (
@@ -355,7 +353,7 @@ class MariaService:
 
             # 4. Síntese / Emissão de Deltas
             async with tracer.trace_stage('synthesis'):
-                if plan.intent in {'thematic_chat', 'general_question'}:
+                if plan.intent == 'general_question':
                     synthesis_prompt = build_synthesis_prompt(
                         query=query,
                         intent=plan.intent,

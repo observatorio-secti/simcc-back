@@ -159,13 +159,13 @@ async def test_maria_service_chat_stream_empty_results_fallback(
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-async def test_maria_service_thematic_chat_without_db_search(
+async def test_maria_service_general_question_without_db_search(
     mock_llm_provider, mock_embeddings_provider
 ):
     mock_planner = AsyncMock()
     mock_planner.plan.return_value = QueryPlan(
-        intent='thematic_chat',
-        semantic_query='aprendizado por reforço',
+        intent='general_question',
+        semantic_query='',
         filters=SearchFilters(),
     )
 
@@ -177,12 +177,12 @@ async def test_maria_service_thematic_chat_without_db_search(
 
     response = await service.chat_ask(
         session=mock_session,
-        query='Como funciona o aprendizado por reforço profundo?',
+        query='Olá! Como você pode me ajudar?',
         planner=mock_planner,
         search_service=mock_search,
     )
 
-    assert response.intent == 'thematic_chat'
+    assert response.intent == 'general_question'
     assert len(response.researchers) == 0
     assert len(response.productions) == 0
     assert 'Resposta simulada da MarIA' in response.answer

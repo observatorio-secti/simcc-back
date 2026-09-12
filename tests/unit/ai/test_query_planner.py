@@ -17,11 +17,11 @@ def test_search_filters_defaults():
 def test_query_plan_valid_structure():
     """Valida instanciação e serialização de QueryPlan."""
     plan = QueryPlan(
-        intent='researcher_comparison',
+        intent='researcher_search',
         semantic_query='tecnologia e inovação',
         filters=SearchFilters(institutions=['UFBA', 'UNEB']),
     )
-    assert plan.intent == 'researcher_comparison'
+    assert plan.intent == 'researcher_search'
     assert len(plan.filters.institutions) == 2
 
     data = plan.model_dump()

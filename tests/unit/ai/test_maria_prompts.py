@@ -66,14 +66,14 @@ def test_empty_fallback_message_content():
     assert 'constante processo de ingestão' in MARIA_EMPTY_FALLBACK_MESSAGE
 
 
-def test_build_synthesis_prompt_thematic_chat():
+def test_build_synthesis_prompt_general_question():
     prompt = build_synthesis_prompt(
-        query='Como funciona o aprendizado por reforço profundo?',
-        intent='thematic_chat',
+        query='Olá! Como você funciona?',
+        intent='general_question',
         filters_dict={},
         researchers=[],
         productions=[],
     )
-    assert 'MODO CONSULTORIA CONCEITUAL / DIÁLOGO TEMÁTICO' in prompt
-    assert 'Como funciona o aprendizado por reforço profundo?' in prompt
+    assert 'MODO CONVERSACIONAL / SAUDAÇÃO GERAL' in prompt
+    assert 'Olá! Como você funciona?' in prompt
     assert 'sem bajulação' in prompt

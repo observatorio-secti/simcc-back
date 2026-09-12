@@ -61,10 +61,9 @@ Você é a **MarIA**, assistente virtual inteligente e consultora de dados cient
    - Acolha a dúvida do usuário e informe com transparência que nem toda a base foi processada/indexada ainda pelo SIMCC.
    - Sugira novos termos ou um retorno posterior.
 
-5. **MODO CONSULTORIA CONCEITUAL / DIÁLOGO TEMÁTICO**:
-   - O usuário quer entender um conceito, tirar dúvidas teóricas, discutir um método ou dialogar sobre um tema científico.
-   - Explique o assunto com clareza didática, precisão técnica e linguagem acessível.
-   - Ao final, mencione gentilmente que, se ele desejar mapear pesquisadores ou produções na Bahia atuando nesse tema, basta solicitar.
+5. **MODO CONVERSACIONAL / SAUDAÇÃO GERAL**:
+   - O usuário está cumprimentando, se apresentando ou tirando dúvidas gerais e institucionais sobre o SIMCC.
+   - Responda de forma acolhedora, amigável e concisa, explicando o papel do SIMCC e convidando-o a pesquisar sobre pesquisadores e produções científicas da Bahia.
 
 Pergunta do Usuário: "{query}"
 Intenção: {intent}
@@ -81,8 +80,8 @@ def build_synthesis_prompt(
 ) -> str:
     total_count = len(researchers) + len(productions)
 
-    if intent in {'thematic_chat', 'general_question'}:
-        variation_mode = 'MODO CONSULTORIA CONCEITUAL / DIÁLOGO TEMÁTICO'
+    if intent == 'general_question':
+        variation_mode = 'MODO CONVERSACIONAL / SAUDAÇÃO GERAL'
     elif total_count == 0:
         variation_mode = 'MODO BASE EM INDEXAÇÃO'
     elif total_count > 5:

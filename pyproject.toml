@@ -68,6 +68,7 @@ quote-style = 'single'
 pythonpath = ["src", "."]
 addopts = "-m 'not ai_live' -p no:warnings"
 timeout = "60"
+env_files = [".env"]
 markers = [
     "unit: testes unitários rápidos e isolados com mocks",
     "integration: testes de integração com banco de dados",
@@ -76,7 +77,10 @@ markers = [
 
 [tool.taskipy.tasks]
 run = 'fastapi dev src/simcc --reload-dir "src/simcc"'
+
 test = 'pytest -s -x --cov=src/simcc'
+test_live = 'pytest -o addopts="" -s -x -v -m ai_live --cov=src/simcc'
+
 cov = 'coverage html'
 deploy = 'ssh gmcosta@172.16.0.243 -p 30507 -i ~/.ssh/id_ed25519 "cd /opt/simcc/simcc-back && git pull && cd .. && docker compose up --build -d --force-recreate api"'
 
@@ -91,5 +95,6 @@ dev = [
     "testcontainers[postgres] (>=4.14.2,<5.0.0)",
     "mkdocs (>=1.6.1,<2.0.0)",
     "mkdocs-material (>=9.7.6,<10.0.0)",
-    "respx (>=0.23.1,<0.24.0)"
+    "respx (>=0.23.1,<0.24.0)",
+    "pytest-dotenv (>=0.5.2,<0.6.0)"
 ]
