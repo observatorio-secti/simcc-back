@@ -66,9 +66,9 @@ def process_rating_row(row, programs_map):
         return None, 'Erro: Código do programa vazio ou ausente'
 
     if not rating or not str(rating).strip():
-        return None, 'Erro: Nota do programa vazia ou ausente'
-
-    rating_str = str(rating).strip()
+        rating_str = 'Não informado'
+    else:
+        rating_str = str(rating).strip()
 
     if code not in programs_map:
         return None, 'Ignorado: Programa não cadastrado no banco'
