@@ -64,4 +64,5 @@ nav:
       - Arquitetura e Pipeline: ai_architecture.md
       - Cache Distribuído e Telemetria: cache_and_telemetry.md
       - Contratos de API e Streaming: api_contracts.md
+      - Metodologia de Testes e Golden Dataset: ai_testing_and_dataset.md
   - Observabilidade e OpenTelemetry: observability.md

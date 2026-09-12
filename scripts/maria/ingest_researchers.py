@@ -4,10 +4,11 @@ import os
 import sys
 from typing import Optional
 
+from pathlib import Path
+
 # Ajusta o path para importar os módulos internos corretamente
-sys.path.append(
-    os.path.abspath(os.path.join(os.path.dirname(__file__), '../../src'))
-)
+project_root = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(project_root / 'src'))
 
 from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine

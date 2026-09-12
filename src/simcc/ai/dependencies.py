@@ -1,9 +1,11 @@
 from fastapi import Depends
 
 from simcc.ai.providers.openai_provider import OpenAIProvider
+from simcc.ai.query_planner import QueryPlanner
 from simcc.ai.telemetry.tracer import AITracer
 from simcc.core.cache import CacheService, get_redis_client
 from simcc.core.dependencies import get_settings
+from simcc.services.ai_search_service import AISearchService
 
 
 def get_llm_provider(settings=Depends(get_settings)):
@@ -15,7 +17,6 @@ def get_embeddings_provider(settings=Depends(get_settings)):
 
 
 def get_query_planner(settings=Depends(get_settings)):
-    from simcc.ai.query_planner import QueryPlanner
 
     return QueryPlanner(api_key=settings.OPENAI_API_KEY)
 
@@ -40,8 +41,6 @@ def get_ai_search_service(
     embeddings_provider=Depends(get_embeddings_provider),
     settings=Depends(get_settings),
 ):
-    from simcc.services.ai_search_service import AISearchService
-
     return AISearchService(
         embeddings_provider=embeddings_provider,
         cosine_distance_threshold=settings.AI_COSINE_DISTANCE_THRESHOLD,
