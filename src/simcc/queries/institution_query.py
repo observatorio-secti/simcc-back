@@ -112,9 +112,9 @@ class RtMetricsQuery(BaseQuery):
     def build_sql(self) -> str:
         if self.entity_type == 'researcher':
             return """
-                SELECT work_regime AS rt, COUNT(*) AS count
-                FROM researcher_custom_attributes
-                WHERE work_regime IS NOT NULL AND work_regime != ''
+                SELECT workload::TEXT AS rt, COUNT(*) AS count
+                FROM researcher_institution
+                WHERE workload IS NOT NULL
                 GROUP BY rt
             """
         return """

@@ -107,22 +107,10 @@ class BaseProductionQuery(BaseQuery):
         self.filters_sql.append(' AND i.name = ANY(:institution)')
 
     def _apply_dep_id_filter(self, value):
-        self.joins['departament'] = f"""
-            LEFT JOIN researcher_custom_attributes rca ON rca.researcher_id = {self.table_alias}.{self.researcher_id_col}
-        """
-        self.params['dep_id'] = value
-        self.filters_sql.append(
-            " AND (rca.custom_attributes->>'department' = :dep_id OR rca.custom_attributes->>'dep_id' = :dep_id)"
-        )
+        pass
 
     def _apply_departament_filter(self, value):
-        self.joins['departament'] = f"""
-            LEFT JOIN researcher_custom_attributes rca ON rca.researcher_id = {self.table_alias}.{self.researcher_id_col}
-        """
-        self.params['departament'] = value.split(';')
-        self.filters_sql.append(
-            " AND (rca.custom_attributes->>'department' = ANY(:departament) OR rca.custom_attributes->>'dep_nom' = ANY(:departament))"
-        )
+        pass
 
     def _apply_group_id_filter(self, value):
         self.joins['group'] = """

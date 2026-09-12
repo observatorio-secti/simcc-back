@@ -188,14 +188,7 @@ class GraduateProgramArticleProductionQuery(BaseQuery):
         )
 
     def _apply_dep_id_filter(self, value):
-        self.joins['departament'] = """
-            LEFT JOIN researcher_custom_attributes rca
-            ON rca.researcher_id = r.id
-            """
-        self.params['dep_id'] = value
-        self.filters_sql.append(
-            "AND (rca.custom_attributes->>'department' = :dep_id OR rca.custom_attributes->>'dep_id' = :dep_id)"
-        )
+        pass
 
     def _apply_year_filter(self, value):
         self.params['year'] = int(value)

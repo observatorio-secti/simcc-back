@@ -12,8 +12,8 @@ class ResearcherInstitution:
     __tablename__ = 'researcher_institution'
     __table_args__ = (
         CheckConstraint(
-            'carga_horaria >= 0 AND carga_horaria <= 168',
-            name='ck_researcher_institution_carga_horaria',
+            'workload >= 0 AND workload <= 168',
+            name='ck_researcher_institution_workload',
         ),
     )
 
@@ -23,9 +23,12 @@ class ResearcherInstitution:
     institution_id: Mapped[UUID] = mapped_column(
         ForeignKey('institution.id', ondelete='CASCADE'), primary_key=True
     )
-    territorio_identidade: Mapped[Optional[str]] = mapped_column(
+    identity_territory: Mapped[Optional[str]] = mapped_column(
         String, default=None
     )
-    carga_horaria: Mapped[Optional[float]] = mapped_column(
+    workload: Mapped[Optional[float]] = mapped_column(
         Numeric(5, 2, asdecimal=False), default=None
+    )
+    city_id: Mapped[Optional[UUID]] = mapped_column(
+        ForeignKey('city.id', ondelete='SET NULL'), default=None
     )

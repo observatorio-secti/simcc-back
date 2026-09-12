@@ -1,0 +1,554 @@
+﻿linha;status;motivo;researcher_id;universidade;institution_id;identity_territory;workload;city_id
+2;atualizado;;263ada97-e2af-4b8b-9d72-32a6f482f26c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+3;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+4;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+5;atualizado;;e0d63a15-b0ca-4f3a-be5d-6734a31940eb;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+6;atualizado;;6ac4e99c-6902-46d7-87e6-c78394ffa210;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;13.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+7;atualizado;;325b0da7-f45d-4fb4-83bf-590f2d55e4d5;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;34.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+8;atualizado;;8a1de59b-e94d-4b7b-afed-5aafda4f34d3;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;27.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+9;atualizado;;cefcc2f0-56be-45dd-a8c5-970c8bc1625b;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;32.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+10;atualizado;;9f95e9b9-c1d0-4e83-a39d-fbd137203228;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+11;atualizado;;898f0c2a-c329-44bd-9ef7-8f88888fc687;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+12;atualizado;;521bdfcf-fde7-487e-a294-ca69041ad5a5;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+13;atualizado;;563f2d51-6f13-49d2-ac17-9b789a42fa81;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+14;atualizado;;3bacc91b-96ce-4988-91b5-29767325dd0c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+15;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+16;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+17;atualizado;;48f77802-0676-4cf4-bf9e-4057331e206e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+18;atualizado;;3992a325-cef6-4859-94ad-45162b3cbc88;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+19;atualizado;;e535429a-9475-475b-975a-e4785d53f752;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;25.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+20;atualizado;;7a78ecc1-442e-4197-923c-79abf14b4329;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+21;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+22;atualizado;;14e3f819-6176-4ddf-adbf-145bfdfc09f6;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+23;atualizado;;2bfef1ac-dcb4-4888-9f85-937ea8c4788f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+24;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+25;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+26;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+27;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+28;atualizado;;44e77994-efc7-42fd-a8d9-290fb4a1b7aa;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+29;atualizado;;51a9ac34-79d0-4450-90b1-07ad78fa924a;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+30;atualizado;;a101cfdb-5fa1-4813-a329-ee15ff5eacdb;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+31;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+32;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+33;atualizado;;86ec2dea-3bcd-483a-90bb-ea0f4409702b;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+34;atualizado;;96958b42-c205-4197-bb88-a39d92fa0a28;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+35;atualizado;;064dce61-7aa0-4d52-a65f-0e338a902d7e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;14.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+36;atualizado;;dd8e0afb-19ec-4015-ba5d-37144f3ede49;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+37;atualizado;;90699aa4-a534-445e-988f-86747b1ebc86;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+38;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+39;atualizado;;f2c58270-3a1a-49fe-8dd8-1e9b63455595;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+40;atualizado;;5b8fde35-a781-44d7-b0da-4f5499a8b952;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+41;atualizado;;17d9ae59-20f3-41ae-a9bf-ceb0ae1bbc9e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+42;atualizado;;91119024-84f9-4b47-8ead-7ae2aa7bc75b;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+43;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+44;atualizado;;6c98b3e0-d5d9-448c-b416-1df78fb0a920;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+45;atualizado;;4db46b1b-62ec-458c-a26b-89e32eed30b4;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+46;atualizado;;ca3d19fc-197f-41ba-b16b-143763bc2e3c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+47;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+48;atualizado;;be88c851-beb3-46fb-b490-b4415fa142e9;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+49;atualizado;;dc5c1f0c-a37a-45dd-8a97-e8559dc11abd;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+50;atualizado;;cbbf5c14-e70f-4b6a-b9d9-3df5861a26be;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+51;atualizado;;6d7d6250-fa29-4d20-a60a-3a9c9cb4ba9a;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+52;atualizado;;34b9b463-53a7-43df-a520-33bead738749;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+53;atualizado;;15b1afdd-3972-418c-8d83-a52ed7ed124a;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+54;atualizado;;7b2dd2bc-5c16-48ff-81ec-61cfc55fe146;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+55;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+56;atualizado;;2a11d7a8-95a3-45b4-baed-6f3267935c23;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+57;atualizado;;01ae2de7-a6e1-49e0-a234-88b0d734b0d9;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+58;atualizado;;7f4dbe64-5b30-43f1-81d4-12c178b3e3a7;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+59;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+60;atualizado;;532026ab-4329-441f-97ff-d8b529d58ed7;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+61;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+62;atualizado;;57a8cdbf-3314-4fec-8ebb-0909bc863b5f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+63;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+64;atualizado;;6a7a3e6b-b4cf-4992-b0ce-099d165caa25;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;22.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+65;atualizado;;251af5b4-7277-4996-9119-7c5aff4df385;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+66;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+67;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+68;atualizado;;98f748bf-f297-4d8a-b9bb-6c59fde6ee19;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+69;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+70;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+71;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+72;atualizado;;9ddfeeff-5dfe-470c-bec7-f8b550b0303b;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+73;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+74;atualizado;;0c0f0835-fc38-41da-b707-236937f06bcc;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+75;atualizado;;8fc1bc93-f073-4720-ae2d-d86284695101;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+76;atualizado;;1de3f8cb-10eb-496e-a08f-d1372065399a;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+77;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+78;atualizado;;1496becf-fde1-4b4a-b8d5-dfaf9dc666a7;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+79;atualizado;;848e63fb-d4db-4f52-95ea-9428ed04f841;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+80;atualizado;;0cbf65a6-8686-4052-9d92-3615f5b408d0;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+81;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+82;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+83;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+84;atualizado;;62f64f78-dfd1-48f6-b1d9-b1130ae91f88;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+85;atualizado;;bac04160-d414-40e6-836b-44f6854b85c8;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+86;atualizado;;7914b8ae-8073-4ffa-8c90-64d795005de8;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+87;atualizado;;56e9cb3f-99b6-4c07-b9d5-e1fac4b000b1;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+88;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+89;atualizado;;1ad31e80-4d7e-4c87-b38a-f13461ac94ba;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+90;atualizado;;87b95b7f-3af2-42f0-b4c3-5df8f46d7270;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+91;atualizado;;755fe1ac-299c-48a1-ac4c-d8d1a1e0c208;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+92;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+93;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+94;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+95;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+96;atualizado;;807fdc53-c8bb-4514-b0ad-39c583d6466d;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+97;atualizado;;e838a513-176f-4c29-a222-10e74943e843;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+98;atualizado;;8141face-6cae-4a36-a01a-9ca35c05db5d;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+99;atualizado;;56b9bba8-0817-48e3-98ef-7c46e1c2d4bd;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+100;atualizado;;f4d275a0-e293-4d98-aa5c-2216bddaa38f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+101;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+102;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+103;atualizado;;ae7563d2-31c3-4933-9b00-784b9a7037fa;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+104;atualizado;;1efac7ce-ee40-48b9-b9ed-83c5ae3ef5e6;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+105;atualizado;;9e54e102-fb57-4aec-9971-12e3b89a3fc6;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+106;atualizado;;977ba1c0-f776-4553-97fd-07660ec9b18c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+107;atualizado;;66c4d554-03a9-4c4b-881b-ce89f206867f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+108;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+109;atualizado;;b78c6b3f-d8ac-4d0f-bf74-5f074c2bc19d;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+110;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+111;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+112;atualizado;;bdf1efe8-4c62-4d1a-83ba-e6f8641aef14;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;35.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+113;atualizado;;6f48a2f4-652b-4a41-b00b-29312ca4a719;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+114;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+115;atualizado;;1ff52f66-419a-4a2c-bdd8-210ae0d3d86b;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+116;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+117;atualizado;;3cdc575a-d4a8-42a1-86e3-22d7b8d587d1;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+118;atualizado;;b5ed4718-9116-4d8d-9b7b-bb3c99b454b7;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;27.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+119;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+120;atualizado;;3e4ededb-aa0b-4d2b-b140-f3ade93b659e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+121;atualizado;;9fb5d872-1987-4d34-a035-dad4789f25d6;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+122;atualizado;;2b5189fd-09e9-4d99-85a4-6c3913a312bd;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+123;atualizado;;742d9f18-4498-420b-ab57-f1f4e40f1324;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+124;atualizado;;9f3cda42-ea79-46dd-be1d-98a2a30379d2;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+125;atualizado;;f85dcf2c-7793-4aa2-9cb0-bb8ab63f0609;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+126;atualizado;;67d5c95f-ca28-47d6-b566-4b0051b7e35d;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;14.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+127;atualizado;;5482eec4-425b-4d49-9b8b-beab663f74cf;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;31.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+128;atualizado;;e4f1c34a-0774-4745-b657-478616739e9e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+129;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+130;atualizado;;2cf0c8bf-7920-4818-89d8-7004d58024c9;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+131;atualizado;;f6c8e486-3ed7-4c19-8c76-502316a3a87d;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+132;atualizado;;a17ffeb8-9e1b-4af5-a133-aeb42297f879;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+133;atualizado;;b13e5f5c-37bc-4aff-b620-cba49aaf41da;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+134;atualizado;;9cb41f0a-ed52-41fd-bcbe-c1d384e5105f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+135;atualizado;;9dc72898-f882-4ee0-99f7-80ed6155533b;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+136;atualizado;;7a422630-d090-442b-9e62-b79d81e4d869;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+137;atualizado;;7fdbdd2f-4a93-4ae5-bbd2-ff9bdc9fdf9b;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+138;atualizado;;1e9ab3b1-e803-4f78-bdd8-a333dbc6492d;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+139;atualizado;;ea786444-8985-4592-b5b0-57782ca22fe3;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;27.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+140;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+141;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+142;atualizado;;159b3006-0893-49c4-aee4-7da47ef401d2;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+143;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+144;atualizado;;a06afd38-5bc4-44d8-967c-5c3d9508c478;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+145;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+146;atualizado;;34c3253c-500d-40ec-8854-80b9fd3b475f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+147;atualizado;;d79d5267-3919-4880-9db3-75b2bcbe80ae;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+148;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+149;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+150;atualizado;;0b10fc1b-d112-4c0e-b1cf-3a7d4f9f9099;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+151;atualizado;;91453850-3f15-403f-88bc-b72714248622;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+152;atualizado;;a04d8cbb-bfdf-4635-8200-33c4396820d2;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+153;atualizado;;532198e0-36f3-4d55-8c9f-c2e972bfb101;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+154;atualizado;;b1c515bb-c11b-4199-ae6e-bb5568cea0ae;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+155;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+156;atualizado;;a8b7d555-f68d-4eab-8eaa-caa64ed2e22f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+157;atualizado;;216c0dc4-ebb6-4e9d-8153-84f8ee83e9da;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+158;atualizado;;54e5094b-44f1-4de6-a9d6-19a0a3c3a53a;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+159;atualizado;;670d287a-7e0c-4dc3-a894-f7ab34b1ca7c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+160;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+161;atualizado;;b37edf9b-5928-443c-a144-105e30bb7afa;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+162;atualizado;;b15bab83-2fd3-45d5-b48c-13474265c618;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+163;atualizado;;4d56de1b-20c9-41e6-b344-eb9e430e850e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+164;atualizado;;a8451604-301e-49e6-82f7-99391da7dbd4;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+165;atualizado;;2fec4ef0-55fd-45ae-802f-7297922a4fcc;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+166;atualizado;;d42786e6-4763-43a9-ad26-7161df187553;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;31.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+167;atualizado;;bcf4e32a-a513-4e03-b4b0-2efee81e3c92;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+168;atualizado;;efb4aa07-98bd-4f18-a6c7-ef4629f7f0c5;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+169;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+170;atualizado;;2a7752aa-cd04-4fc9-a3b3-f532c5dafec9;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+171;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+172;atualizado;;d06818f3-2376-449a-ab7e-2aeac6a28ee2;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+173;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+174;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+175;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+176;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+177;atualizado;;5a2bcc8a-82bd-477c-a11f-5e29df7a6f23;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+178;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+179;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+180;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+181;atualizado;;5201ae97-316d-4adb-9bbf-567d34ec6987;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+182;atualizado;;687b81ee-32e5-4fe2-a8eb-0cef72aff1fd;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+183;atualizado;;93307a3a-4aaf-4214-a3c9-d1a5304f7611;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;25.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+184;atualizado;;97a3e14c-5832-485a-a086-d48e5dcb8802;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+185;atualizado;;6be4885f-a3ee-4f74-ae30-12a1e630a8aa;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+186;atualizado;;91a65961-9ddf-4de3-be90-4007cd5c8094;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+187;atualizado;;c2c482a7-a077-4042-a6f2-fd689f2a5399;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+188;atualizado;;a6d24457-dcf6-4799-9259-b182b2c0ad33;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+189;atualizado;;873a884b-b0fc-4355-b95f-121de59c7616;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+190;atualizado;;2af94cee-99fa-4a69-aa0c-d2e22fc47664;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+191;atualizado;;2b344733-0c42-481b-b031-f5b879c4cb61;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+192;atualizado;;b4f5099b-385d-4c1b-8559-2459468efb60;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+193;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+194;atualizado;;78b7532f-fa53-4ed0-8564-2b1f3419d843;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+195;atualizado;;f4bca1cf-e990-4467-8dc3-4bc3bbcc4aa3;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+196;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+197;atualizado;;65a4441f-8949-4f23-a6af-7b67625d155e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+198;atualizado;;89449a92-8fdc-448c-adf6-76296726160e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+199;atualizado;;793ce229-9cb6-41e8-affc-c38610086345;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+200;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+201;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+202;atualizado;;60bd9e1e-ce7c-4c63-9aec-05f62f9e681d;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+203;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+204;atualizado;;667d2b7d-d7f3-4e9d-ab9d-587fb7a90230;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+205;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+206;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+207;atualizado;;6c559a9d-cc01-4e0d-9952-6846b17acaf9;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+208;atualizado;;f0617b7d-4770-4323-b23b-585b16c526c3;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+209;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+210;atualizado;;6a0afb82-c241-4d36-ad3b-cf3ec0b67517;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+211;atualizado;;a9b4ec0c-6b57-4b07-b713-32e099428ca5;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+212;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+213;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+214;atualizado;;6f8d4c46-c9fe-4ca8-9ba4-6843e90d2248;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+215;atualizado;;509437ce-174b-41a2-a3ca-3b21228ba946;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+216;atualizado;;3316d8cc-d9d9-4b05-a4ef-7cb7b8db4081;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;24.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+217;atualizado;;7bb91d8b-784b-4e30-afc8-d248d85d05cf;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;38.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+218;atualizado;;636c2bf3-ee1e-4849-9644-224fcc12f5b0;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+219;atualizado;;b8f91323-56dc-4f2e-b4d6-24e4464ca7fb;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+220;atualizado;;ae3cd7d7-71cb-4d58-a5a6-3972512aa0f1;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+221;atualizado;;7943e0ec-540c-4fb7-b423-3c5735b73862;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+222;atualizado;;6fa70717-7893-4267-bf25-3b8455cdc3bc;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+223;atualizado;;8c9038e3-aade-4c82-8e37-f8b7545d00c5;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+224;atualizado;;7d2e4134-d914-41ef-85b4-be6c5111e7b2;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+225;atualizado;;ae11ad1f-8500-4b80-ae62-6143c2f3af1c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;26.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+226;atualizado;;ca389cf9-8bf1-4381-8de3-8caae1db9c26;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+227;atualizado;;d63cce32-a2d0-45d0-a92a-4dbd8958a504;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+228;atualizado;;ebfce896-d770-49bb-965e-4b36c4649641;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+229;atualizado;;1d5e7220-f6ba-40c2-8a3e-ed8c1e41d072;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;14.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+230;atualizado;;b8ed3700-f45e-40ef-bd09-4f38cd2f239f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+231;atualizado;;ff764ef2-8371-4e91-b678-31cf1d7b51e0;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+232;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+233;atualizado;;a8a1a145-e08b-46b0-8167-ad1fc7403c4c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+234;atualizado;;4328f94e-e961-4326-8200-06d7a9a10416;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+235;atualizado;;9a114407-abfe-4b8c-950b-bbe96b6896bf;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+236;atualizado;;c00fb293-7dad-48ce-8455-646ee372b224;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+237;atualizado;;43ddcf06-dc6f-42f1-908d-41108731e457;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;15.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+238;atualizado;;ca8736ec-71bd-44e6-9174-39710a99ba7a;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+239;atualizado;;a1f405b4-44ed-4337-ba94-6e21dd380f5b;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+240;atualizado;;8a15b3d7-a51f-4b97-9a90-584a746a0555;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+241;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+242;atualizado;;243fc45a-a88d-4c00-92c7-e2fdc4ea93ea;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+243;atualizado;;925a9bde-d498-4feb-8c9b-3b62bab5ff18;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+244;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+245;atualizado;;540a3d38-44fc-4aae-8e66-9973b3ae68ee;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+246;atualizado;;947d6980-0df1-4bb5-8091-e7d395df10da;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+247;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+248;atualizado;;2c4e71f1-5a5f-41f6-8600-85c27fd4499d;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+249;atualizado;;5ec443d8-b177-4361-9e8d-83135608bff3;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+250;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+251;atualizado;;600b090e-641e-440a-83bc-8a9e87d0bd71;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+252;atualizado;;39fe5f81-657f-45fa-8a77-6a9bad1e2557;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+253;atualizado;;84cd50fa-f6fa-467b-9ef9-7006a8c5d7a5;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+254;atualizado;;577f8149-ad1b-4dd1-9a30-7eb6012d21c8;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+255;atualizado;;d2d543ce-d1ad-4771-a2f0-5250634892c6;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+256;atualizado;;6fbd2a96-f00a-40a9-b0a5-6a2cf28eb575;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+257;atualizado;;4625b2c4-7f5b-4487-8dac-c83cc882b5fa;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+258;atualizado;;e0d3a6a9-57ea-428e-95df-74876f1a1e2f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+259;atualizado;;56d512ae-4108-4bac-a0ab-aa8662765b42;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+260;atualizado;;7daa3441-1979-4fcb-b816-48884fe78fb2;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+261;atualizado;;9231e5cd-396e-4a93-9b89-8138fcabe663;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;23.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+262;atualizado;;bd9d88da-c6fc-494c-b84e-a93d6fe978cd;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;38.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+263;atualizado;;c7559e82-44a6-44d6-af09-b14055d720b3;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+264;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+265;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+266;atualizado;;82f472e9-eb25-44f4-8667-b65f1c418356;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;35.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+267;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+268;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+269;atualizado;;f94e2644-a065-4368-bd2b-612c3b4838ef;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+270;atualizado;;2ad86805-29b9-440a-81df-acafe189a44f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+271;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+272;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+273;atualizado;;4a776659-ed43-4634-81b7-92110a01a79d;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+274;atualizado;;b5c978b7-d059-4d5e-91f6-377846a2c882;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+275;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+276;atualizado;;9c27eb2e-deff-4489-a445-9963ae4848e6;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+277;atualizado;;85c61380-10b7-47f1-911a-2530979d1c31;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+278;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+279;atualizado;;4985d4d7-4c0c-441e-a713-a522025783d3;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;27.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+280;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+281;atualizado;;c91bfc1c-3bc4-4d0e-bb38-bc2408fef9be;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+282;atualizado;;312adafa-fa93-4136-9d14-b92fc51b0a35;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+283;atualizado;;472ad7a0-a8f1-44b5-897e-4d48849bcc86;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+284;atualizado;;2c15ac0a-8102-487d-82e3-a71fb807af5e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;36.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+285;atualizado;;10dd3367-21ad-4426-8dea-ce78b45206f7;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;25.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+286;atualizado;;a0cf0a35-b066-4455-af9a-fdae66730257;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+287;atualizado;;855b0588-142f-47df-b883-3891fa26a3de;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+288;atualizado;;2a23cabb-570c-456b-b6c3-3bf382b31790;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+289;atualizado;;5c7a809c-f969-4e95-b4eb-05dba7f75636;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;14.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+290;atualizado;;15bf25ba-d6ad-43fd-b14a-43b0cc725639;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+291;atualizado;;3c04ec95-98a9-436b-b042-b6d7a1bc378b;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+292;atualizado;;63379291-1306-45e0-aaad-62eb708b8216;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;36.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+293;atualizado;;417f5e0b-55ce-440c-a7a6-ed6442689042;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+294;atualizado;;6e6f7a12-cd02-4436-915f-aa5ac1ee9541;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+295;atualizado;;fa3d437f-6038-47d1-8df0-c6cc0ce57013;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+296;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+297;atualizado;;d583db4a-2e12-42c3-8f7c-3e4b0cddddfa;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+298;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+299;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+300;atualizado;;e0b97ee5-f6a2-4a49-8fb8-3fc20e87f635;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+301;atualizado;;d1c9b67e-790b-41c4-b97e-7c1025f6928b;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+302;atualizado;;2a2256b2-15cb-47a1-8268-fe54c5e03e1d;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+303;atualizado;;5fdf343f-5997-4944-86dc-f6eb1baa79d2;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;38.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+304;atualizado;;0cdee653-4336-4ba6-9b2e-85559e1cfe6e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+305;atualizado;;57f278ce-c2bf-47c2-b48f-485eccdd9b93;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;15.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+306;atualizado;;92bb6ada-e194-4779-b843-8af7e9af972f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+307;atualizado;;9a10bf26-df9f-42ed-ad55-e9cd117f4044;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+308;atualizado;;369053ac-b434-40d5-92d8-8c2ce3bd46df;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+309;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+310;atualizado;;447c14d0-55d8-4ca3-bf99-7250384de926;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+311;atualizado;;4d41a3d0-b67d-424e-bc42-6ed2f0165b28;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+312;atualizado;;b2d9eb8e-88b0-4a15-9ed4-0e971e9fb575;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+313;atualizado;;9c0bd20c-d849-4fe5-9e28-4f5d068aaac9;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+314;atualizado;;25edd3cc-553a-49ee-9931-176cf99992d1;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+315;atualizado;;0ba8fcc2-ca58-4228-896f-c48ea0b0c743;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;34.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+316;atualizado;;0061c9f4-aa84-4414-8526-53066b33a45a;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+317;atualizado;;b8116958-d551-4b38-aabb-9ab24b1306d7;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+318;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+319;atualizado;;9c089cfe-7ea1-409d-809a-087345c33fe8;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;33.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+320;atualizado;;07a12d11-cb79-4265-850f-87e5da6a5a1e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+321;atualizado;;4c9ea695-ca81-4f70-b398-62980373f2ff;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+322;atualizado;;d77dc264-7e73-49b4-918b-f8ec62b65ab3;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+323;atualizado;;bf9d7c34-2be0-4f9f-9e44-e3f1187dd719;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+324;atualizado;;2c16b6b3-f7a5-40e9-a89a-38cb3b381b95;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+325;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+326;atualizado;;ab1c4879-0546-4fac-b399-f99028e523b5;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+327;atualizado;;1195a247-e989-4d92-8dfc-161576ea66ed;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;27.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+328;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+329;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+330;atualizado;;7683c3cb-bfaa-4b79-968d-d1d2d0b7863c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+331;atualizado;;d392370e-e90f-40fc-8ddd-a3163795acc3;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;22.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+332;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+333;atualizado;;11c1b1f9-8fcf-4b3d-a240-1e061e4bddaf;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+334;atualizado;;4b7aa1b7-9dbd-4eae-b176-0ab90117a95d;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+335;atualizado;;337cdb00-6655-450d-b3df-a95cc58fd667;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+336;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+337;atualizado;;300e75d3-c872-47d8-83fa-38a922c1c3d7;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+338;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+339;atualizado;;45da4988-f3d9-4aaf-9408-83319aa38512;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+340;atualizado;;19b20cec-91d0-4a42-b315-02456a170fe9;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+341;atualizado;;d1c8d403-58e6-435c-82e0-951112aeebcf;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+342;atualizado;;003acf2d-db95-4ac0-9f26-4f25a3c765a7;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+343;atualizado;;1d7bd5ea-e239-45f5-9bd7-1bac4d0a1bda;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+344;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+345;atualizado;;29418dc0-1b0e-47fd-a53e-35a370b39051;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+346;atualizado;;cabeb70a-7dd5-458c-aea7-178532986f2a;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+347;atualizado;;5cffce8f-4947-41e3-b36f-7ded608ab419;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+348;atualizado;;4555c5d6-39cb-4d77-b62d-cc054c69cf65;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+349;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+350;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+351;atualizado;;3b879bc4-e78a-43e1-b27f-dde77b00d017;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+352;atualizado;;aa42ff03-7280-449c-ad86-69ca27c3be2c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+353;atualizado;;b232418c-4845-49ec-bcb3-bed6e5d24587;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+354;atualizado;;f11af7dc-57ee-4c70-8ad0-e46010f6edbc;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+355;atualizado;;a1dcd4c2-aa6a-4746-bab8-1a6b1119373c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+356;atualizado;;7933817e-8d2b-488d-92ec-a438a9d246c0;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+357;atualizado;;1c00ca0a-6bb4-437f-8340-d079c2d52dbe;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+358;atualizado;;b3ac66e4-901b-44b3-958d-a0545432b42e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+359;atualizado;;7aca3151-2b38-4284-b346-2b55df383864;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+360;atualizado;;6352223d-0d3d-4e28-a8a9-b4d1396d9e9e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+361;atualizado;;d20714e7-e4da-4862-914d-c928924fbf2a;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+362;atualizado;;e48fcb6d-b739-428a-bd7f-345e6306ed06;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+363;atualizado;;5f0a7e62-c592-4452-b7bf-ef04a3433ed9;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+364;atualizado;;6a9dfe38-5e84-4de1-a46f-854aca59d80a;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;36.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+365;atualizado;;cd3f3bd9-a5bf-4bd3-9088-36ec329fe920;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+366;atualizado;;ee594083-c75c-43d9-937e-940e5e67a88b;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+367;atualizado;;9379e679-fa11-4a58-8cc2-9eedc82b5951;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+368;atualizado;;4bd90b5e-cbf9-4320-933c-0db041bb180b;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+369;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+370;atualizado;;896ecb9c-5cc8-4bda-af9e-bf8ff191c4b8;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+371;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+372;atualizado;;2afffa10-1689-44dd-838f-9d25b30faf2a;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+373;atualizado;;34b9c559-e8df-4ee1-99e3-ec0704ce4c75;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;38.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+374;atualizado;;e8bad306-baac-4cbd-8593-07c765da049d;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+375;atualizado;;a8d6a30a-07cb-40c3-b739-89940f7ba8e0;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+376;atualizado;;c6b575dc-6ad4-4fc7-8c8a-52fe52fdf03c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+377;atualizado;;3ffe232d-d86c-4368-8544-1bdcd2d0ab7c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+378;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+379;atualizado;;3dedffc3-e835-4a92-8c5b-8e37a3c7927c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+380;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+381;atualizado;;5c293268-e68b-4922-8228-09cd8be82bf7;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;32.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+382;atualizado;;2127d077-841e-47e0-b846-431021028817;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+383;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+384;atualizado;;038f6c08-5585-4a53-a695-ed0ab1b6a100;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;27.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+385;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+386;atualizado;;7fe3285d-b05f-466a-9882-f680491b2a36;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+387;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+388;atualizado;;606b1844-7174-44e9-a313-d6b1cfeaf48e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+389;atualizado;;4bf9a219-6692-4c4a-bf69-27c329905157;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+390;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+391;atualizado;;85b17fbc-609b-45d5-8e6b-b64c46acaf16;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+392;atualizado;;e236e8ba-0c54-458f-b4d1-b61d0367d5a1;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;36.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+393;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+394;atualizado;;0efc1428-e2d7-4c16-aba5-639650dcdb70;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+395;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+396;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+397;atualizado;;befb1e42-ec2a-43e5-bf74-dd94a3284956;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;31.6;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+398;atualizado;;d66f2277-2833-476f-905c-7a6b6aa8d7b6;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+399;atualizado;;f8177fe8-10b4-4e4f-b544-5b075d6ba9e3;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+400;atualizado;;25718915-c94a-4c27-bd43-8ed3e3b60106;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+401;atualizado;;ff525502-f3f3-4c73-9296-f243189cf8a7;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+402;atualizado;;f9460a1c-b3de-4db9-9ae0-a8d74e779302;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;22.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+403;atualizado;;98319b86-b92b-422c-8aee-931d837851f4;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+404;atualizado;;4c6d7152-4cc0-44e4-8e75-b2ba43f80540;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+405;atualizado;;e1ba0429-0f84-48c4-b8c7-3026254e62ac;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;18.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+406;atualizado;;6abbf2c8-9201-45a3-b8ab-416ed2f87a67;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;14.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+407;atualizado;;34a37bcb-c6be-4efa-8952-d0762e88fe02;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+408;atualizado;;37754d08-e6b9-4e10-8dd2-4294d917cfbf;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+409;atualizado;;f9301994-d397-49f5-af85-c5f467edab43;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+410;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+411;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+412;atualizado;;67a8d912-3c7d-44bc-ab95-d142b0c4c091;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+413;atualizado;;0ca72f33-dd6f-48b8-9c08-fd489585dc2c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+414;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+415;atualizado;;b3fffb61-651e-4dc9-aa51-6e9873b49bd0;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+416;atualizado;;70f88038-39e6-456c-984a-034dc0b50de4;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+417;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+418;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+419;atualizado;;62a76a66-5fdb-4957-90f1-5ce51821f942;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;25.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+420;atualizado;;e000e39c-b92c-4ba8-b901-1c10c2dd5331;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;18.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+421;atualizado;;d642ee0e-48af-4e84-aa42-69d3f1d41d58;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+422;atualizado;;f655bed7-74b0-40fd-96f6-3ef35273da94;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+423;atualizado;;6f5ff679-5098-4ce6-a18b-8a131d65cc39;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+424;atualizado;;40274f89-f585-48ba-a853-04edf33c10bd;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+425;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+426;atualizado;;11ba7d26-d990-46d9-b163-2628dc5988c1;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+427;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+428;atualizado;;2fd48cff-120f-4335-932a-f12b827a3c9c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+429;atualizado;;e586306c-0e57-4300-8408-53fefbc8b8ce;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;28.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+430;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+431;atualizado;;c50abc0a-80bf-4583-a4f9-60fd9567c496;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+432;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+433;atualizado;;087ec449-8f24-465e-ba69-fa562fe46679;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;32.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+434;atualizado;;3fc9dcc1-21ad-4669-a65b-84fe01b7dc70;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+435;atualizado;;d89decfb-1bb4-41cf-a37f-d78e93124711;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;15.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+436;atualizado;;49e46a9c-5eed-444f-bad1-4b6b08e1e0b2;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;14.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+437;atualizado;;91639568-4572-4b92-9c57-a52a501f005b;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+438;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+439;atualizado;;34ecdcc7-d740-47c7-85e4-93cfc7672009;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+440;atualizado;;0b6762e1-29ae-430e-929b-4afa215b847a;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+441;atualizado;;e1f62e3d-a759-42c6-9c60-a945d9c4532f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+442;atualizado;;0ab87fbf-c16c-4f02-aff4-11f4fb732b6b;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+443;atualizado;;de1d4741-7bbf-447a-9ea3-18d190435053;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;27.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+444;atualizado;;605086f1-e5d6-4d12-b3d2-7a879adf835c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+445;atualizado;;87ed575d-23f4-4fc9-941a-318450f5cb31;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+446;atualizado;;849a4913-d653-4bd7-b042-776bc4cd749c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+447;atualizado;;81d296fa-15ac-4174-a54a-ee4da11c84ce;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+448;atualizado;;7073b70a-0ee2-4a40-91a6-0221f4df25fc;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+449;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+450;atualizado;;4f416343-2c92-4213-9812-faf8c914f271;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+451;atualizado;;3f83f54f-73cf-434a-b75b-fbdd4411c36e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+452;atualizado;;9f4de4e0-77d2-4e50-8194-be1ff3851181;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+453;atualizado;;168f8ddc-9b1b-43a7-bb20-203045b8c306;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+454;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+455;atualizado;;f4d55064-8fb1-4d58-b63b-a3cd665a3259;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+456;atualizado;;77be78f1-3781-4e99-8bdd-f4cad179cb76;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+457;atualizado;;dd4adc98-e438-4af9-a676-4b77b4d723ad;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+458;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+459;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+460;atualizado;;8d325ffe-fe16-46aa-b732-14572b7568c4;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+461;atualizado;;7435d39e-bf7b-47d8-9476-f6e04846c76f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+462;atualizado;;06e23ab0-e9cb-49d3-a6d9-d6b87d6bf1c9;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+463;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+464;atualizado;;5a5c51a1-32b9-4d36-8330-7bd4cb70dba0;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+465;atualizado;;a4e9bea8-20dc-4de5-a273-e35c65de79b7;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+466;atualizado;;ceac9a68-7d4b-4b3a-b82d-e61a4aac6fb8;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+467;atualizado;;179a16ab-5127-4d64-9500-5a202730de60;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+468;atualizado;;df4a0634-9637-4900-b55a-d054da7c405e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+469;atualizado;;c6ffe1c2-22bd-450a-a2b1-b7ca0fd87fdc;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;34.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+470;atualizado;;cdcc166b-0137-4d3d-93dd-7114946a9005;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+471;atualizado;;e4189d26-7290-49a8-bc24-f162fa772ef3;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;16.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+472;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+473;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+474;atualizado;;a22b295d-90c8-498b-94a5-08e8a8615152;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+475;atualizado;;b86043a5-4eb4-44cf-8934-48c71a4d7deb;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+476;atualizado;;5125bfd0-d55e-47e3-be1b-f90b191d810e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+477;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+478;atualizado;;b6353ce5-c966-4eb3-8850-565252a821a3;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+479;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+480;atualizado;;e388ecaf-1b52-4f21-8621-96d9a1d4c44f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;34.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+481;atualizado;;a5a33eba-1014-410f-b804-dab565f5a645;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+482;atualizado;;b6f298fe-345b-463a-9dd2-68db2bc69458;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+483;atualizado;;9e5e0109-85f5-4d70-8d5e-c3af7076e1df;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+484;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+485;atualizado;;6767b0e0-8d04-4b74-a153-b37f69602656;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+486;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+487;atualizado;;c045ddc9-4a90-4699-861a-2ae594904fd9;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+488;atualizado;;d152ee1d-da2c-4f86-9489-9179efa89f15;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+489;atualizado;;b59f5ccc-71b8-4cd2-b475-b187d75b20c5;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+490;atualizado;;5e2789e3-e139-4e93-9b88-4624e08a5a52;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+491;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+492;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+493;atualizado;;106245e3-c7b5-41a3-888d-97faee8b2d79;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+494;atualizado;;823be988-7d97-48e6-bdc1-36ff1f12f36c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+495;atualizado;;b7d393fe-bff1-477e-b268-7dc2378f538d;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;14.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+496;atualizado;;b7341575-d1cd-4f7f-a6c4-07b79c1dd18e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+497;atualizado;;a2e24f10-c832-4908-975b-7ea6be3fc66c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+498;atualizado;;68455284-a400-4244-8413-d68f5a59cab2;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+499;atualizado;;29fd4b9b-5739-40b6-80c4-2030dcca1508;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+500;atualizado;;9d7a8e47-fc3d-43e5-a21d-a3d64e05ecf9;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;36.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+501;atualizado;;df13b4df-dfa4-4192-b29b-cb9b9f38f54d;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+502;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+503;atualizado;;7c4d6b9b-66ba-44e1-a2ac-c349cac72d81;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+504;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+505;atualizado;;ab568c0f-76b8-4534-a5b9-939d2ba6c710;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;18.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+506;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+507;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+508;atualizado;;7a160c40-49c6-479c-bdeb-3dc4d247a090;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+509;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+510;atualizado;;12eea5b8-1372-4d87-a038-92399ed19f31;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+511;atualizado;;62ccf5f7-293c-460c-98bd-70d6be25bb18;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+512;atualizado;;9451b6a7-2169-402d-846a-c0faaeeb68b6;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+513;atualizado;;85675cca-28f2-41bc-9fcc-980367b02b72;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+514;atualizado;;4450150f-1ee4-429a-9f1a-be55105c4067;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;38.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+515;atualizado;;da01f7f4-a10c-4ba3-a8d7-c6d6afa1eb7d;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;15.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+516;atualizado;;55419862-eb84-449d-809d-8bd77d3f60f7;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+517;atualizado;;8b99a158-55ed-4f1a-8d10-1f5b370723f5;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+518;atualizado;;a518f65b-e220-4aa3-ab34-a27d3e3f60f8;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+519;atualizado;;437d3153-39d9-4aad-ad95-a4722fccd74c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+520;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+521;atualizado;;225c01d3-4282-4bfa-9235-073c68970e2f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+522;atualizado;;4a0dfd83-2b34-4623-af83-62284b1894df;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+523;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+524;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+525;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+526;atualizado;;45b3603b-cafb-401e-abee-1d5caa6e49b3;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+527;atualizado;;b33bd3b1-76ec-4969-a6aa-29ecfd358e6e;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+528;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+529;atualizado;;a92d1638-1ebb-4df4-94d4-6ab2c9b152f8;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;16.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+530;atualizado;;eba99982-f81e-4f6c-ac51-6ad2c59d113f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+531;atualizado;;9b319839-e869-4f4b-85ca-d1ac1565164f;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+532;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+533;atualizado;;644fc9bd-e138-4546-9cef-14962984ed4c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+534;atualizado;;2da4151d-59c5-4f5f-ab41-4a0f48246faa;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+535;atualizado;;90ce774b-fa54-4d81-844d-101c57bfc152;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+536;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+537;atualizado;;ed7c6991-cca1-43fe-a947-41d8cc6f8487;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+538;atualizado;;ea376990-0645-422d-bcfa-97a8006e5bc2;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+539;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+540;atualizado;;8728429f-db7c-463a-91e5-fd0ae3896f4a;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+541;atualizado;;4d756c87-590e-48f6-bb3d-fa4777108a2c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+542;atualizado;;70f369ba-da26-47b9-a431-2dbb0e12d9d9;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+543;atualizado;;ea649cb1-46d1-4c6a-97cd-8eebf3852e78;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+544;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+545;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+546;atualizado;;b07eb76a-b220-450b-a3db-55ed0c60c987;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;24.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+547;atualizado;;8d486207-a315-4cb7-8665-8cba727018f6;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;40.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+548;atualizado;;604ee871-4839-4ae4-8cce-e464104fe8ac;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;12.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+549;ignorado;Pesquisador nao encontrado no banco de dados.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+550;atualizado;;71fb40cd-0b78-428f-adf5-59156672a974;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;32.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+551;ignorado;Pesquisador vinculado a outra universidade.;;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;;;
+552;atualizado;;e1387062-fd47-43e5-b2b1-13759188e33a;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+553;atualizado;;f3bc208d-6b5e-44f6-aa6b-e256e98ce64c;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;30.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6
+554;atualizado;;6be1c79e-cf4d-42e4-8f54-ddb6eb6f9e47;EBMSP;dc6b3b63-2ada-49cb-bbca-f888ff31d56b;METROPOLITANA DE SALVADOR;20.0;f1b0b08a-eb05-45bf-99c0-69bd9b2a82a6

@@ -230,26 +230,35 @@ A suíte de testes utiliza **Pytest**, **Testcontainers** e **FactoryBoy**, orga
 ---
 ### Comandos de Scripts
 
-#### Importação de docentes por instituição
+#### Importação de vínculos de pesquisadores / docentes (`ingest_researcher_affiliations.py`)
+
+O script realiza o vínculo institucional (`researcher_institution`), registrando `workload` (carga horária semanal), `identity_territory` (território de identidade) e `city_id` (resolvido via ViaCEP ou nome do município). Ele suporta execução individual por instituição ou processamento automático em lote.
+
 **Opções da CLI:**
 
 | Opção | Obrigatória | Descrição |
 | --- | --- | --- |
-| `--file` ou `-f` | Sim | Caminho do arquivo CSV ou `.xlsx`. Use aspas quando houver espaços. |
-| `--inst` | Sim | Sigla cadastrada no banco e em `INSTITUTION_FORMATS`, como `EBMSP` ou `UFOB`. |
-| `--dry-run` | Não | Consulta o banco e o ViaCEP e gera o relatório sem gravar alterações no banco. |
+| *(Nenhum argumento)* | - | Executa o processamento em lote para todas as instituições configuradas (`EBMSP`, `UFOB`, `UFRB`) usando os arquivos em `storage/researchers/`. |
+| `--file` ou `-f` | Condicional | Caminho do arquivo CSV ou `.xlsx` da instituição. |
+| `--inst` | Condicional | Sigla cadastrada no banco (`EBMSP`, `UFOB`, `UFRB`). |
+| `--dry-run` | Não | Consulta o banco e o ViaCEP e gera o relatório CSV sem gravar alterações. |
 
-**Simular a importação:** substitua os caminhos dos exemplos pelos arquivos recebidos.
+**Execução em lote (todas as instituições):**
 
-```powershell
-poetry run python scripts/ingest/ingest_researcher_affiliations.py --inst EBMSP --file "storage/docentes_ebmsp.csv" 
-poetry run python scripts/ingest/ingest_researcher_affiliations.py --inst UFOB --file "storage/docentes_ufob.xlsx" 
+```bash
+# Simulação em lote
+poetry run python scripts/ingest/ingest_researcher_affiliations.py --dry-run
+
+# Gravação real no banco em lote
+poetry run python scripts/ingest/ingest_researcher_affiliations.py
 ```
 
-**Gravar os dados:** execute o mesmo comando sem `--dry-run`.
+**Execução para instituição individual:**
 
-```powershell
-poetry run python scripts/ingest/ingest_researcher_affiliations.py --inst EBMSP --file "storage/docentes_ebmsp.csv"
+```bash
+poetry run python scripts/ingest/ingest_researcher_affiliations.py --inst EBMSP --file "storage/researchers/ebmsp.csv"
+poetry run python scripts/ingest/ingest_researcher_affiliations.py --inst UFOB --file "storage/researchers/ufob.csv"
+poetry run python scripts/ingest/ingest_researcher_affiliations.py --inst UFRB --file "storage/researchers/ufrb.csv"
 ```
 
 ## 🏛️ Estrutura Arquitetural

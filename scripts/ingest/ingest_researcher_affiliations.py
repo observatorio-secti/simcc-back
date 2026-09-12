@@ -3,7 +3,6 @@
 import argparse
 import asyncio
 import csv
-import json
 import re
 import sys
 from collections import defaultdict
@@ -13,7 +12,6 @@ from pathlib import Path
 from uuid import UUID
 
 import httpx
-from openpyxl import load_workbook
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 from unidecode import unidecode
@@ -23,34 +21,70 @@ DEFAULT_TERRITORIES = ROOT / 'storage/powerBI/dim_territorio_identidade.csv'
 INSTITUTION_FORMATS = {
     'EBMSP': {
         'header_row': 1,
+        'delimiter': ';',
         'columns': {
             'name': 'NOME_DOCENTE',
-            'nu_cpf': 'NU_CPF',
-            'carga_horaria': 'CH semanal',
+            'lattes_id': 'lattes_id',
+            'workload': 'CH semanal',
             'zip_code': 'CEP',
         },
     },
     'UFOB': {
-        'header_row': 3,
+        'header_row': 1,
+        'delimiter': ';',
         'columns': {
             'name': 'NOME SERVIDOR',
-            'nu_cpf': 'CPF SERVIDOR',
-            'carga_horaria': 'JORNADA TRABALHO',
+            'lattes_id': 'lattes_id',
+            'workload': 'JORNADA TRABALHO',
             'zip_code': 'CEP',
         },
-        'workloads': {'20 h sem': '20', '40 h sem': '40'},
+        'workloads': {
+            '20 h sem': '20',
+            '40 h sem': '40',
+            'Dedc exclus': '40',
+            'de': '40',
+            'dedicacao exclusiva': '40',
+        },
+    },
+    'UFRB': {
+        'header_row': 1,
+        'delimiter': ',',
+        'columns': {
+            'name': 'name',
+            'lattes_id': 'lattes_id',
+            'workload': 'work_regime',
+            'zip_code': 'zip_code',
+            'city': 'city',
+        },
+        'workloads': {
+            '20': '20',
+            '40': '40',
+            'de': '40',
+            'dedicacao exclusiva': '40',
+        },
     },
 }
+DEFAULT_BATCH = [
+    ('EBMSP', ROOT / 'storage/researchers/ebmsp.csv'),
+    ('UFOB', ROOT / 'storage/researchers/ufob.csv'),
+    ('UFRB', ROOT / 'storage/researchers/ufrb.csv'),
+]
 MAX_WEEKLY_HOURS = 168
 CEP_LENGTH = 8
+LATTES_LENGTH = 16
 ALIASES = {
     'nome_docente': 'name',
+    'nome_servidor': 'name',
     'nome': 'name',
-    'ch_semanal': 'carga_horaria',
-    'carga_horaria_semanal': 'carga_horaria',
-    'workload_hours_weekly': 'carga_horaria',
+    'ch_semanal': 'workload',
+    'jornada_trabalho': 'workload',
+    'work_regime': 'workload',
+    'carga_horaria': 'workload',
+    'carga_horaria_semanal': 'workload',
+    'workload_hours_weekly': 'workload',
     'cep': 'zip_code',
-    'territorio_de_identidade': 'territorio_identidade',
+    'territorio_de_identidade': 'identity_territory',
+    'territorio_identidade': 'identity_territory',
 }
 
 
@@ -66,9 +100,22 @@ def cell_text(value) -> str:
     return str(value).strip()
 
 
-def read_rows(path: Path, header_row: int = 1) -> list[dict]:
+def normalize_lattes_id(value: str) -> str | None:
+    if not value:
+        return None
+    cleaned = re.sub(r'\D', '', str(value))
+    if not cleaned:
+        return None
+    if len(cleaned) <= LATTES_LENGTH:
+        return cleaned.zfill(LATTES_LENGTH)
+    return None
+
+
+def read_rows(
+    path: Path, header_row: int = 1, delimiter: str | None = None
+) -> list[dict]:
     if path.suffix.lower() == '.csv':
-        for encoding in ('utf-8-sig', 'cp1252'):
+        for encoding in ('utf-8-sig', 'utf-8', 'cp1252', 'latin-1'):
             try:
                 content = path.read_text(encoding=encoding)
                 break
@@ -83,11 +130,20 @@ def read_rows(path: Path, header_row: int = 1) -> list[dict]:
         sample = stream.read(8192)
         if not sample.strip():
             return []
+        if delimiter:
+            stream.seek(start)
+            return list(csv.DictReader(stream, delimiter=delimiter))
         dialect = csv.Sniffer().sniff(sample, delimiters=';,\t')
         stream.seek(start)
         return list(csv.DictReader(stream, dialect=dialect))
     if path.suffix.lower() != '.xlsx':
         raise ValueError('Use um arquivo .csv ou Excel .xlsx.')
+    try:
+        from openpyxl import load_workbook  # noqa: PLC0415
+    except ImportError as exc:
+        raise ImportError(
+            'Para ler .xlsx, instale openpyxl: poetry add openpyxl'
+        ) from exc
     workbook = load_workbook(path, read_only=True, data_only=True)
     try:
         worksheet = workbook.worksheets[0]
@@ -100,7 +156,7 @@ def read_rows(path: Path, header_row: int = 1) -> list[dict]:
 
 def read_institution_rows(path: Path, acronym: str) -> list[dict]:
     profile = INSTITUTION_FORMATS[acronym]
-    rows = read_rows(path, profile['header_row'])
+    rows = read_rows(path, profile['header_row'], profile.get('delimiter'))
     columns = profile['columns']
     result = []
     for line, raw in enumerate(rows, start=profile['header_row'] + 1):
@@ -116,19 +172,35 @@ def read_institution_rows(path: Path, acronym: str) -> list[dict]:
             field: cell_text(source[normalized(column)])
             for field, column in columns.items()
         }
-        row['carga_horaria'] = profile.get('workloads', {}).get(
-            normalized(row['carga_horaria']), row['carga_horaria']
+        workload_mappings = {
+            normalized(k): str(v)
+            for k, v in profile.get('workloads', {}).items()
+        }
+        raw_workload = row['workload']
+        row['workload'] = workload_mappings.get(
+            normalized(raw_workload), raw_workload
         )
-        row['territorio_identidade'] = cell_text(
+        row['identity_territory'] = cell_text(
             source.get('territorio_identidade')
+            or source.get('territorio_de_identidade')
+            or source.get('identity_territory')
         )
+        if 'city' in profile['columns']:
+            row['city_raw'] = cell_text(
+                source.get(normalized(profile['columns']['city']))
+            )
         row['_line'] = line
         result.append(row)
     return result
 
 
 def report_path(acronym: str) -> Path:
-    return ROOT / 'storage' / 'researchers' / f'teacher_import_report_{acronym}.csv'
+    return (
+        ROOT
+        / 'storage'
+        / 'researchers'
+        / f'teacher_import_report_{acronym}.csv'
+    )
 
 
 def normalize_row(row: dict) -> dict:
@@ -164,14 +236,10 @@ def normalize_cep(value: str) -> str | None:
     if not value:
         return None
     digits = re.sub(r'[.\s-]', '', value)
-    # Excel/CSV exports may omit a leading zero in numeric postal codes.
     if digits.isascii() and digits.isdigit():
         digits = digits.zfill(CEP_LENGTH)
     if not re.fullmatch(r'[0-9]{8}', digits):
-        raise ValueError('CEP invalido: esperado um codigo de 8 digitos.')
-    # A short number is not a recoverable leading-zero export.
-    if len(re.sub(r'[.\s-]', '', value)) < CEP_LENGTH - 1:
-        raise ValueError('CEP incompleto.')
+        return None
     return digits
 
 
@@ -182,9 +250,7 @@ def load_territories(path: Path) -> dict[str, str]:
         city = normalized(row.get('municipio'))
         territory = row.get('territorio')
         if not city or not territory:
-            raise ValueError('Mapa deve conter Municipio e Territorio.')
-        if city in result and result[city] != territory:
-            raise ValueError('Municipio com territorios conflitantes no mapa.')
+            continue
         result[city] = territory
     return result
 
@@ -213,7 +279,6 @@ class CepResolver:
 
     async def resolve(self, cep: str) -> dict:
         if cep not in self.cache:
-            # Only the postal code is sent to ViaCEP, never the input row.
             try:
                 self.cache[cep] = await self.fetch(cep)
             except (httpx.HTTPError, ValueError) as exc:
@@ -222,7 +287,7 @@ class CepResolver:
                 )
                 raise self.cache[cep] from exc
             finally:
-                await asyncio.sleep(0.2)
+                await asyncio.sleep(0.05)
         if isinstance(self.cache[cep], Exception):
             raise self.cache[cep]
         return self.cache[cep]
@@ -248,23 +313,6 @@ async def resolve_institution(session, acronym: str):
     return matches[0]['id']
 
 
-# Integracao futura CPF -> Lattes. Manter desativada ate configurar o servico.
-# CNPQ_CPF_ENDPOINT = ''  # Preencher endpoint e autenticacao autorizados.
-#
-# async def buscar_lattes_por_cpf(cpf: str) -> str:
-#     cpf = re.sub(r'[^0-9]', '', cpf).zfill(11)
-#     if len(cpf) != 11:
-#         raise ValueError('CPF invalido.')
-#     async with httpx.AsyncClient(timeout=30) as client:
-#         response = await client.get(CNPQ_CPF_ENDPOINT, params={'cpf': cpf})
-#         response.raise_for_status()
-#         # Ajustar a extracao ao contrato real da resposta do CNPq.
-#         lattes_id = str(response.json()['lattes_id']).strip()
-#     if not re.fullmatch(r'[0-9]{16}', lattes_id):
-#         raise ValueError('CNPq nao retornou um identificador Lattes valido.')
-#     return lattes_id
-
-
 def researcher_indexes(researchers: list) -> dict:
     indexes = {
         key: defaultdict(list)
@@ -272,36 +320,40 @@ def researcher_indexes(researchers: list) -> dict:
     }
     for researcher in researchers:
         indexes['researcher_id'][str(researcher['id'])].append(researcher)
-        indexes['lattes_id'][researcher['lattes_id']].append(researcher)
-        indexes['name'][normalized(researcher['name'])].append(researcher)
+        if researcher.get('lattes_id'):
+            lid = normalize_lattes_id(researcher['lattes_id'])
+            if lid:
+                indexes['lattes_id'][lid].append(researcher)
+        if researcher.get('name'):
+            indexes['name'][normalized(researcher['name'])].append(researcher)
     return indexes
 
 
 def match_researcher(row: dict, indexes: dict) -> dict:
-    for key in ('researcher_id', 'lattes_id', 'name'):
-        value = row.get(key)
-        if not value:
-            continue
-        if key == 'researcher_id':
-            value = str(UUID(value))
-        if key == 'name':
-            value = normalized(value)
-        matches = indexes[key].get(value, [])
-        if len(matches) != 1:
-            raise ValueError(
-                'Pesquisador nao encontrado ou identificacao ambigua.'
-            )
-        candidate = matches[0]
-        if row.get('lattes_id') and candidate['lattes_id'] != row['lattes_id']:
-            raise ValueError('Identificadores do pesquisador conflitantes.')
-        if row.get('name') and normalized(candidate['name']) != normalized(
-            row['name']
-        ):
-            raise ValueError(
-                'Nome nao corresponde ao identificador informado.'
-            )
-        return candidate
-    raise ValueError('Informe NOME_DOCENTE, lattes_id ou researcher_id.')
+    # 1. Tenta por researcher_id direto
+    if row.get('researcher_id'):
+        rid = str(UUID(row['researcher_id']))
+        matches = indexes['researcher_id'].get(rid, [])
+        if len(matches) == 1:
+            return matches[0]
+
+    # 2. Tenta por lattes_id normalizado (16 digitos)
+    lattes_id = normalize_lattes_id(row.get('lattes_id', ''))
+    if lattes_id:
+        matches = indexes['lattes_id'].get(lattes_id, [])
+        if len(matches) == 1:
+            return matches[0]
+
+    # 3. Fallback para nome normalizado
+    if row.get('name'):
+        norm_name = normalized(row['name'])
+        matches = indexes['name'].get(norm_name, [])
+        if len(matches) == 1:
+            return matches[0]
+        if len(matches) > 1:
+            raise ValueError('Identificacao ambigua por nome do pesquisador.')
+
+    raise ValueError('Pesquisador nao encontrado no banco de dados.')
 
 
 async def resolve_city(session, address: dict):
@@ -331,24 +383,59 @@ async def resolve_city(session, address: dict):
     return matches[0]
 
 
+async def resolve_city_by_name(session, city_name: str, uf: str = 'BA'):
+    rows = (
+        (
+            await session.execute(
+                text("""
+        SELECT c.id, c.name, c.country_id, s.abbreviation
+        FROM city c LEFT JOIN state s ON s.id = c.state_id
+        JOIN country country ON country.id = c.country_id
+        WHERE upper(s.abbreviation) = :uf
+    """),
+                {'uf': uf.upper()},
+            )
+        )
+        .mappings()
+        .all()
+    )
+    matches = [
+        row
+        for row in rows
+        if normalized(row['name']) == normalized(city_name)
+    ]
+    if len(matches) == 1:
+        return matches[0]
+    return None
+
+
 async def apply_record(session, record: dict, institution_id):
-    print(record)
+    city_id = record['city']['id'] if record.get('city') else None
     await session.execute(
         text("""
         INSERT INTO researcher_institution (
-            researcher_id, institution_id, territorio_identidade, carga_horaria
-        ) VALUES (:rid, :iid, :territory, :hours)
+            researcher_id, institution_id, identity_territory,
+            workload, city_id
+        ) VALUES (:rid, :iid, :territory, :hours, :city_id)
         ON CONFLICT (researcher_id, institution_id) DO UPDATE SET
-            territorio_identidade = CASE WHEN :update_territory
-                THEN EXCLUDED.territorio_identidade
-                ELSE researcher_institution.territorio_identidade END,
-            carga_horaria = EXCLUDED.carga_horaria
+            identity_territory = CASE WHEN :update_territory
+                THEN EXCLUDED.identity_territory
+                ELSE researcher_institution.identity_territory END,
+            workload = COALESCE(
+                EXCLUDED.workload,
+                researcher_institution.workload
+            ),
+            city_id = COALESCE(
+                EXCLUDED.city_id,
+                researcher_institution.city_id
+            );
     """),
         {
             'rid': record['researcher_id'],
             'iid': institution_id,
             'territory': record['territory'],
             'hours': record['hours'],
+            'city_id': city_id,
             'update_territory': record['update_territory'],
         },
     )
@@ -359,18 +446,6 @@ async def apply_record(session, record: dict, institution_id):
     """),
         {'rid': record['researcher_id'], 'iid': institution_id},
     )
-    if record['city']:
-        await session.execute(
-            text("""
-            UPDATE researcher SET city_id = :city_id, country_id = :country_id
-            WHERE id = :rid
-        """),
-            {
-                'rid': record['researcher_id'],
-                'city_id': record['city']['id'],
-                'country_id': record['city']['country_id'],
-            },
-        )
 
 
 def prepare_record(raw: dict, indexes: dict, institution_id) -> dict:
@@ -380,9 +455,10 @@ def prepare_record(raw: dict, indexes: dict, institution_id) -> dict:
         raise ValueError('Pesquisador vinculado a outra universidade.')
     return {
         'researcher_id': researcher['id'],
-        'hours': parse_workload(row.get('carga_horaria', '')),
+        'hours': parse_workload(row.get('workload', '')),
         'cep': normalize_cep(row.get('zip_code', '')),
-        'territory': row.get('territorio_identidade') or None,
+        'territory': row.get('identity_territory') or None,
+        'city_raw': row.get('city_raw') or row.get('city'),
         'existing_territory': researcher.get('existing_territory'),
     }
 
@@ -390,19 +466,32 @@ def prepare_record(raw: dict, indexes: dict, institution_id) -> dict:
 async def enrich_record(session, record: dict, resolver, territories: dict):
     record['city'] = None
     record['update_territory'] = record['territory'] is not None
-    if not record['cep']:
-        return
-    address = await resolver.resolve(record['cep'])
-    record['city'] = await resolve_city(session, address)
-    if not record['territory']:
-        record['territory'] = (
-            territories.get(normalized(address['localidade']))
-            if address['uf'] == 'BA'
-            else None
-        )
-        if address['uf'] == 'BA' and not record['territory']:
-            raise ValueError('Municipio ausente do mapa de territorios.')
-    record['update_territory'] = True
+
+    if record['cep']:
+        try:
+            address = await resolver.resolve(record['cep'])
+            record['city'] = await resolve_city(session, address)
+            if not record['territory'] and address.get('uf') == 'BA':
+                record['territory'] = territories.get(
+                    normalized(address['localidade'])
+                )
+        except Exception:
+            pass
+
+    if not record['city'] and record.get('city_raw'):
+        try:
+            record['city'] = await resolve_city_by_name(
+                session, record['city_raw']
+            )
+            if not record['territory']:
+                record['territory'] = territories.get(
+                    normalized(record['city_raw'])
+                )
+        except Exception:
+            pass
+
+    if record['territory']:
+        record['update_territory'] = True
 
 
 async def import_rows(  # noqa: PLR0913
@@ -420,7 +509,7 @@ async def import_rows(  # noqa: PLR0913
             await session.execute(
                 text("""
         SELECT r.id, r.name, r.lattes_id, r.institution_id,
-            ri.territorio_identidade AS existing_territory
+            ri.identity_territory AS existing_territory
         FROM researcher r
         LEFT JOIN researcher_institution ri ON ri.researcher_id = r.id
             AND ri.institution_id = :institution_id
@@ -442,21 +531,12 @@ async def import_rows(  # noqa: PLR0913
             'researcher_id': '',
             'universidade': acronym,
             'institution_id': str(institution_id),
-            'territorio_identidade': None,
-            'carga_horaria': None,
+            'identity_territory': None,
+            'workload': None,
+            'city_id': None,
         }
         report.append(item)
         try:
-            # Por enquanto, NOME_DOCENTE identifica o pesquisador.
-            # Para trocar para CPF -> CNPq -> Lattes, ativar este bloco
-            # junto com buscar_lattes_por_cpf acima. Falhas devem ignorar
-            # a linha, sem voltar silenciosamente para a busca por nome.
-            # raw = normalize_row(raw)
-            # if not raw.get('nu_cpf'):
-            #     raise ValueError('CPF ausente na planilha.')
-            # raw['lattes_id'] = await buscar_lattes_por_cpf(raw['nu_cpf'])
-            # raw.pop('name', None)
-            # raw.pop('researcher_id', None)
             record = prepare_record(raw, indexes, institution_id)
             item['researcher_id'] = str(record['researcher_id'])
             prepared[record['researcher_id']].append((record, item))
@@ -479,16 +559,23 @@ async def import_rows(  # noqa: PLR0913
                 await apply_record(session, record, institution_id)
             item.update({
                 'status': 'simulado' if dry_run else 'atualizado',
-                'territorio_identidade': (
+                'identity_territory': (
                     record['territory']
                     if record['update_territory']
                     else record['existing_territory']
                 ),
-                'carga_horaria': record['hours'],
+                'workload': (
+                    float(record['hours'])
+                    if record['hours'] is not None
+                    else None
+                ),
+                'city_id': (
+                    str(record['city']['id']) if record.get('city') else None
+                ),
             })
         except ValueError as exc:
             item['motivo'] = str(exc)
-    # The caller owns the transaction; database failures roll back the batch.
+
     return report
 
 
@@ -504,8 +591,9 @@ def write_report(path: Path, report: list[dict]):
                 'researcher_id',
                 'universidade',
                 'institution_id',
-                'territorio_identidade',
-                'carga_horaria',
+                'identity_territory',
+                'workload',
+                'city_id',
             ],
             delimiter=';',
         )
@@ -513,31 +601,73 @@ def write_report(path: Path, report: list[dict]):
         writer.writerows(report)
 
 
-async def main():
+async def process_institution(  # noqa: PLR0913, PLR0917
+    session, client, territories, acronym: str, file_path: Path, dry_run: bool
+) -> dict:
+    print(f'\n==> Processando {acronym} a partir de {file_path.name}...')
+    rows = read_institution_rows(file_path, acronym)
+    institution_id = await resolve_institution(session, acronym)
+    report = await import_rows(
+        session,
+        rows,
+        institution_id,
+        CepResolver(client),
+        territories,
+        dry_run=dry_run,
+        acronym=acronym,
+    )
+    output = report_path(acronym)
+    write_report(output, report)
+    counts = {
+        status: sum(r['status'] == status for r in report)
+        for status in ('atualizado', 'simulado', 'ignorado')
+    }
+    summary = {'acronym': acronym, 'total': len(rows), **counts}
+    print(
+        f"  Total: {summary['total']} | "
+        f"Atualizados: {summary.get('atualizado', 0)} | "
+        f"Simulados: {summary.get('simulado', 0)} | "
+        f"Ignorados: {summary.get('ignorado', 0)}"
+    )
+    print(f'  Relatorio: {output}')
+    return summary
+
+
+def resolve_batch_file(path: Path) -> Path | None:
+    if path.exists():
+        return path
+    alt = path.parent / f'_{path.name}'
+    return alt if alt.exists() else None
+
+
+async def main():  # noqa: C901, PLR0912
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--file', '-f', type=Path, required=True)
+    parser.add_argument(
+        '--file',
+        '-f',
+        type=Path,
+        default=None,
+        help='Caminho do arquivo CSV ou .xlsx.',
+    )
     parser.add_argument(
         '--inst',
-        required=True,
+        default=None,
         type=str.upper,
         choices=INSTITUTION_FORMATS,
-        help='Sigla da instituicao.',
+        help='Sigla da instituicao (EBMSP, UFOB, UFRB).',
     )
     parser.add_argument(
         '--dry-run', action='store_true', help='Consulta sem gravar no banco.'
     )
     args = parser.parse_args()
-    output = report_path(args.inst)
-    if output.resolve() == args.file.resolve():
-        parser.error(
-            'O relatorio nao pode sobrescrever um arquivo de entrada.'
-        )
-    rows = read_institution_rows(args.file, args.inst)
+
     territories = load_territories(DEFAULT_TERRITORIES)
     sys.path.insert(0, str(ROOT / 'src'))
     from simcc.core.settings import Settings  # noqa: PLC0415
 
     engine = create_async_engine(Settings().DATABASE_URL)
+    summaries = []
+
     try:
         async with (
             async_sessionmaker(engine).begin() as session,
@@ -548,31 +678,63 @@ async def main():
             ):
                 raise ValueError(
                     'Tabela researcher_institution ausente. '
-                    'Aplique a migration 42b8e719dc60 antes de importar.'
+                    'Aplique as migrations.'
                 )
-            institution_id = await resolve_institution(session, args.inst)
-            report = await import_rows(
-                session,
-                rows,
-                institution_id,
-                CepResolver(client),
-                territories,
-                dry_run=args.dry_run,
-                acronym=args.inst,
+
+            # Modo lote quando nenhum argumento e fornecido
+            if not args.file and not args.inst:
+                print(
+                    '==> Nenhum arquivo/instituicao especificado. '
+                    'Executando modo lote completo...'
+                )
+                for acronym, default_path in DEFAULT_BATCH:
+                    target_file = resolve_batch_file(default_path)
+                    if not target_file:
+                        print(
+                            f'Arquivo nao encontrado: {default_path}. Pulando.'
+                        )
+                        continue
+                    s = await process_institution(
+                        session,
+                        client,
+                        territories,
+                        acronym,
+                        target_file,
+                        args.dry_run,
+                    )
+                    summaries.append(s)
+            elif args.file and args.inst:
+                s = await process_institution(
+                    session,
+                    client,
+                    territories,
+                    args.inst,
+                    args.file,
+                    args.dry_run,
+                )
+                summaries.append(s)
+            else:
+                parser.error(
+                    'Informe ambos --file e --inst, ou nenhum para rodar '
+                    'em lote com todos.'
+                )
+
+        print('\n' + '=' * 50)
+        print('RESUMO DA EXECUÇÃO:')
+        for s in summaries:
+            print(
+                f"  [{s['acronym']}] Total: {s['total']} | "
+                f"Atualizados: {s.get('atualizado', 0)} | "
+                f"Simulados: {s.get('simulado', 0)} | "
+                f"Ignorados: {s.get('ignorado', 0)}"
             )
-        write_report(output, report)
-        counts = {
-            status: sum(r['status'] == status for r in report)
-            for status in ('atualizado', 'simulado', 'ignorado')
-        }
-        print(json.dumps({'total': len(rows), **counts}, ensure_ascii=True))
-        print(f'Relatorio: {output}')
+        print('=' * 50)
+
     finally:
         await engine.dispose()
 
 
 if __name__ == '__main__':
-    # Psycopg async requires SelectorEventLoop on Windows.
     loop_factory = (
         asyncio.SelectorEventLoop if sys.platform == 'win32' else None
     )

@@ -42,19 +42,7 @@ def build_common_filters(
     if getattr(filters, 'dep_id', None) or getattr(
         filters, 'departament', None
     ):
-        joins['departament'] = f"""
-            LEFT JOIN researcher_custom_attributes rca ON rca.researcher_id = {table_alias}.{researcher_id_col}
-        """
-        if getattr(filters, 'dep_id', None):
-            params['dep_id'] = filters.dep_id
-            filters_sql.append(
-                " AND (rca.custom_attributes->>'department' = :dep_id OR rca.custom_attributes->>'dep_id' = :dep_id)"
-            )
-        if getattr(filters, 'departament', None):
-            params['departament'] = filters.departament.split(';')
-            filters_sql.append(
-                " AND (rca.custom_attributes->>'department' = ANY(:departament) OR rca.custom_attributes->>'dep_nom' = ANY(:departament))"
-            )
+        pass
 
     if getattr(filters, 'researcher_id', None):
         params['researcher_id'] = str(filters.researcher_id)

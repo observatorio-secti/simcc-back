@@ -594,22 +594,10 @@ class ResearcherSearchQuery(BaseQuery):
         self.distinct_value = value
 
     def _apply_dep_id_filter(self, value):
-        self.joins['departament'] = """
-            LEFT JOIN researcher_custom_attributes rca ON rca.researcher_id = r.id
-        """
-        self.params['dep_id'] = value
-        self.filters_sql.append(
-            " AND (rca.custom_attributes->>'department' = :dep_id OR rca.custom_attributes->>'dep_id' = :dep_id)"
-        )
+        pass
 
     def _apply_departament_filter(self, value):
-        self.joins['departament'] = """
-            LEFT JOIN researcher_custom_attributes rca ON rca.researcher_id = r.id
-        """
-        self.params['departament'] = value.split(';')
-        self.filters_sql.append(
-            " AND (rca.custom_attributes->>'department' = ANY(:departament) OR rca.custom_attributes->>'dep_nom' = ANY(:departament))"
-        )
+        pass
 
     def _apply_group_id_filter(self, value):
         self.joins['group'] = """
@@ -823,16 +811,7 @@ class ResearcherTermQuery(BaseQuery):
         self.filters_sql.append(' AND b.researcher_id = :researcher_id ')
 
     def _apply_dep_id_filter(self, value):
-        self.params['dep_id'] = value
-        self.filters_sql.append(
-            """
-            AND b.researcher_id IN (
-                SELECT researcher_id 
-                FROM researcher_custom_attributes 
-                WHERE custom_attributes->>'dep_id' = :dep_id OR custom_attributes->>'department' = :dep_id
-            )
-        """
-        )
+        pass
 
     def _apply_graduate_program_id_filter(self, value):
         self.params['graduate_program_id'] = str(value)
@@ -933,9 +912,7 @@ class ResearcherFilterQuery(BaseQuery):
                  FROM graduate_program gp
                  INNER JOIN graduate_program_researcher gpr ON gpr.graduate_program_id = gp.graduate_program_id) as graduate_program,
                  
-                (SELECT COALESCE(ARRAY_AGG(DISTINCT (rca.custom_attributes->>'department')::TEXT), '{}') 
-                 FROM researcher_custom_attributes rca 
-                 WHERE rca.custom_attributes->>'department' IS NOT NULL) as departament;
+                ARRAY[]::TEXT[] as departament;
         """
 
 

@@ -136,8 +136,10 @@ class ResearcherInstitution(BaseModel):
     acronym: Optional[str] = None
     image: Optional[str] = None
     cover: Optional[str] = None
-    territorio_identidade: Optional[str] = None
-    carga_horaria: Optional[float] = None
+    identity_territory: Optional[str] = None
+    workload: Optional[float] = None
+    city_id: Optional[UUID] = None
+    city: Optional[str] = None
 
 
 class Researcher(BaseModel):
@@ -171,7 +173,6 @@ class Researcher(BaseModel):
     graduate_programs: Optional[Union[list, str]] = []
     ufmg: Optional[Any] = None
     user: Optional[Union[dict, str]] = {}
-    custom_attributes: Optional[dict[str, Any]] = None
 
     among: Union[int, str] = 0
     articles: Union[int, str] = 0

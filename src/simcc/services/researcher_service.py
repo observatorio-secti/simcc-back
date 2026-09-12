@@ -44,21 +44,6 @@ def _normalize_researcher_dict(r: Any) -> dict[str, Any]:
     return r if isinstance(r, dict) else {}
 
 
-def _build_institution_map(inst_data: list) -> dict[str, dict[str, Any]]:
-    inst_map = {}
-    for row in inst_data:
-        rid = str(row['id'])
-        attrs = dict(row.get('custom_attributes') or {})
-        if row.get('gender') is not None:
-            attrs['gender'] = row['gender']
-        if row.get('zip_code') is not None:
-            attrs['zip_code'] = row['zip_code']
-        if row.get('work_regime') is not None:
-            attrs['work_regime'] = row['work_regime']
-        inst_map[rid] = attrs
-    return inst_map
-
-
 def _build_institution_objects_map(
     inst_rows: list,
 ) -> dict[str, dict[str, Any]]:
@@ -90,7 +75,7 @@ def _enrich_institution_dict(inst: Any) -> dict[str, Any]:
     return d
 
 
-async def enrich_researchers(session, researchers: list):
+async def enrich_researchers(session, researchers: list):  # noqa: PLR0914
     if not researchers:
         return researchers
 
@@ -138,7 +123,6 @@ async def enrich_researchers(session, researchers: list):
         'dep': {str(row['id']): row['departments'] for row in dep_data},
         'ufmg': {str(row['id']): dict(row) for row in ufmg_data},
         'user': {str(row['lattes_id']): row['user'] for row in user_data},
-        'inst': _build_institution_map(inst_data),
         'inst_obj': _build_institution_objects_map(inst_obj_data),
     }
 
@@ -158,7 +142,6 @@ async def enrich_researchers(session, researchers: list):
         r['departments'] = maps['dep'].get(rid, [])
         r['ufmg'] = maps['ufmg'].get(rid)
         r['user'] = maps['user'].get(lid)
-        r['custom_attributes'] = maps['inst'].get(rid, None)
 
         if inst_id and inst_id in maps['inst_obj']:
             r['institution'] = dict(maps['inst_obj'][inst_id])
@@ -180,10 +163,12 @@ async def enrich_researchers(session, researchers: list):
 
         if r.get('institution'):
             link = link_data.get(rid, {})
-            r['institution']['territorio_identidade'] = link.get(
-                'territorio_identidade'
+            r['institution']['identity_territory'] = link.get(
+                'identity_territory'
             )
-            r['institution']['carga_horaria'] = link.get('carga_horaria')
+            r['institution']['workload'] = link.get('workload')
+            r['institution']['city_id'] = link.get('city_id')
+            r['institution']['city'] = link.get('city_name')
 
         if r.get('institution') and r['institution'].get('image'):
             r['image_university'] = r['institution']['image']

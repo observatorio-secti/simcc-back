@@ -1,3 +1,4 @@
+from decimal import Decimal
 from http import HTTPStatus
 from uuid import uuid4
 
@@ -5,9 +6,7 @@ import pytest
 
 from simcc.core.db.models.institution import Institution
 from simcc.core.db.models.researcher import Researcher
-from simcc.core.db.models.researcher_custom_attributes import (
-    ResearcherCustomAttributes,
-)
+from simcc.core.db.models.researcher_institution import ResearcherInstitution
 
 
 @pytest.mark.integration
@@ -23,7 +22,7 @@ async def test_get_researchers_by_institution_endpoint(session, async_client):
     await session.commit()
     await session.refresh(inst)
 
-    # 2. Cria pesquisador e dados customizados com gênero
+    # 2. Cria pesquisador e vínculo institucional
     unique_lattes = str(uuid4().int)[:16]
     researcher = Researcher(
         name='Pesquisador Endpoint Integracao',
@@ -34,15 +33,11 @@ async def test_get_researchers_by_institution_endpoint(session, async_client):
     await session.commit()
     await session.refresh(researcher)
 
-    inst_data = ResearcherCustomAttributes(
+    inst_data = ResearcherInstitution(
         researcher_id=researcher.id,
-        gender='Mulher Cis',
-        zip_code='40000-000',
-        work_regime='DE',
-        custom_attributes={
-            'siape': '9876543',
-            'department': 'DCOMP',
-        },
+        institution_id=inst.id,
+        workload=Decimal('40.00'),
+        identity_territory='METROPOLITANA DE SALVADOR',
     )
     session.add(inst_data)
     await session.commit()
@@ -54,13 +49,14 @@ async def test_get_researchers_by_institution_endpoint(session, async_client):
     data = response.json()
     assert len(data) >= 1
 
-    # Valida exposição de gender dentro de custom_attributes
+    # Valida exposição de dados institucionais dentro de institution
+    expected_workload = 40.0
     matched = next((r for r in data if r['id'] == str(researcher.id)), None)
     assert matched is not None
     assert matched['name'] == 'Pesquisador Endpoint Integracao'
-    assert matched['custom_attributes'] is not None
-    assert matched['custom_attributes']['gender'] == 'Mulher Cis'
-    assert matched['custom_attributes']['zip_code'] == '40000-000'
-    assert matched['custom_attributes']['work_regime'] == 'DE'
-    assert matched['custom_attributes']['siape'] == '9876543'
-    assert matched['custom_attributes']['department'] == 'DCOMP'
+    assert matched['institution'] is not None
+    assert matched['institution']['workload'] == expected_workload
+    assert (
+        matched['institution']['identity_territory']
+        == 'METROPOLITANA DE SALVADOR'
+    )

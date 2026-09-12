@@ -167,6 +167,13 @@ def main(
                 )
             """
 
+        has_rca = session.scalar(
+            text("SELECT to_regclass('researcher_custom_attributes')")
+        )
+        if not has_rca:
+            print("Tabela researcher_custom_attributes foi descontinuada.")
+            return
+
         limit_clause = ''
         if limit is not None and limit > 0:
             limit_clause = f'LIMIT {int(limit)}'

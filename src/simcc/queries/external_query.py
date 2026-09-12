@@ -44,18 +44,10 @@ class DocenteSearchQuery(BaseQuery):
         self.params['year'] = int(value)
 
     def _apply_dep_id_filter(self, value):
-        self.joins['departament'] = """
-            LEFT JOIN researcher_custom_attributes rca ON rca.researcher_id = ur.researcher_id
-        """
-        self.params['dep_id'] = value.split(';')
-        self.where_extra += " AND (rca.custom_attributes->>'department' = ANY(:dep_id) OR rca.custom_attributes->>'dep_id' = ANY(:dep_id))"
+        pass
 
     def _apply_departament_filter(self, value):
-        self.joins['departament'] = """
-            LEFT JOIN researcher_custom_attributes rca ON rca.researcher_id = ur.researcher_id
-        """
-        self.params['departament'] = value.split(';')
-        self.where_extra += " AND (rca.custom_attributes->>'department' = ANY(:departament) OR rca.custom_attributes->>'dep_nom' = ANY(:departament))"
+        pass
 
     def _apply_graduate_program_id_filter(self, value):
         self.distinct_flag = True
@@ -252,9 +244,7 @@ class ResearcherArticleProductionQuery(BaseQuery):
         join_departament = ''
 
         if self.dep_id:
-            self.params['dep_id'] = self.dep_id
-            filters += " AND (rca.custom_attributes->>'department' = :dep_id OR rca.custom_attributes->>'dep_id' = :dep_id)"
-            join_departament = 'LEFT JOIN researcher_custom_attributes rca ON rca.researcher_id = r.id'
+            pass
 
         if self.program_id:
             self.params['program_id'] = str(self.program_id)

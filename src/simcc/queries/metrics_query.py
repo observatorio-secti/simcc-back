@@ -45,22 +45,10 @@ class BaseMetricsQuery(BaseQuery):
         self.filters_sql.append(' AND r.institution_id = :institution_id')
 
     def _apply_dep_id_filter(self, value):
-        self.joins['departament'] = """
-            LEFT JOIN researcher_custom_attributes rca ON rca.researcher_id = r.id
-        """
-        self.params['dep_id'] = value.split(';')
-        self.filters_sql.append(
-            " AND (rca.custom_attributes->>'department' = ANY(:dep_id) OR rca.custom_attributes->>'dep_id' = ANY(:dep_id))"
-        )
+        pass
 
     def _apply_departament_filter(self, value):
-        self.joins['departament'] = """
-            LEFT JOIN researcher_custom_attributes rca ON rca.researcher_id = r.id
-        """
-        self.params['departament'] = value.split(';')
-        self.filters_sql.append(
-            " AND (rca.custom_attributes->>'department' = ANY(:departament) OR rca.custom_attributes->>'dep_nom' = ANY(:departament))"
-        )
+        pass
 
     def _apply_institution_filter(self, value):
         self.joins['institution'] = (
@@ -299,19 +287,7 @@ class GraduateProgramProductionQuery(BaseQuery):
             dep_filter = ''
             researcher_filter = ''
             if self.dep_id:
-                self.params['dep_id'] = self.dep_id
-                dep_filter = """
-                    AND researcher_id IN (
-                        SELECT researcher_id FROM researcher_custom_attributes
-                        WHERE custom_attributes->>'dep_id' = :dep_id OR custom_attributes->>'department' = :dep_id
-                    )
-                """
-                researcher_filter = """
-                    AND r.id IN (
-                        SELECT researcher_id FROM researcher_custom_attributes
-                        WHERE custom_attributes->>'dep_id' = :dep_id OR custom_attributes->>'department' = :dep_id
-                    )
-                """
+                pass
 
             bibliographic_queries = [
                 f"""
@@ -447,13 +423,7 @@ class GeneralProductionMetricsQuery(BaseQuery):
                 )
             """
         if self.dep_id:
-            self.params['dep_id'] = self.dep_id
-            filters += """
-                AND researcher_id IN (
-                    SELECT researcher_id FROM researcher_custom_attributes 
-                    WHERE custom_attributes->>'dep_id' = :dep_id OR custom_attributes->>'department' = :dep_id
-                )
-            """
+            pass
 
         self.params['year'] = self.year
 
