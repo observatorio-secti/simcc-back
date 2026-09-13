@@ -1,7 +1,6 @@
 import re
 import unicodedata
 from collections import Counter
-from datetime import datetime
 
 import polars as pl
 from sqlalchemy import text
@@ -14,6 +13,8 @@ from simcc.core.logging.events import (
     routine_step_finished,
     routine_step_started,
 )
+
+TARGET_YEARS = list(range(2013, 2025))
 
 
 def normalize_string(s):
@@ -137,8 +138,6 @@ def main():
                 pl.lit(None, dtype=pl.String).alias('graduate_program_id')
             )
 
-        current_year = datetime.now().year
-
         stats = Counter()
         records_to_insert = []
 
@@ -167,12 +166,14 @@ def main():
                 )
                 continue
 
-            records_to_insert.append({
-                'graduate_program_id': str(pg_id),
-                'researcher_id': str(r_id),
-                'year': current_year,
-                'type_': row['categoria'],
-            })
+            for y in TARGET_YEARS:
+                records_to_insert.append({
+                    'graduate_program_id': str(pg_id),
+                    'researcher_id': str(r_id),
+                    'year': y,
+                    'type_': row['categoria'],
+                })
+
             stats['Processado'] += 1
 
             if (idx + 1) % 50 == 0 or (idx + 1) == items_found:

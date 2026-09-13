@@ -674,8 +674,7 @@ class CimatecGraduateProgramResearcherQuery(BaseQuery):
             graduate_program_id::TEXT,
             year::TEXT AS year,
             type_::TEXT
-        FROM graduate_program_researcher
-        WHERE year = EXTRACT(YEAR FROM CURRENT_DATE);
+        FROM graduate_program_researcher;
         """
 
 
