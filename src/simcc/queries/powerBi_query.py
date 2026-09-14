@@ -670,11 +670,13 @@ class CimatecGraduateProgramResearcherQuery(BaseQuery):
     @override
     def build_sql(self) -> str:
         return """
-        SELECT researcher_id::TEXT,
+        SELECT DISTINCT ON (researcher_id, graduate_program_id)
+            researcher_id::TEXT,
             graduate_program_id::TEXT,
-            year::TEXT AS year,
+            2026 AS year,
             type_::TEXT
-        FROM graduate_program_researcher;
+        FROM graduate_program_researcher
+        ORDER BY researcher_id, graduate_program_id;
         """
 
 

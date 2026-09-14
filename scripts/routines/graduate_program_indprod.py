@@ -249,7 +249,7 @@ def main():
         routine_step_started('calculate_graduate_program_indprod')
 
         current_year = datetime.now().year
-        YEAR = range(current_year - 11, current_year + 1)
+        YEAR = range(2008, current_year + 1)
 
         history = pl.DataFrame({'year': list(YEAR)}).with_columns(
             pl.col('year').cast(pl.Int64)
