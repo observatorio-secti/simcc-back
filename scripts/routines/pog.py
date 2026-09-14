@@ -94,6 +94,39 @@ def main(researcher_ids=None, lattes_ids=None):
             UPDATE research_group rg SET first_leader_id = r.id FROM researcher r WHERE rg.first_leader = r.name;
         """,
         ),
+        (
+            'fix_gp_researchers',
+            """
+            WITH distinct_researchers AS (
+    SELECT DISTINCT ON (graduate_program_id, researcher_id)
+        graduate_program_id,
+        researcher_id,
+        type_,
+        tag
+    FROM graduate_program_researcher
+    ORDER BY graduate_program_id, researcher_id, year DESC
+),
+years AS (
+    SELECT generate_series(2012, 2026) AS year
+)
+INSERT INTO graduate_program_researcher (
+    graduate_program_id,
+    researcher_id,
+    year,
+    type_,
+    tag
+)
+SELECT 
+    r.graduate_program_id,
+    r.researcher_id,
+    y.year,
+    r.type_,
+    r.tag
+FROM distinct_researchers r
+CROSS JOIN years y
+ON CONFLICT (graduate_program_id, researcher_id, year) DO NOTHING;
+        """,
+        ),
     ]
 
     items_found = (
