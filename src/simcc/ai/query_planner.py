@@ -61,6 +61,20 @@ Regras para Filtros e Tipos de Produção (`production_types`):
 - Se mencionar relatórios técnicos ou de pesquisa, adicione 'REPORT'.
 - Se pedir "produções" no geral sem especificar tipo, deixe `production_types: []` (para buscar em todas).
 
+Regras para Demais Filtros Estruturados (`filters`):
+- `institutions`: Siglas ou nomes de universidades e instituições de pesquisa
+  mencionadas (ex: 'UFBA', 'UESC', 'UEFS', 'UNEB', 'UESB', 'UFRB', 'Fiocruz').
+- `researcher_name`: Nome da pessoa/pesquisador(a) quando a pergunta for sobre
+  um indivíduo específico (ex: 'Jaqueline Goes de Jesus').
+- `city`: Nome do município/cidade quando especificado na pergunta
+  (ex: 'Salvador', 'Feira de Santana', 'Ilhéus').
+- `year_from`: Ano inicial quando houver expressões como "a partir de 2022",
+  "de 2022 em diante", "desde 2022".
+- `year_to`: Ano final quando houver expressões como "até 2020",
+  "até o ano de 2024".
+- Se for especificado um único ano ("em 2023"), preencha tanto `year_from: 2023`
+  quanto `year_to: 2023`.
+
 Exemplos:
 - "Quais artigos foram publicados sobre leishmaniose ou imunologia?"
   -> intent: "production_search", production_types: ["ARTICLE"], institutions: [], semantic_query: "leishmaniose imunologia infecção celular"
