@@ -71,6 +71,9 @@ class AITracer:
             (time.perf_counter() - self.start_time) * 1000.0, 2
         )
 
+        self.metadata['cache_hit'] = bool(
+            self.metadata.get('cache_hit', False)
+        )
         trace_summary = {
             'request_id': self.request_id,
             'query': self.query[:200] if self.query else '',
@@ -80,6 +83,14 @@ class AITracer:
             'metadata': self.metadata,
             'error_message': error_message,
         }
+
+        try:
+            span_ctx = self.pipeline_span.get_span_context()
+            if span_ctx and span_ctx.is_valid:
+                trace_summary['trace_id'] = f'{span_ctx.trace_id:032x}'
+                trace_summary['span_id'] = f'{span_ctx.span_id:016x}'
+        except Exception:
+            pass
 
         self.pipeline_span.set_attribute(
             'ai.cache_hit', bool(self.metadata.get('cache_hit', False))

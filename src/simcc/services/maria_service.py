@@ -180,8 +180,10 @@ class MariaService:
             cached_val = await self.cache.get(cache_key)
             if cached_val:
                 tracer.set_meta('cache_hit', True)
-                tracer.finish(status='success')
-                return ChatResponse(**cached_val)
+                trace_summary = tracer.finish(status='success')
+                resp_data = dict(cached_val)
+                resp_data['telemetry'] = trace_summary
+                return ChatResponse(**resp_data)
 
         try:
             # 1. Planner
@@ -244,6 +246,7 @@ class MariaService:
                     )
                     answer = await self.llm.generate(synthesis_prompt)
 
+            trace_summary = tracer.finish(status='success')
             sources = self._build_sources(researchers, productions)
             response = ChatResponse(
                 answer=answer,
@@ -252,13 +255,13 @@ class MariaService:
                 researchers=researchers,
                 productions=productions,
                 sources=sources,
+                telemetry=trace_summary,
             )
 
             # 4. Gravação em Cache
             if self.cache and cache_key:
                 await self.cache.set(cache_key, response.model_dump())
 
-            tracer.finish(status='success')
             return response
 
         except Exception as exc:
@@ -284,11 +287,15 @@ class MariaService:
             cached_events = await self.cache.get(cache_key)
             if cached_events and isinstance(cached_events, list):
                 tracer.set_meta('cache_hit', True)
-                tracer.finish(status='success')
+                trace_summary = tracer.finish(status='success')
                 for ev in cached_events:
                     ev_dict = dict(ev)
                     ev_dict['message_id'] = msg_id
+                    if ev_dict.get('type') == 'done':
+                        ev_dict['data'] = {'telemetry': trace_summary}
                     yield ChatStreamEvent(**ev_dict)
+                    if ev_dict.get('type') == 'delta':
+                        await asyncio.sleep(0.015)
                 return
 
         accumulated_events: List[Dict[str, Any]] = []
@@ -371,6 +378,7 @@ class MariaService:
                         )
                         accumulated_events.append(delta_event.model_dump())
                         yield delta_event
+                        await asyncio.sleep(0.015)
                 elif total_found == 0:
                     delta_event = ChatStreamEvent(
                         type=ChatStreamEventType.DELTA,
@@ -397,9 +405,13 @@ class MariaService:
                         )
                         accumulated_events.append(delta_event.model_dump())
                         yield delta_event
+                        await asyncio.sleep(0.015)
 
+            trace_summary = tracer.finish(status='success')
             done_event = ChatStreamEvent(
-                type=ChatStreamEventType.DONE, message_id=msg_id
+                type=ChatStreamEventType.DONE,
+                message_id=msg_id,
+                data={'telemetry': trace_summary},
             )
             accumulated_events.append(done_event.model_dump())
             yield done_event
@@ -408,15 +420,15 @@ class MariaService:
             if self.cache and cache_key:
                 await self.cache.set(cache_key, accumulated_events)
 
-            tracer.finish(status='success')
-
         except asyncio.CancelledError:
             tracer.finish(
                 status='failed', error_message='Stream cancelled by client'
             )
             raise
         except Exception as exc:
-            tracer.finish(status='failed', error_message=str(exc))
+            trace_summary = tracer.finish(
+                status='failed', error_message=str(exc)
+            )
             yield ChatStreamEvent(
                 type=ChatStreamEventType.ERROR,
                 message_id=msg_id,
@@ -424,4 +436,5 @@ class MariaService:
                 message=(
                     'Ocorreu um erro ao processar sua consulta com a MarIA.'
                 ),
+                data={'telemetry': trace_summary},
             )

@@ -23,6 +23,7 @@ class ChatResponse(BaseModel):
     researchers: List[Dict[str, Any]]
     productions: List[Dict[str, Any]]
     sources: List[str]
+    telemetry: Optional[Dict[str, Any]] = None
 
 
 class ChatStreamEventType(str, Enum):
@@ -31,6 +32,7 @@ class ChatStreamEventType(str, Enum):
     DELTA = 'delta'
     ERROR = 'error'
     DONE = 'done'
+    TELEMETRY = 'telemetry'
 
 
 class SearchUIMetadata(BaseModel):
