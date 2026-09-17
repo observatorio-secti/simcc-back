@@ -30,6 +30,7 @@ class ChatResponse(BaseModel):
     sources: List[str]
     telemetry: Optional[Dict[str, Any]] = None
     clarification: Optional[ClarificationPayload] = None
+    global_metrics: Optional[Dict[str, Any]] = None
 
 
 class ChatStreamEventType(str, Enum):
@@ -48,6 +49,7 @@ class SearchUIMetadata(BaseModel):
     researchers: List[Dict[str, Any]]
     productions: List[Dict[str, Any]]
     sources: List[str]
+    global_metrics: Optional[Dict[str, Any]] = None
 
 
 class ChatStreamEvent(BaseModel):

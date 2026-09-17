@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional
 
-from sqlalchemy import or_, select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from simcc.ai.providers.base import EmbeddingsProvider
@@ -167,6 +167,63 @@ class AISearchService:
                 SearchDocumentProduction.production_id.in_(
                     bp_sub.union_all(pat_sub, soft_sub, rep_sub)
                 )
+            )
+
+        # Filtro temporal (year_from e year_to)
+        year_from = filters.get('year_from')
+        year_to = filters.get('year_to')
+        if year_from is not None or year_to is not None:
+            bp_temp_conds = []
+            pat_temp_conds = []
+            soft_temp_conds = []
+            rep_temp_conds = []
+
+            if year_from is not None:
+                bp_temp_conds.append(
+                    or_(
+                        BibliographicProduction.year_ >= year_from,
+                        BibliographicProduction.year >= str(year_from),
+                    )
+                )
+                pat_temp_conds.append(
+                    or_(
+                        Patent.development_year >= str(year_from),
+                        Patent.deposit_date >= str(year_from),
+                    )
+                )
+                soft_temp_conds.append(Software.year >= year_from)
+                rep_temp_conds.append(ResearchReport.year >= year_from)
+
+            if year_to is not None:
+                bp_temp_conds.append(
+                    or_(
+                        BibliographicProduction.year_ <= year_to,
+                        BibliographicProduction.year <= str(year_to),
+                    )
+                )
+                pat_temp_conds.append(
+                    or_(
+                        Patent.development_year <= str(year_to),
+                        Patent.deposit_date <= str(year_to),
+                    )
+                )
+                soft_temp_conds.append(Software.year <= year_to)
+                rep_temp_conds.append(ResearchReport.year <= year_to)
+
+            bp_sub_temp = select(BibliographicProduction.id).filter(
+                and_(*bp_temp_conds)
+            )
+            pat_sub_temp = select(Patent.id).filter(and_(*pat_temp_conds))
+            soft_sub_temp = select(Software.id).filter(and_(*soft_temp_conds))
+            rep_sub_temp = select(ResearchReport.id).filter(
+                and_(*rep_temp_conds)
+            )
+
+            valid_temporal_ids = bp_sub_temp.union_all(
+                pat_sub_temp, soft_sub_temp, rep_sub_temp
+            )
+            stmt = stmt.filter(
+                SearchDocumentProduction.production_id.in_(valid_temporal_ids)
             )
 
         if query and query.strip():
@@ -379,6 +436,22 @@ class AISearchService:
                         else 'Não informada',
                     }
 
+            # Validação defensiva de ano (compatibilidade unitária e banco)
+            if year_from is not None or year_to is not None:
+                pyear = prod_info.get('year')
+                if not pyear:
+                    continue
+                try:
+                    pyear_int = int(str(pyear)[:4])
+                    if year_from is not None and pyear_int < year_from:
+                        continue
+                    if year_to is not None and pyear_int > year_to:
+                        continue
+                except (ValueError, TypeError):
+                    continue
+
             response.append(prod_info)
+            if len(response) >= limit:
+                break
 
         return response

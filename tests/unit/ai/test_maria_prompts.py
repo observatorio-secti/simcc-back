@@ -77,3 +77,53 @@ def test_build_synthesis_prompt_general_question():
     assert 'MODO CONVERSACIONAL / SAUDAÇÃO GERAL' in prompt
     assert 'Olá! Como você funciona?' in prompt
     assert 'sem bajulação' in prompt
+
+
+def test_build_synthesis_prompt_with_global_metrics():
+    researchers = [
+        {
+            'name': 'Dr. Silva',
+            'institution': 'UFBA',
+            'metrics': {
+                'articles': 85,
+                'patents': 4,
+                'h_index': 18,
+                'citations': 1200,
+            },
+        }
+    ]
+    productions = [
+        {
+            'title': 'Redes Neurais na Bahia',
+            'type': 'ARTICLE',
+            'researcher': {
+                'name': 'Dr. Silva',
+                'institution': 'UFBA',
+                'metrics': {'articles': 85, 'h_index': 18},
+            },
+        }
+    ]
+    global_metrics = {
+        'total_matched': 1420,
+        'sample_count': 1,
+        'institution_shares': {
+            'UFBA': {'total_productions': 980, 'share': '69.0%'},
+            'UNEB': {'total_productions': 240, 'share': '16.9%'},
+        },
+    }
+
+    prompt = build_synthesis_prompt(
+        query='Artigos sobre redes neurais',
+        intent='production_search',
+        filters_dict={},
+        researchers=researchers,
+        productions=productions,
+        global_metrics=global_metrics,
+    )
+
+    assert 'Contexto Quantitativo Global no SIMCC' in prompt
+    assert '1420' in prompt
+    assert 'UFBA: 69.0%' in prompt
+    assert 'NUNCA afirme ou sugira que a produção' in prompt
+    assert 'Métricas de Carreira: 85 artigos, 4 patentes' in prompt
+    assert 'H-index: 18' in prompt

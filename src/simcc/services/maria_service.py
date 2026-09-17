@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from collections.abc import AsyncIterator
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
@@ -12,7 +13,6 @@ from simcc.ai.prompts.maria_prompts import (
 )
 from simcc.ai.providers.base import EmbeddingsProvider, LLMProvider
 from simcc.ai.schemas.clarification import (
-    ClarificationPayload,
     ClarificationResponse,
 )
 from simcc.ai.schemas.maria import (
@@ -27,6 +27,9 @@ from simcc.core.cache import CacheService
 from simcc.repositories import maria_repo, researcher_repo
 from simcc.schemas import DefaultFilters
 from simcc.services import production_service, researcher_service
+from simcc.services.ai_metrics_service import AIMetricsService
+
+logger = logging.getLogger(__name__)
 
 
 class MariaService:
@@ -37,12 +40,65 @@ class MariaService:
         cache: Optional[CacheService] = None,
         tracer: Optional[AITracer] = None,
         clarification_manager: Optional[ClarificationManager] = None,
+        metrics_service: Optional[AIMetricsService] = None,
     ):
         self.llm = llm
         self.embeddings = embeddings
         self.cache = cache
         self.tracer = tracer
         self.clarification_manager = clarification_manager
+        self.metrics_service = metrics_service or AIMetricsService()
+
+    async def _enrich_metrics_and_context(
+        self,
+        session,
+        plan,
+        researchers: List[Dict[str, Any]],
+        productions: List[Dict[str, Any]],
+    ) -> Optional[Dict[str, Any]]:
+        if not self.metrics_service or not session:
+            return None
+
+        try:
+            all_rids = []
+            for r in researchers:
+                if r.get('id'):
+                    all_rids.append(r['id'])
+            for p in productions:
+                r_info = p.get('researcher')
+                if r_info and r_info.get('id'):
+                    all_rids.append(r_info['id'])
+
+            if all_rids:
+                career_metrics = (
+                    await self.metrics_service.get_researchers_career_metrics(
+                        session=session,
+                        researcher_ids=all_rids,
+                    )
+                )
+                for r in researchers:
+                    rid = str(r.get('id'))
+                    if rid in career_metrics:
+                        r['metrics'] = career_metrics[rid]
+
+                for p in productions:
+                    r_info = p.get('researcher')
+                    if r_info and str(r_info.get('id')) in career_metrics:
+                        r_info['metrics'] = career_metrics[
+                            str(r_info.get('id'))
+                        ]
+
+            sample_count = (
+                len(productions) if productions else len(researchers)
+            )
+            return await self.metrics_service.get_global_search_context(
+                session=session,
+                plan=plan,
+                sample_count=sample_count,
+            )
+        except Exception as ex:
+            logger.warning(f'Erro ao enriquecer métricas na MarIA: {ex}')
+            return None
 
     @staticmethod
     def _get_compact_researcher_data(researcher: dict) -> dict:
@@ -90,6 +146,23 @@ class MariaService:
                 for p in productions
             ])
         return sources
+
+    @staticmethod
+    def _is_production_in_temporal_window(
+        prod: dict, year_from: Optional[int], year_to: Optional[int]
+    ) -> bool:
+        raw_year = prod.get('year')
+        if not raw_year:
+            return False
+        try:
+            y = int(str(raw_year)[:4])
+            if year_from is not None and y < year_from:
+                return False
+            if year_to is not None and y > year_to:
+                return False
+            return True
+        except (ValueError, TypeError):
+            return False
 
     async def search_and_summarize(
         self, session, query: str, search_type: str
@@ -272,6 +345,26 @@ class MariaService:
                             filters=filters_dict,
                         )
                     )
+                    if (
+                        plan.filters.year_from is not None
+                        or plan.filters.year_to is not None
+                    ):
+                        productions = [
+                            p
+                            for p in productions
+                            if self._is_production_in_temporal_window(
+                                p,
+                                plan.filters.year_from,
+                                plan.filters.year_to,
+                            )
+                        ]
+
+            global_metrics = await self._enrich_metrics_and_context(
+                session=session,
+                plan=plan,
+                researchers=researchers,
+                productions=productions,
+            )
 
             total_found = len(researchers) + len(productions)
             tracer.set_meta('final_count', total_found)
@@ -285,6 +378,7 @@ class MariaService:
                         filters_dict=filters_dict,
                         researchers=[],
                         productions=[],
+                        global_metrics=global_metrics,
                     )
                     answer = await self.llm.generate(synthesis_prompt)
                 elif total_found == 0:
@@ -296,6 +390,7 @@ class MariaService:
                         filters_dict=filters_dict,
                         researchers=researchers,
                         productions=productions,
+                        global_metrics=global_metrics,
                     )
                     answer = await self.llm.generate(synthesis_prompt)
 
@@ -309,6 +404,7 @@ class MariaService:
                 productions=productions,
                 sources=sources,
                 telemetry=trace_summary,
+                global_metrics=global_metrics,
             )
 
             # 4. Gravação em Cache
@@ -436,6 +532,26 @@ class MariaService:
                             filters=filters_dict,
                         )
                     )
+                    if (
+                        plan.filters.year_from is not None
+                        or plan.filters.year_to is not None
+                    ):
+                        productions = [
+                            p
+                            for p in productions
+                            if self._is_production_in_temporal_window(
+                                p,
+                                plan.filters.year_from,
+                                plan.filters.year_to,
+                            )
+                        ]
+
+            global_metrics = await self._enrich_metrics_and_context(
+                session=session,
+                plan=plan,
+                researchers=researchers,
+                productions=productions,
+            )
 
             total_found = len(researchers) + len(productions)
             tracer.set_meta('final_count', total_found)
@@ -450,6 +566,7 @@ class MariaService:
                 researchers=researchers,
                 productions=productions,
                 sources=sources,
+                global_metrics=global_metrics,
             )
 
             meta_event = ChatStreamEvent(
@@ -469,6 +586,7 @@ class MariaService:
                         filters_dict=filters_dict,
                         researchers=[],
                         productions=[],
+                        global_metrics=global_metrics,
                     )
                     async for chunk in self.llm.generate_stream(
                         synthesis_prompt
@@ -496,6 +614,7 @@ class MariaService:
                         filters_dict=filters_dict,
                         researchers=researchers,
                         productions=productions,
+                        global_metrics=global_metrics,
                     )
                     async for chunk in self.llm.generate_stream(
                         synthesis_prompt

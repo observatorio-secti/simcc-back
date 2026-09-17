@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, Query
 from fastapi.responses import StreamingResponse
 
 from simcc.ai.dependencies import (
+    get_ai_metrics_service,
     get_ai_search_service,
     get_ai_tracer,
     get_cache_service,
@@ -34,6 +35,7 @@ def get_maria_service(
     cache=Depends(get_cache_service),
     tracer=Depends(get_ai_tracer),
     clarification_manager=Depends(get_clarification_manager),
+    metrics_service=Depends(get_ai_metrics_service),
 ):
     return MariaService(
         llm=llm,
@@ -41,6 +43,7 @@ def get_maria_service(
         cache=cache,
         tracer=tracer,
         clarification_manager=clarification_manager,
+        metrics_service=metrics_service,
     )
 
 

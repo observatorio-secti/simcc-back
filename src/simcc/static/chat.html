@@ -206,16 +206,51 @@
             resultsPanel.innerHTML = '';
             const researchers = data.researchers || [];
             const productions = data.productions || [];
+            const gm = data.global_metrics;
+
+            if (gm) {
+                const banner = document.createElement('div');
+                banner.className = 'item';
+                banner.style.background = '#f0fdf4';
+                banner.style.borderColor = '#86efac';
+                banner.style.marginBottom = '8px';
+
+                let shareDetails = '';
+                if (gm.institution_shares) {
+                    const topShares = Object.entries(gm.institution_shares)
+                        .slice(0, 4)
+                        .map(([inst, info]) => `${inst}: ${info.share || ''}`)
+                        .join(' | ');
+                    if (topShares) {
+                        shareDetails = `<div class="sub" style="color:#166534;margin-top:2px;">Base SIMCC: ${topShares}</div>`;
+                    }
+                }
+
+                banner.innerHTML = `<b>Panorama Quantitativo SIMCC</b><div class="sub">${gm.total_matched || productions.length || researchers.length} registros totais (amostra de ${gm.sample_count || productions.length || researchers.length})</div>${shareDetails}`;
+                resultsPanel.appendChild(banner);
+            }
 
             if (researchers.length === 0 && productions.length === 0) {
-                resultsPanel.innerHTML = '<div class="empty">Nenhum item associado.</div>';
+                if (!gm) {
+                    resultsPanel.innerHTML = '<div class="empty">Nenhum item associado.</div>';
+                }
                 return;
             }
 
             researchers.forEach(r => {
                 const div = document.createElement('div');
                 div.className = 'item';
-                div.innerHTML = `<b>${r.name}</b><div class="sub">${r.institution || ''}</div>`;
+                let metricsText = '';
+                if (r.metrics) {
+                    const parts = [];
+                    if (r.metrics.articles) parts.push(`${r.metrics.articles} art.`);
+                    if (r.metrics.patents) parts.push(`${r.metrics.patents} pat.`);
+                    if (r.metrics.h_index) parts.push(`H-index: ${r.metrics.h_index}`);
+                    if (parts.length > 0) {
+                        metricsText = ` · <span style="color:#2563eb;font-weight:500;">${parts.join(', ')}</span>`;
+                    }
+                }
+                div.innerHTML = `<b>${r.name}</b><div class="sub">${r.institution || ''}${metricsText}</div>`;
                 resultsPanel.appendChild(div);
             });
 
@@ -223,7 +258,17 @@
                 const div = document.createElement('div');
                 div.className = 'item';
                 const author = p.researcher ? p.researcher.name : (p.authors || '');
-                div.innerHTML = `<b>${p.title}</b><div class="sub">${p.type || ''} · ${p.year || ''} · ${author}</div>`;
+                let authorMetrics = '';
+                if (p.researcher && p.researcher.metrics) {
+                    const rm = p.researcher.metrics;
+                    const parts = [];
+                    if (rm.articles) parts.push(`${rm.articles} art.`);
+                    if (rm.h_index) parts.push(`H: ${rm.h_index}`);
+                    if (parts.length > 0) {
+                        authorMetrics = ` [${parts.join(', ')}]`;
+                    }
+                }
+                div.innerHTML = `<b>${p.title}</b><div class="sub">${p.type || ''} · ${p.year || ''} · ${author}${authorMetrics}</div>`;
                 resultsPanel.appendChild(div);
             });
         }

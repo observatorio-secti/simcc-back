@@ -77,6 +77,7 @@ def build_synthesis_prompt(
     filters_dict: Dict[str, Any],
     researchers: List[Dict[str, Any]],
     productions: List[Dict[str, Any]],
+    global_metrics: Optional[Dict[str, Any]] = None,
 ) -> str:
     total_count = len(researchers) + len(productions)
 
@@ -91,6 +92,36 @@ def build_synthesis_prompt(
     else:
         variation_mode = 'MODO VOLUME REDUZIDO'
 
+    global_context_header = ''
+    if global_metrics:
+        total_matched = global_metrics.get('total_matched', total_count)
+        sample_count = global_metrics.get('sample_count', total_count)
+        shares = global_metrics.get('institution_shares', {})
+
+        shares_lines = []
+        for inst, info in list(shares.items())[:5]:
+            share_pct = info.get('share', '')
+            tot = info.get('total_productions', '')
+            shares_lines.append(
+                f'- {inst}: {share_pct} da produção estadual no SIMCC ({tot} produções acumuladas)'
+            )
+
+        shares_text = (
+            '\n'.join(shares_lines)
+            if shares_lines
+            else '- Distribuição institucional em consolidação no SIMCC.'
+        )
+
+        global_context_header = (
+            f'\n### Contexto Quantitativo Global no SIMCC:\n'
+            f'- Registros totais encontrados para estes critérios: {total_matched} (amostra de {sample_count} itens abaixo para detalhamento).\n'
+            f'- Participação Institucional Geral no SIMCC:\n{shares_text}\n\n'
+            f'> [!DIRETRIZ DE AMOSTRAGEM E RELEVÂNCIA INSTITUCIONAL]\n'
+            f'> ATENÇÃO: NUNCA afirme ou sugira que a produção de uma universidade (especialmente a UFBA) se limita a esta amostra.\n'
+            f'> A lista abaixo traz apenas os {sample_count} itens mais aderentes/recentes recuperados por similaridade.\n'
+            f'> Inicie sua resposta contextualizando a dimensão real do tema e o protagonismo histórico das instituições baianas (com destaque para a liderança da UFBA no estado) antes de detalhar os itens da amostra.\n'
+        )
+
     researchers_context = ''
     for i, r in enumerate(researchers, 1):
         inst = (
@@ -98,10 +129,31 @@ def build_synthesis_prompt(
             or r.get('institution')
             or 'Instituição não informada'
         )
+        metrics_line = ''
+        if r.get('metrics'):
+            m = r['metrics']
+            parts = []
+            if m.get('articles'):
+                parts.append(f"{m['articles']} artigos")
+            if m.get('books') or m.get('book_chapters'):
+                b_total = (m.get('books') or 0) + (m.get('book_chapters') or 0)
+                parts.append(f'{b_total} livros/capítulos')
+            if m.get('patents'):
+                parts.append(f"{m['patents']} patentes")
+            if m.get('software'):
+                parts.append(f"{m['software']} softwares")
+            if m.get('citations'):
+                parts.append(f"{m['citations']} citações")
+            if m.get('h_index'):
+                parts.append(f"H-index: {m['h_index']}")
+            if parts:
+                metrics_line = f"Métricas de Carreira: {', '.join(parts)}\n"
+
         researchers_context += (
             f'\n[Pesquisador {i}]\n'
             f'Nome: {r.get("name")}\n'
             f'Instituição: {inst}\n'
+            f'{metrics_line}'
             f'Resumo/Atuação: {r.get("semantic_content") or r.get("abstract") or "N/D"}\n'
         )
 
@@ -111,20 +163,36 @@ def build_synthesis_prompt(
         author_inst = (
             f'{r_info.get("name", "")} ({r_info.get("institution", "")})'
         )
+        prod_metrics_line = ''
+        if r_info.get('metrics'):
+            m = r_info['metrics']
+            parts = []
+            if m.get('articles'):
+                parts.append(f"{m['articles']} artigos")
+            if m.get('h_index'):
+                parts.append(f"H-index: {m['h_index']}")
+            if parts:
+                prod_metrics_line = (
+                    f"Carreira do Autor: {', '.join(parts)}\n"
+                )
+
         productions_context += (
             f'\n[Produção {i} - {p.get("type")}]\n'
             f'Título: {p.get("title")}\n'
             f'Autores/Pesquisador: {p.get("authors")} | Vínculo: {author_inst}\n'
+            f'{prod_metrics_line}'
             f'Ano: {p.get("year") or "N/D"}\n'
             f'Detalhes: {p.get("details")}\n'
             f'Conteúdo: {p.get("semantic_content", "")}\n'
         )
 
     prompt = (
-        f'{MARIA_SYSTEM_PROMPT.format(variation_mode=variation_mode, query=query, intent=intent, filters=str(filters_dict))}\n\n'
+        f'{MARIA_SYSTEM_PROMPT.format(variation_mode=variation_mode, query=query, intent=intent, filters=str(filters_dict))}\n'
+        f'{global_context_header}\n'
         f'### Registros Disponíveis no SIMCC ({total_count} encontrados):\n'
         f'Pesquisadores:\n{researchers_context if researchers else "Nenhum pesquisador direto."}\n\n'
         f'Produções Científicas/Tecnológicas:\n{productions_context if productions else "Nenhuma produção direta."}\n\n'
         'Elabore sua resposta amigável, humanizada, sóbria (sem bajulação) e estruturada em Markdown:'
     )
     return prompt
+

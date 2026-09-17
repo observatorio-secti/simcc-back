@@ -59,3 +59,9 @@ def get_clarification_manager(
 ) -> ClarificationManager:
     return ClarificationManager(matcher=matcher, cache=cache)
 
+
+def get_ai_metrics_service():
+    from simcc.services.ai_metrics_service import AIMetricsService
+
+    return AIMetricsService()
+

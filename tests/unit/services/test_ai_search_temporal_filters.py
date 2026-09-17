@@ -52,10 +52,6 @@ def _create_mock_production_chain(
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    reason='Filtro year_from pendente no AISearchService',
-    strict=False,
-)
 async def test_search_productions_hybrid_filters_year_from(
     mock_embeddings_provider,
 ):
@@ -114,10 +110,6 @@ async def test_search_productions_hybrid_filters_year_from(
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    reason='Filtro year_to pendente no AISearchService',
-    strict=False,
-)
 async def test_search_productions_hybrid_filters_year_to(
     mock_embeddings_provider,
 ):
@@ -176,10 +168,6 @@ async def test_search_productions_hybrid_filters_year_to(
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    reason='Filtro temporal por intervalo pendente no AISearchService',
-    strict=False,
-)
 async def test_search_productions_hybrid_filters_year_range(
     mock_embeddings_provider,
 ):
@@ -241,10 +229,6 @@ async def test_search_productions_hybrid_filters_year_range(
 
 @pytest.mark.unit
 @pytest.mark.asyncio
-@pytest.mark.xfail(
-    reason='Filtro temporal pendente na orquestração do chat_ask',
-    strict=False,
-)
 async def test_maria_chat_ask_respects_temporal_filters(
     mock_llm_provider, mock_embeddings_provider
 ):
