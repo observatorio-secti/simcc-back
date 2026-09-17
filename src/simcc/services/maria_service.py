@@ -3,6 +3,7 @@ from collections.abc import AsyncIterator
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
+from simcc.ai.clarification import ClarificationManager
 from simcc.ai.prompts.maria_prompts import (
     MARIA_EMPTY_FALLBACK_MESSAGE,
     MARIA_PROMPT_TEMPLATE,
@@ -10,6 +11,10 @@ from simcc.ai.prompts.maria_prompts import (
     build_synthesis_prompt,
 )
 from simcc.ai.providers.base import EmbeddingsProvider, LLMProvider
+from simcc.ai.schemas.clarification import (
+    ClarificationPayload,
+    ClarificationResponse,
+)
 from simcc.ai.schemas.maria import (
     ChatResponse,
     ChatStreamEvent,
@@ -31,11 +36,13 @@ class MariaService:
         embeddings: EmbeddingsProvider,
         cache: Optional[CacheService] = None,
         tracer: Optional[AITracer] = None,
+        clarification_manager: Optional[ClarificationManager] = None,
     ):
         self.llm = llm
         self.embeddings = embeddings
         self.cache = cache
         self.tracer = tracer
+        self.clarification_manager = clarification_manager
 
     @staticmethod
     def _get_compact_researcher_data(researcher: dict) -> dict:
@@ -167,29 +174,75 @@ class MariaService:
         return await self.llm.generate(prompt)
 
     async def chat_ask(
-        self, session, query: str, planner, search_service
+        self,
+        session,
+        query: str,
+        planner,
+        search_service,
+        session_id: Optional[str] = None,
+        clarification_response: Optional[ClarificationResponse] = None,
     ) -> ChatResponse:
         tracer = self.tracer or AITracer(query=query)
         cache_key = None
 
-        if self.cache:
-            canonical_hash = self.cache.hash_payload({'query': query.strip()})
-            cache_key = self.cache.build_key(
-                'ai', 'chat:batch', canonical_hash
+        plan = None
+        if (
+            clarification_response
+            and self.clarification_manager
+            and session_id
+        ):
+            plan = (
+                await self.clarification_manager.resolve_pending_clarification(
+                    session_id=session_id,
+                    clarification_response=clarification_response,
+                )
             )
-            cached_val = await self.cache.get(cache_key)
-            if cached_val:
-                tracer.set_meta('cache_hit', True)
-                trace_summary = tracer.finish(status='success')
-                resp_data = dict(cached_val)
-                resp_data['telemetry'] = trace_summary
-                return ChatResponse(**resp_data)
+
+        if not plan:
+            if not clarification_response and self.cache:
+                canonical_hash = self.cache.hash_payload(
+                    {'query': query.strip()}
+                )
+                cache_key = self.cache.build_key(
+                    'ai', 'chat:batch', canonical_hash
+                )
+                cached_val = await self.cache.get(cache_key)
+                if cached_val:
+                    tracer.set_meta('cache_hit', True)
+                    trace_summary = tracer.finish(status='success')
+                    resp_data = dict(cached_val)
+                    resp_data['telemetry'] = trace_summary
+                    return ChatResponse(**resp_data)
 
         try:
             # 1. Planner
-            async with tracer.trace_stage('planner'):
-                plan = await planner.plan(query)
-                tracer.set_meta('intent', plan.intent)
+            if not plan:
+                async with tracer.trace_stage('planner'):
+                    plan = await planner.plan(query)
+                    tracer.set_meta('intent', plan.intent)
+
+                # 1.5 Clarificação Conversacional (Human-in-the-Loop)
+                if self.clarification_manager:
+                    clarification = await self.clarification_manager.evaluate_researcher_clarification(
+                        session=session,
+                        plan=plan,
+                        session_id=session_id,
+                        original_query=query,
+                    )
+                    if clarification:
+                        trace_summary = tracer.finish(status='success')
+                        return ChatResponse(
+                            answer=clarification.question,
+                            intent=plan.intent,
+                            filters_extracted=plan.filters.model_dump(
+                                exclude_none=True
+                            ),
+                            researchers=[],
+                            productions=[],
+                            sources=[],
+                            telemetry=trace_summary,
+                            clarification=clarification,
+                        )
 
             # 2. Busca Híbrida
             researchers = []
@@ -275,36 +328,85 @@ class MariaService:
         planner,
         search_service,
         message_id: Optional[str] = None,
+        clarification_response: Optional[ClarificationResponse] = None,
     ) -> AsyncIterator[ChatStreamEvent]:
         msg_id = message_id or f'msg_{uuid4().hex[:12]}'
         tracer = self.tracer or AITracer(request_id=msg_id, query=query)
         cache_key = None
-        if self.cache:
-            canonical_hash = self.cache.hash_payload({'query': query.strip()})
-            cache_key = self.cache.build_key(
-                'ai', 'chat:stream', canonical_hash
+
+        plan = None
+        if (
+            clarification_response
+            and self.clarification_manager
+            and message_id
+        ):
+            plan = (
+                await self.clarification_manager.resolve_pending_clarification(
+                    session_id=message_id,
+                    clarification_response=clarification_response,
+                )
             )
-            cached_events = await self.cache.get(cache_key)
-            if cached_events and isinstance(cached_events, list):
-                tracer.set_meta('cache_hit', True)
-                trace_summary = tracer.finish(status='success')
-                for ev in cached_events:
-                    ev_dict = dict(ev)
-                    ev_dict['message_id'] = msg_id
-                    if ev_dict.get('type') == 'done':
-                        ev_dict['data'] = {'telemetry': trace_summary}
-                    yield ChatStreamEvent(**ev_dict)
-                    if ev_dict.get('type') == 'delta':
-                        await asyncio.sleep(0.015)
-                return
+
+        if not plan:
+            if not clarification_response and self.cache:
+                canonical_hash = self.cache.hash_payload(
+                    {'query': query.strip()}
+                )
+                cache_key = self.cache.build_key(
+                    'ai', 'chat:stream', canonical_hash
+                )
+                cached_events = await self.cache.get(cache_key)
+                if cached_events and isinstance(cached_events, list):
+                    tracer.set_meta('cache_hit', True)
+                    trace_summary = tracer.finish(status='success')
+                    for ev in cached_events:
+                        ev_dict = dict(ev)
+                        ev_dict['message_id'] = msg_id
+                        if ev_dict.get('type') == 'done':
+                            ev_dict['data'] = {'telemetry': trace_summary}
+                        yield ChatStreamEvent(**ev_dict)
+                        if ev_dict.get('type') == 'delta':
+                            await asyncio.sleep(0.015)
+                    return
 
         accumulated_events: List[Dict[str, Any]] = []
 
         try:
             # 1. Planejamento
-            async with tracer.trace_stage('planner'):
-                plan = await planner.plan(query)
-                tracer.set_meta('intent', plan.intent)
+            if not plan:
+                async with tracer.trace_stage('planner'):
+                    plan = await planner.plan(query)
+                    tracer.set_meta('intent', plan.intent)
+
+                # 1.5 Clarificação Conversacional (Human-in-the-Loop)
+                if self.clarification_manager:
+                    clarification = await self.clarification_manager.evaluate_researcher_clarification(
+                        session=session,
+                        plan=plan,
+                        session_id=message_id,
+                        original_query=query,
+                    )
+                    if clarification:
+                        clarification_event = ChatStreamEvent(
+                            type=ChatStreamEventType.CLARIFICATION,
+                            message_id=msg_id,
+                            content=clarification.question,
+                            clarification=clarification,
+                        )
+                        accumulated_events.append(
+                            clarification_event.model_dump()
+                        )
+                        yield clarification_event
+
+                        trace_summary = tracer.finish(status='success')
+                        done_event = ChatStreamEvent(
+                            type=ChatStreamEventType.DONE,
+                            message_id=msg_id,
+                            data={'telemetry': trace_summary},
+                        )
+                        accumulated_events.append(done_event.model_dump())
+                        yield done_event
+                        return
 
             # 2. Busca Híbrida
             researchers = []

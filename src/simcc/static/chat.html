@@ -254,14 +254,10 @@
             }
         });
 
-        chatForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const query = chatInput.value.trim();
-            if (!query) return;
-
+        async function executeChatStream(query, clarificationResponse = null) {
             const userMsg = document.createElement('div');
             userMsg.className = 'msg user';
-            userMsg.textContent = query;
+            userMsg.textContent = clarificationResponse ? `[Selecionado]: ${query}` : query;
             chatMessages.appendChild(userMsg);
 
             chatInput.value = '';
@@ -284,10 +280,15 @@
             let lastMetadata = null;
 
             try {
+                const payload = { query, session_id: sessionId };
+                if (clarificationResponse) {
+                    payload.clarification_response = clarificationResponse;
+                }
+
                 const response = await fetch('/ai/chat/ask/stream', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ query, session_id: sessionId }),
+                    body: JSON.stringify(payload),
                     signal: currentAbortController.signal
                 });
 
@@ -324,6 +325,33 @@
                             lastMetadata = event.data;
                             renderResults(event.data);
                             renderDiagnostics(event.data, null);
+                        } else if (event.type === 'clarification' && event.clarification) {
+                            const c = event.clarification;
+                            botMsg.innerHTML = `<div>${c.question}</div>`;
+                            const optBox = document.createElement('div');
+                            optBox.style.marginTop = '8px';
+                            optBox.style.display = 'flex';
+                            optBox.style.flexDirection = 'column';
+                            optBox.style.gap = '6px';
+
+                            c.options.forEach(opt => {
+                                const btn = document.createElement('button');
+                                btn.type = 'button';
+                                btn.style.textAlign = 'left';
+                                btn.style.padding = '6px 10px';
+                                btn.style.cursor = 'pointer';
+                                btn.style.background = '#fff';
+                                btn.style.border = '1px solid #4f46e5';
+                                btn.style.borderRadius = '4px';
+                                btn.innerHTML = `<strong>${opt.label}</strong> <span style="color:#666;font-size:11px;">(${opt.description || ''})</span>`;
+                                btn.onclick = () => {
+                                    optBox.querySelectorAll('button').forEach(b => b.disabled = true);
+                                    executeChatStream(opt.label, { field: c.field_to_bind, value: opt.id });
+                                };
+                                optBox.appendChild(btn);
+                            });
+                            botMsg.appendChild(optBox);
+                            scrollToBottom();
                         } else if (event.type === 'delta' && event.content) {
                             fullText += event.content;
                             botMsg.textContent = fullText;
@@ -355,6 +383,13 @@
                 chatInput.focus();
                 scrollToBottom();
             }
+        }
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const query = chatInput.value.trim();
+            if (!query) return;
+            executeChatStream(query);
         });
     </script>
 </body>

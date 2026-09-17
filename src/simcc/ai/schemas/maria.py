@@ -3,6 +3,10 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
+from simcc.ai.schemas.clarification import (
+    ClarificationPayload,
+    ClarificationResponse,
+)
 from simcc.schemas.researcher import Researcher
 
 
@@ -14,6 +18,7 @@ class MariaResponse(BaseModel):
 class ChatRequest(BaseModel):
     query: str
     session_id: Optional[str] = None
+    clarification_response: Optional[ClarificationResponse] = None
 
 
 class ChatResponse(BaseModel):
@@ -24,12 +29,14 @@ class ChatResponse(BaseModel):
     productions: List[Dict[str, Any]]
     sources: List[str]
     telemetry: Optional[Dict[str, Any]] = None
+    clarification: Optional[ClarificationPayload] = None
 
 
 class ChatStreamEventType(str, Enum):
     STATUS = 'status'
     METADATA = 'metadata'
     DELTA = 'delta'
+    CLARIFICATION = 'clarification'
     ERROR = 'error'
     DONE = 'done'
     TELEMETRY = 'telemetry'
@@ -51,3 +58,5 @@ class ChatStreamEvent(BaseModel):
     code: Optional[str] = None
     message: Optional[str] = None
     stage: Optional[str] = None
+    clarification: Optional[ClarificationPayload] = None
+

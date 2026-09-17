@@ -7,6 +7,7 @@ from simcc.ai.dependencies import (
     get_ai_search_service,
     get_ai_tracer,
     get_cache_service,
+    get_clarification_manager,
     get_embeddings_provider,
     get_llm_provider,
     get_query_planner,
@@ -32,9 +33,14 @@ def get_maria_service(
     embeddings=Depends(get_embeddings_provider),
     cache=Depends(get_cache_service),
     tracer=Depends(get_ai_tracer),
+    clarification_manager=Depends(get_clarification_manager),
 ):
     return MariaService(
-        llm=llm, embeddings=embeddings, cache=cache, tracer=tracer
+        llm=llm,
+        embeddings=embeddings,
+        cache=cache,
+        tracer=tracer,
+        clarification_manager=clarification_manager,
     )
 
 
@@ -66,7 +72,12 @@ async def chat_ask(
     Interface de chat principal com a MarIA (resposta em lote/JSON).
     """
     return await service.chat_ask(
-        session, request.query, planner, search_service
+        session=session,
+        query=request.query,
+        planner=planner,
+        search_service=search_service,
+        session_id=request.session_id,
+        clarification_response=request.clarification_response,
     )
 
 
@@ -86,6 +97,7 @@ async def chat_ask_stream(
             planner=planner,
             search_service=search_service,
             message_id=request.session_id,
+            clarification_response=request.clarification_response,
         ):
             yield f'data: {event.model_dump_json()}\n\n'
 

@@ -77,12 +77,16 @@ class AISearchService:
             if inst_conditions:
                 stmt = stmt.filter(or_(*inst_conditions))
 
-        # 3. Filtro por Nome do Pesquisador (se especificado)
-        researcher_name = filters.get('researcher_name')
-        if researcher_name:
-            tokens = [t.strip() for t in researcher_name.split() if t.strip()]
-            for tok in tokens:
-                stmt = stmt.filter(Researcher.name.ilike(f'%{tok}%'))
+        # 3. Filtro por Nome ou IDs do Pesquisador (se especificado)
+        researcher_ids = filters.get('researcher_ids')
+        if researcher_ids:
+            stmt = stmt.filter(Researcher.id.in_(researcher_ids))
+        else:
+            researcher_name = filters.get('researcher_name')
+            if researcher_name:
+                tokens = [t.strip() for t in researcher_name.split() if t.strip()]
+                for tok in tokens:
+                    stmt = stmt.filter(Researcher.name.ilike(f'%{tok}%'))
 
         # 4. Ordenação e Busca Semântica com Linha de Corte
         if query and query.strip():
@@ -142,6 +146,27 @@ class AISearchService:
                 production_types = [production_types]
             stmt = stmt.filter(
                 SearchDocumentProduction.type.in_(production_types)
+            )
+
+        # Filtro por pesquisadores vinculados
+        researcher_ids = filters.get('researcher_ids')
+        if researcher_ids:
+            bp_sub = select(BibliographicProduction.id).filter(
+                BibliographicProduction.researcher_id.in_(researcher_ids)
+            )
+            pat_sub = select(Patent.id).filter(
+                Patent.researcher_id.in_(researcher_ids)
+            )
+            soft_sub = select(Software.id).filter(
+                Software.researcher_id.in_(researcher_ids)
+            )
+            rep_sub = select(ResearchReport.id).filter(
+                ResearchReport.researcher_id.in_(researcher_ids)
+            )
+            stmt = stmt.filter(
+                SearchDocumentProduction.production_id.in_(
+                    bp_sub.union_all(pat_sub, soft_sub, rep_sub)
+                )
             )
 
         if query and query.strip():

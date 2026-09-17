@@ -14,6 +14,10 @@ class SearchFilters(BaseModel):
         None,
         description="Nome específico de um pesquisador se a pergunta for sobre alguém em particular, ex: 'Eduardo Manuel de Freitas Jorge'",
     )
+    researcher_ids: List[str] = Field(
+        default_factory=list,
+        description="Lista de IDs específicos de pesquisadores quando identificados",
+    )
     production_types: List[str] = Field(
         default_factory=list,
         description="Tipos de produções solicitadas: 'ARTICLE' (artigos em periódicos), 'BOOK' (livros), 'BOOK_CHAPTER' (capítulos de livros), 'PATENT' (patentes/registros), 'SOFTWARE' (programas de computador), 'REPORT' (relatórios técnicos)",
