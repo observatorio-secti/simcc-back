@@ -123,3 +123,51 @@ Conforme a natureza dos resultados aprovados na triagem, a MarIA adota uma das 5
 ### 5. Resiliência e Fallback de Provedor
 O sistema trata a ausência ou falha temporária da `OPENAI_API_KEY`:
 * Caso a chave não esteja definida ou o provedor esteja indisponível, a API responde graciosamente com **HTTP 503** (ou evento SSE `error`), fornecendo mensagem clara e sem causar crashes na aplicação.
+
+---
+
+## 🔍 6. Clarificação Conversacional e Human-in-the-Loop
+
+Consultas envolvendo nomes de pesquisadores frequentemente contêm ambiguidades, erros de digitação ou omissões de sobrenomes intermediários. O ecossistema MarIA conta com um subsistema inteligente de desambiguação composto por:
+
+* **`ResearcherMatcher`**: Realiza normalização avançada (remoção de acentuação, stop-words de patronímicos e pontuações) e busca fuzzy com pontuação de similaridade trigram (`pg_trgm`) e tolerância a sobrenomes intermediários ausentes (ex: *"Eduardo Jorge"* $\rightarrow$ *"Eduardo Manuel de Freitas Jorge"*).
+* **`ClarificationManager`**:
+  * **Auto-resolução com Alta Confiança**: Quando um candidato único atinge pontuação elevada ($\ge 0.85$), o sistema resolve imediatamente sem interromper a fluidez do usuário.
+  * **Interrupção Human-in-the-Loop**: Quando múltiplos candidatos plausíveis são identificados, emite um `ClarificationPayload` com opções estruturadas para escolha do usuário via modal interativo no frontend.
+  * **Persistência de Estado**: Salva o contexto pendente no Redis com TTL para reidratação instantânea quando o usuário seleciona a opção desejada.
+
+---
+
+## 💬 7. Memória Conversacional e Continuidade com LangChain
+
+Para garantir que a MarIA se comporte como uma verdadeira assistente dialógica (e não como um mecanismo stateless), o sistema integra o histórico de diálogo através das abstrações oficiais do **LangChain Core**:
+
+* **`SIMCCChatMessageHistory`**: Implementação especializada que herda de `BaseChatMessageHistory`, armazenando mensagens com janela deslizante configurável (`max_messages`) e sincronização assíncrona com o Redis sob a chave `simcc:ai:chat_history:{session_id}`.
+* **`MessagesPlaceholder` no `QueryPlanner`**: O pipeline LCEL injeta o histórico conversacional recente, permitindo resolução anafórica (ex: ao perguntar *"E quais são os artigos dele?"*, o planejador identifica o pesquisador tratado no turno anterior e completa os filtros com o nome canônico).
+* **Herança Contextual de Entidades**: Ao confirmar um pesquisador (seja por seleção ou auto-resolução), a entidade ativa da sessão é armazenada em cache. Consultas subsequentes com menção parcial ao nome herdam automaticamente a identidade estabelecida sem abrir clarificações redundantes.
+* **Diretriz de Continuidade Conversacional**:
+  Quando há diálogo em andamento na sessão, o prompt de síntese injeta a diretriz:
+  > **[!DIRETRIZ DE CONTINUIDADE CONVERSACIONAL]**
+  > Esta mensagem é uma CONTINUAÇÃO de diálogo já em andamento.
+  > NUNCA cumprimente o usuário ("Olá", "Tudo bem?", "Como assistente do SIMCC...").
+  > Vá DIRETO ao ponto respondendo à solicitação com fluidez natural.
+
+---
+
+## ⏳ 8. Filtros Temporais e Recuperação Híbrida de Produções (Issue #16)
+
+A busca por produções científicas e tecnológicas (`AISearchService.search_productions_hybrid`) aplica recortes temporais (`year_from` e `year_to`) diretamente na camada relacional SQL antes do ranking semântico:
+
+* **Subqueries SQL Unificadas**: Executa subqueries via `UNION` nas tabelas de base (`bibliographic_production`, `patent`, `software`, `research_report`), extraindo os identificadores válidos dentro da janela de anos.
+* **Cláusula `IN` no Índice Vetorial**: Restringe a busca em `search_document_production` exclusivamente às produções temporariamente válidas (`production_id.in_(valid_ids)`).
+* **Verificação Defensiva**: Validação auxiliar em memória no `MariaService` garante conformidade estrita contra desvios de metadados antes do envio ao modelo de síntese.
+
+---
+
+## 📊 9. Contextualização Quantitativa Global e Métricas de Carreira (`AIMetricsService`)
+
+A amostragem de 10 produções ou pesquisadores para o prompt da LLM causava uma percepção incorreta de escassez da produção científica (em especial na **UFBA**). Para resolver isso:
+
+* **Amostra vs. Totalidade**: O serviço calcula o total exato de itens correspondentes na base e insere no prompt o bloco `### Contexto Quantitativo Global no SIMCC`, alertando a IA para contextualizar a real magnitude do tema no Estado da Bahia antes de citar os exemplos da amostra.
+* **Distribuição Institucional (*Market Share*)**: O serviço calcula a participação percentual histórica de cada instituição na base estadual (ex: liderança histórica da UFBA com ~68% dos registros), mantendo cache otimizado no Redis.
+* **Métricas de Carreira**: Cada autor/pesquisador recuperado é enriquecido com totais agregados das tabelas `researcher_production` (artigos, livros, capítulos, patentes, softwares) e `openalex_researcher` (índice H e citações), proporcionando visibilidade integral sobre o histórico acadêmico do pesquisador.

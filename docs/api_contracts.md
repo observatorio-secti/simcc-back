@@ -15,46 +15,121 @@ Executa a pipeline completa e retorna a resposta final consolidada em um único 
 
 ```json
 {
-  "query": "Quais pesquisadores da UFBA atuam com inteligência artificial?",
-  "session_id": "sess_a81f4c2e-9821"
+  "query": "Quais artigos sobre IA foram publicados por Eduardo Jorge?",
+  "session_id": "sess_a81f4c2e-9821",
+  "clarification_response": {
+    "field": "researcher_id",
+    "value": "c71a39f0-2f64-4e20-951b-1d7b32408ec2"
+  }
 }
 ```
 
 | Campo | Tipo | Obrigatório | Descrição |
 |:---|:---|:---|:---|
 | `query` | `string` | Sim | Texto livre com a pergunta ou termo de busca do usuário. |
-| `session_id` | `string` | Não | Identificador de sessão para correlação de contexto e telemetria. |
+| `session_id` | `string` | Não | Identificador de sessão para correlação de contexto, memória e telemetria. |
+| `clarification_response` | `Optional[ClarificationResponse]` | Não | Resposta do usuário contendo `{ "field": "researcher_id", "value": "<UUID>" }` para desambiguação prévia. |
 
 ---
 
 ### Respostas
 
-#### 🟢 200 OK (Sucesso)
-Retorna a resposta elaborada pela MarIA e as entidades científicas catalogadas:
+#### 🟢 200 OK (Sucesso Consolidado com Métricas Globais)
+Retorna a resposta elaborada pela MarIA, entidades catalogadas, indicadores de carreira e o contexto institucional estadual:
 
 ```json
 {
-  "answer": "Na **Universidade Federal da Bahia (UFBA)**, identificamos pesquisadores de destaque com atuação em Inteligência Artificial, aprendizado de máquina e visão computacional...\n\n- **Dr. Exemplo**: Pesquisador com ênfase em modelos neurais aplicados à saúde.",
-  "intent": "researcher_search",
+  "answer": "Identificamos produções relevantes do pesquisador **Eduardo Manuel de Freitas Jorge** (UNEB)...",
+  "intent": "production_search",
   "filters_extracted": {
-    "institutions": ["UFBA"],
-    "production_types": []
+    "institutions": [],
+    "production_types": ["ARTICLE"],
+    "researcher_name": "Eduardo Manuel de Freitas Jorge",
+    "researcher_ids": ["c71a39f0-2f64-4e20-951b-1d7b32408ec2"]
   },
   "researchers": [
     {
       "id": "c71a39f0-2f64-4e20-951b-1d7b32408ec2",
-      "name": "Dr. Exemplo",
-      "institution": "Universidade Federal da Bahia",
-      "institution_acronym": "UFBA",
+      "name": "Eduardo Manuel de Freitas Jorge",
+      "institution": "Universidade do Estado da Bahia",
+      "institution_acronym": "UNEB",
       "lattes_id": "1234567890123456",
-      "abstract": "Possui graduação em Ciência da Computação...",
-      "semantic_content": "Inteligência Artificial, Aprendizado Profundo, Visão Computacional"
+      "metrics": {
+        "articles": 42,
+        "books": 3,
+        "book_chapters": 15,
+        "patents": 2,
+        "software": 5,
+        "h_index": 12,
+        "citations": 680
+      }
     }
   ],
-  "productions": [],
+  "productions": [
+    {
+      "id": "prod-1",
+      "title": "Aplicações de Redes Neurais em Saúde Pública",
+      "type": "ARTICLE",
+      "year": 2023,
+      "researcher": {
+        "id": "c71a39f0-2f64-4e20-951b-1d7b32408ec2",
+        "name": "Eduardo Manuel de Freitas Jorge",
+        "institution": "UNEB",
+        "metrics": {
+          "articles": 42,
+          "h_index": 12
+        }
+      }
+    }
+  ],
   "sources": [
-    "Dr. Exemplo (UFBA)"
-  ]
+    "Eduardo Manuel de Freitas Jorge (UNEB)"
+  ],
+  "global_metrics": {
+    "total_matched": 42,
+    "sample_count": 1,
+    "institution_shares": {
+      "UFBA": { "total_productions": 15200, "share": "68.4%" },
+      "UNEB": { "total_productions": 3120, "share": "14.1%" },
+      "UEFS": { "total_productions": 1890, "share": "8.5%" }
+    },
+    "warning": "Amostra restrita aos itens mais semanticamente relevantes."
+  },
+  "clarification": null
+}
+```
+
+#### 🟡 200 OK (Solicitação de Clarificação / Desambiguação de Pesquisador)
+Quando o sistema encontra ambiguidade em nomes de pesquisadores, o modelo pausa a síntese e solicita a escolha do usuário:
+
+```json
+{
+  "answer": "Identifiquei mais de um pesquisador com esse nome. Por favor, selecione qual deles você deseja consultar:",
+  "intent": "production_search",
+  "filters_extracted": {
+    "researcher_name": "Eduardo Jorge"
+  },
+  "researchers": [],
+  "productions": [],
+  "sources": [],
+  "clarification": {
+    "type": "researcher_disambiguation",
+    "question": "Identifiquei mais de um pesquisador com esse nome. Por favor, selecione qual deles você deseja consultar:",
+    "field_to_bind": "researcher_id",
+    "options": [
+      {
+        "id": "c71a39f0-2f64-4e20-951b-1d7b32408ec2",
+        "label": "Eduardo Manuel de Freitas Jorge",
+        "description": "Universidade do Estado da Bahia (UNEB)"
+      },
+      {
+        "id": "9b12a344-3d12-4c55-88aa-21d7b32408ec1",
+        "label": "Eduardo Jorge Valadares",
+        "description": "Universidade Federal da Bahia (UFBA)"
+      }
+    ],
+    "original_query": "artigos de Eduardo Jorge"
+  }
 }
 ```
 
@@ -83,7 +158,8 @@ Permite transmissão em tempo real das palavras e parágrafos gerados pela MarIA
 ```json
 {
   "query": "Patentes registradas na área de biotecnologia na Bahia",
-  "session_id": "sess_39b2e71c-4389"
+  "session_id": "sess_39b2e71c-4389",
+  "clarification_response": null
 }
 ```
 
@@ -95,7 +171,9 @@ O stream emite eventos no formato padrão `data: <JSON>\n\n`, obedecendo rigoros
 
 ```mermaid
 stateDiagram-v2
-    [*] --> metadata: Conexão SSE Estabelecida
+    [*] --> clarification: Ambiguidade Detectada (Human-in-the-Loop)
+    clarification --> [*]: Encerra Stream (Aguardando Seleção)
+    [*] --> metadata: Planejamento Concluído sem Dúvidas
     metadata --> delta: Início da Síntese
     delta --> delta: Emissão Contínua de Tokens
     delta --> done: Geração Concluída
@@ -105,11 +183,19 @@ stateDiagram-v2
     error --> [*]
 ```
 
-#### Evento 1: `metadata`
-Emitido imediatamente após a busca vetorial e antes da geração do texto. Contém a intenção extraída, filtros e entidades encontradas para renderização visual imediata no frontend:
+#### Evento Especial: `clarification`
+Emitido quando a consulta apresenta ambiguidade de pesquisador. O backend envia o payload de opções e encerra a conexão para aguardar a escolha do usuário:
 
 ```text
-data: {"type": "metadata", "message_id": "sess_39b2e71c-4389", "data": {"intent": "production_search", "filters": {"production_types": ["PATENT"]}, "researchers": [], "productions": [{"id": "pat-01", "title": "Processo de Extração de Biopolímeros a partir de Resíduos de Cacau", "type": "PATENT", "year": "2023"}], "sources": ["Processo de Extração de Biopolímeros... [PATENT] (2023)"]}}
+data: {"type": "clarification", "message_id": "sess_39b2e71c-4389", "data": {"type": "researcher_disambiguation", "question": "Identifiquei mais de um pesquisador. Por favor, selecione:", "field_to_bind": "researcher_id", "options": [{"id": "c71a39f0-2f64-4e20-951b-1d7b32408ec2", "label": "Eduardo Manuel de Freitas Jorge", "description": "UNEB"}]}}
+
+```
+
+#### Evento 1: `metadata`
+Emitido imediatamente após a busca vetorial e antes da geração do texto. Contém a intenção extraída, filtros, entidades encontradas e o contexto estatístico global:
+
+```text
+data: {"type": "metadata", "message_id": "sess_39b2e71c-4389", "data": {"intent": "production_search", "filters": {"production_types": ["PATENT"]}, "researchers": [], "productions": [{"id": "pat-01", "title": "Processo de Extração de Biopolímeros a partir de Resíduos de Cacau", "type": "PATENT", "year": 2023}], "sources": ["Processo de Extração de Biopolímeros... [PATENT] (2023)"], "global_metrics": {"total_matched": 87, "sample_count": 1, "institution_shares": {"UFBA": {"total_productions": 62, "share": "71.2%"}, "UESC": {"total_productions": 15, "share": "17.2%"}}}}}
 
 ```
 
@@ -138,3 +224,4 @@ Emitido caso ocorra timeout, interrupção ou ausência de credenciais durante a
 data: {"type": "error", "message_id": "sess_39b2e71c-4389", "code": "ai_unavailable", "message": "O serviço de inteligência artificial está temporariamente indisponível."}
 
 ```
+
