@@ -217,7 +217,7 @@ class AISearchService:
                                     == bp.id
                                 )
                             )
-                        ).scalar_one_or_none()
+                        ).scalars().first()
                         if art:
                             prod_info['details'] = {
                                 'periodical': art.periodical_magazine_name,
@@ -233,7 +233,7 @@ class AISearchService:
                                     == bp.id
                                 )
                             )
-                        ).scalar_one_or_none()
+                        ).scalars().first()
                         if bk:
                             prod_info['details'] = {
                                 'publisher': bk.publishing_company,
@@ -250,7 +250,7 @@ class AISearchService:
                                     == bp.id
                                 )
                             )
-                        ).scalar_one_or_none()
+                        ).scalars().first()
                         if chp:
                             prod_info['details'] = {
                                 'book_title': chp.book_title,

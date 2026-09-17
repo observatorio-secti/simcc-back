@@ -140,6 +140,7 @@ class AITracer:
                 request_id=self.request_id,
                 duration=total_duration_ms,
                 data=trace_summary,
+                exc_info=True,
             )
 
         self.pipeline_span.end()
