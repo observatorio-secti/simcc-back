@@ -1,4 +1,4 @@
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 MARIA_EMPTY_FALLBACK_MESSAGE = (
     'Olá! A base de dados do SIMCC (mantida pelo Observatório SECTI) está em '
@@ -155,20 +155,20 @@ def build_synthesis_prompt(
             m = r['metrics']
             parts = []
             if m.get('articles'):
-                parts.append(f"{m['articles']} artigos")
+                parts.append(f'{m["articles"]} artigos')
             if m.get('books') or m.get('book_chapters'):
                 b_total = (m.get('books') or 0) + (m.get('book_chapters') or 0)
                 parts.append(f'{b_total} livros/capítulos')
             if m.get('patents'):
-                parts.append(f"{m['patents']} patentes")
+                parts.append(f'{m["patents"]} patentes')
             if m.get('software'):
-                parts.append(f"{m['software']} softwares")
+                parts.append(f'{m["software"]} softwares')
             if m.get('citations'):
-                parts.append(f"{m['citations']} citações")
+                parts.append(f'{m["citations"]} citações')
             if m.get('h_index'):
-                parts.append(f"H-index: {m['h_index']}")
+                parts.append(f'H-index: {m["h_index"]}')
             if parts:
-                metrics_line = f"Métricas de Carreira: {', '.join(parts)}\n"
+                metrics_line = f'Métricas de Carreira: {", ".join(parts)}\n'
 
         researchers_context += (
             f'\n[Pesquisador {i}]\n'
@@ -189,13 +189,11 @@ def build_synthesis_prompt(
             m = r_info['metrics']
             parts = []
             if m.get('articles'):
-                parts.append(f"{m['articles']} artigos")
+                parts.append(f'{m["articles"]} artigos')
             if m.get('h_index'):
-                parts.append(f"H-index: {m['h_index']}")
+                parts.append(f'H-index: {m["h_index"]}')
             if parts:
-                prod_metrics_line = (
-                    f"Carreira do Autor: {', '.join(parts)}\n"
-                )
+                prod_metrics_line = f'Carreira do Autor: {", ".join(parts)}\n'
 
         productions_context += (
             f'\n[Produção {i} - {p.get("type")}]\n'
@@ -217,4 +215,3 @@ def build_synthesis_prompt(
         'Elabore sua resposta amigável, humanizada, sóbria (sem bajulação) e estruturada em Markdown:'
     )
     return prompt
-
