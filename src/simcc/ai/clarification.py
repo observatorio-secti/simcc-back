@@ -47,6 +47,30 @@ class ClarificationManager:
         if not raw_name or not raw_name.strip():
             return None
 
+        # Continuidade conversacional: verifica se há um pesquisador ativo na sessão
+        if self.cache and session_id:
+            active_key = self.cache.build_key(
+                'ai', 'session_active_researcher', session_id
+            )
+            active_data = await self.cache.get(active_key)
+            if (
+                isinstance(active_data, dict)
+                and active_data.get('id')
+                and active_data.get('name')
+            ):
+                active_name = active_data['name']
+                active_tokens = set(
+                    ResearcherMatcher.normalize_tokens(active_name)
+                )
+                raw_tokens = set(
+                    ResearcherMatcher.normalize_tokens(raw_name)
+                )
+                if raw_tokens and raw_tokens.issubset(active_tokens):
+                    # O usuário citou parte do nome já estabelecido na conversa
+                    plan.filters.researcher_name = active_name
+                    plan.filters.researcher_ids = [active_data['id']]
+                    return None
+
         target_inst = (
             plan.filters.institutions[0]
             if plan.filters.institutions and len(plan.filters.institutions) == 1
@@ -69,6 +93,15 @@ class ClarificationManager:
                 # Auto-resolução com confiança
                 plan.filters.researcher_name = candidates[0].name
                 plan.filters.researcher_ids = [candidates[0].id]
+                if self.cache and session_id:
+                    active_key = self.cache.build_key(
+                        'ai', 'session_active_researcher', session_id
+                    )
+                    await self.cache.set(
+                        active_key,
+                        {'id': candidates[0].id, 'name': candidates[0].name},
+                        ttl=1800,
+                    )
                 return None
             else:
                 # Score baixo (erro de digitação severo com dúvida) -> pede confirmação
@@ -100,6 +133,15 @@ class ClarificationManager:
         ):
             plan.filters.researcher_name = candidates[0].name
             plan.filters.researcher_ids = [candidates[0].id]
+            if self.cache and session_id:
+                active_key = self.cache.build_key(
+                    'ai', 'session_active_researcher', session_id
+                )
+                await self.cache.set(
+                    active_key,
+                    {'id': candidates[0].id, 'name': candidates[0].name},
+                    ttl=1800,
+                )
             return None
 
         # Ambiguidade real: 2 a 4 pesquisadores plausíveis
@@ -182,5 +224,18 @@ class ClarificationManager:
                 if opt.get('id') == clarification_response.value:
                     plan.filters.researcher_name = opt.get('label')
                     break
+
+            if self.cache and session_id and plan.filters.researcher_name:
+                active_key = self.cache.build_key(
+                    'ai', 'session_active_researcher', session_id
+                )
+                await self.cache.set(
+                    active_key,
+                    {
+                        'id': clarification_response.value,
+                        'name': plan.filters.researcher_name,
+                    },
+                    ttl=1800,
+                )
 
         return plan

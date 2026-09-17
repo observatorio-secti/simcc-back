@@ -1,8 +1,11 @@
 from typing import List, Optional
 
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.messages import BaseMessage
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_openai import ChatOpenAI
 from pydantic import BaseModel, Field
+
+from simcc.ai.exceptions import AIServiceUnavailableException
 
 
 class SearchFilters(BaseModel):
@@ -79,6 +82,16 @@ Regras para Demais Filtros Estruturados (`filters`):
 - Se for especificado um único ano ("em 2023"), preencha tanto `year_from: 2023`
   quanto `year_to: 2023`.
 
+Regras de Continuidade e Resolução de Referências (Histórico Recente):
+- Se a pergunta fizer referência a um pesquisador já mencionado no
+  histórico recente (`chat_history`), como "e os artigos dele?",
+  "o que ele publicou?", "artigos de Eduardo", "patentes dele":
+  - Identifique o pesquisador correspondente no histórico.
+  - Preencha `researcher_name` com o nome canônico completo identificado
+    anteriormente (ex: 'Eduardo Manuel De Freitas Jorge').
+  - Mantenha filtros de instituição se a nova pergunta for um
+    desdobramento direto.
+
 Exemplos:
 - "Quais artigos foram publicados sobre leishmaniose ou imunologia?"
   -> intent: "production_search", production_types: ["ARTICLE"], institutions: [], semantic_query: "leishmaniose imunologia infecção celular"
@@ -110,15 +123,23 @@ class QueryPlanner:
             self.structured_llm = self.llm.with_structured_output(QueryPlan)
             self.prompt = ChatPromptTemplate.from_messages([
                 ('system', PLANNER_SYSTEM_PROMPT),
+                MessagesPlaceholder(
+                    variable_name='chat_history', optional=True
+                ),
                 ('human', '{question}'),
             ])
             self.chain = self.prompt | self.structured_llm
         else:
             self.chain = None
 
-    async def plan(self, question: str) -> QueryPlan:
+    async def plan(
+        self,
+        question: str,
+        chat_history: Optional[List[BaseMessage]] = None,
+    ) -> QueryPlan:
         if not self.chain:
-            from simcc.ai.exceptions import AIServiceUnavailableException
-
             raise AIServiceUnavailableException()
-        return await self.chain.ainvoke({'question': question})
+        return await self.chain.ainvoke({
+            'question': question,
+            'chat_history': chat_history or [],
+        })

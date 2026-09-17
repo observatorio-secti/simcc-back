@@ -78,6 +78,7 @@ def build_synthesis_prompt(
     researchers: List[Dict[str, Any]],
     productions: List[Dict[str, Any]],
     global_metrics: Optional[Dict[str, Any]] = None,
+    chat_history: Optional[List[Any]] = None,
 ) -> str:
     total_count = len(researchers) + len(productions)
 
@@ -91,6 +92,26 @@ def build_synthesis_prompt(
         variation_mode = 'MODO HETEROGÊNEO / MULTIDISCIPLINAR'
     else:
         variation_mode = 'MODO VOLUME REDUZIDO'
+
+    continuity_header = ''
+    if chat_history and len(chat_history) > 0:
+        history_lines = []
+        for msg in chat_history[-4:]:
+            msg_type = getattr(msg, 'type', '')
+            role = 'Usuário' if msg_type == 'human' else 'MarIA'
+            content_preview = str(getattr(msg, 'content', '')).strip()
+            if len(content_preview) > 160:
+                content_preview = content_preview[:160] + '...'
+            history_lines.append(f'- {role}: {content_preview}')
+
+        history_summary = '\n'.join(history_lines)
+        continuity_header = (
+            f'\n### Histórico Recente da Conversa:\n{history_summary}\n\n'
+            f'> [!DIRETRIZ DE CONTINUIDADE CONVERSACIONAL]\n'
+            f'> Esta mensagem é uma CONTINUAÇÃO de diálogo já em andamento.\n'
+            f'> NUNCA cumprimente o usuário ("Olá", "Tudo bem?", "Como assistente do SIMCC...").\n'
+            f'> Vá DIRETO ao ponto respondendo à solicitação com fluidez natural.\n'
+        )
 
     global_context_header = ''
     if global_metrics:
@@ -189,6 +210,7 @@ def build_synthesis_prompt(
     prompt = (
         f'{MARIA_SYSTEM_PROMPT.format(variation_mode=variation_mode, query=query, intent=intent, filters=str(filters_dict))}\n'
         f'{global_context_header}\n'
+        f'{continuity_header}\n'
         f'### Registros Disponíveis no SIMCC ({total_count} encontrados):\n'
         f'Pesquisadores:\n{researchers_context if researchers else "Nenhum pesquisador direto."}\n\n'
         f'Produções Científicas/Tecnológicas:\n{productions_context if productions else "Nenhuma produção direta."}\n\n'

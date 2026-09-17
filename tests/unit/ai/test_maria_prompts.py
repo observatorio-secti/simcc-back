@@ -1,3 +1,5 @@
+from langchain_core.messages import AIMessage, HumanMessage
+
 from simcc.ai.prompts.maria_prompts import (
     MARIA_EMPTY_FALLBACK_MESSAGE,
     build_synthesis_prompt,
@@ -127,3 +129,25 @@ def test_build_synthesis_prompt_with_global_metrics():
     assert 'NUNCA afirme ou sugira que a produção' in prompt
     assert 'Métricas de Carreira: 85 artigos, 4 patentes' in prompt
     assert 'H-index: 18' in prompt
+
+
+def test_build_synthesis_prompt_with_chat_history():
+    history = [
+        HumanMessage(content='Como está o perfil de Eduardo Jorge?'),
+        AIMessage(content='Encontrei o perfil de Eduardo Manuel na UNEB.'),
+    ]
+
+    prompt = build_synthesis_prompt(
+        query='Pode me trazer os artigos de Eduardo?',
+        intent='production_search',
+        filters_dict={'researcher_name': 'Eduardo Manuel de Freitas Jorge'},
+        researchers=[],
+        productions=[{'title': 'Artigo Teste', 'type': 'ARTICLE'}],
+        chat_history=history,
+    )
+
+    assert 'Histórico Recente da Conversa:' in prompt
+    assert 'Como está o perfil de Eduardo Jorge?' in prompt
+    assert 'DIRETRIZ DE CONTINUIDADE CONVERSACIONAL' in prompt
+    assert 'NUNCA cumprimente o usuário ("Olá", "Tudo bem?"' in prompt
+    assert 'Vá DIRETO ao ponto' in prompt

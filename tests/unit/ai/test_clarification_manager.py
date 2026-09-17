@@ -1,3 +1,4 @@
+# ruff: noqa: PLR2004
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
@@ -199,3 +200,83 @@ async def test_clarification_resolve_pending_from_cache():
     )
     # Garante que chave foi limpa do cache
     mock_cache.delete.assert_called_once_with(key)
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_clarification_continuity_inherits_session_active_researcher():
+    """Garante que se o usuário já especificou Eduardo Manuel na sessão,
+    uma pergunta subsequente citando apenas 'Eduardo' reutiliza o contexto."""
+    mock_cache = AsyncMock(spec=CacheService)
+    mock_cache.build_key = MagicMock(
+        return_value='simcc:ai:session_active_researcher:sess-cont'
+    )
+    mock_cache.get.return_value = {
+        'id': 'res-eduardo-123',
+        'name': 'Eduardo Manuel de Freitas Jorge',
+    }
+
+    manager = ClarificationManager(cache=mock_cache)
+    plan = QueryPlan(
+        intent='production_search',
+        semantic_query='',
+        filters=SearchFilters(researcher_name='Eduardo'),
+    )
+
+    payload = await manager.evaluate_researcher_clarification(
+        session=AsyncMock(),
+        plan=plan,
+        session_id='sess-cont',
+        original_query='Pode me trazer os artigos de Eduardo?',
+    )
+
+    # Não deve abrir modal/clarificação novamente
+    assert payload is None
+    # Deve herdar o ID e o nome completo
+    assert plan.filters.researcher_ids == ['res-eduardo-123']
+    assert plan.filters.researcher_name == 'Eduardo Manuel de Freitas Jorge'
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_clarification_auto_resolve_caches_active_researcher():
+    """Garante que ao resolver com alta confiança, salva pesquisador
+    ativo na sessão."""
+    mock_matcher = AsyncMock()
+    c1_id = str(uuid4())
+    mock_matcher.find_candidates.return_value = [
+        ResearcherCandidate(
+            id=c1_id,
+            name='Jaqueline Goes de Jesus',
+            institution='UFBA',
+            score=0.98,
+        )
+    ]
+
+    mock_cache = AsyncMock(spec=CacheService)
+    mock_cache.build_key = MagicMock(
+        return_value='simcc:ai:session_active_researcher:sess-auto'
+    )
+    mock_cache.get.return_value = None
+
+    manager = ClarificationManager(matcher=mock_matcher, cache=mock_cache)
+    plan = QueryPlan(
+        intent='researcher_profile',
+        semantic_query='',
+        filters=SearchFilters(researcher_name='Jaqueline Goes de Jesus'),
+    )
+
+    payload = await manager.evaluate_researcher_clarification(
+        session=AsyncMock(),
+        plan=plan,
+        session_id='sess-auto',
+        original_query='Quem é Jaqueline Goes?',
+    )
+
+    assert payload is None
+    assert plan.filters.researcher_ids == [c1_id]
+    mock_cache.set.assert_called_once_with(
+        'simcc:ai:session_active_researcher:sess-auto',
+        {'id': c1_id, 'name': 'Jaqueline Goes de Jesus'},
+        ttl=1800,
+    )

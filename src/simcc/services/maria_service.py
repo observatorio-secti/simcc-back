@@ -4,6 +4,9 @@ from collections.abc import AsyncIterator
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
+from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
+
+from simcc.ai.chat_history import SIMCCChatMessageHistory
 from simcc.ai.clarification import ClarificationManager
 from simcc.ai.prompts.maria_prompts import (
     MARIA_EMPTY_FALLBACK_MESSAGE,
@@ -147,6 +150,13 @@ class MariaService:
             ])
         return sources
 
+    def get_chat_history(self, session_id: str) -> SIMCCChatMessageHistory:
+        return SIMCCChatMessageHistory(
+            session_id=session_id,
+            cache_service=self.cache,
+            max_messages=10,
+        )
+
     @staticmethod
     def _is_production_in_temporal_window(
         prod: dict, year_from: Optional[int], year_to: Optional[int]
@@ -258,6 +268,13 @@ class MariaService:
         tracer = self.tracer or AITracer(query=query)
         cache_key = None
 
+        history_handler = (
+            self.get_chat_history(session_id) if session_id else None
+        )
+        chat_history: List[BaseMessage] = (
+            await history_handler.aget_messages() if history_handler else []
+        )
+
         plan = None
         if (
             clarification_response
@@ -270,6 +287,12 @@ class MariaService:
                     clarification_response=clarification_response,
                 )
             )
+            if plan and history_handler and plan.filters.researcher_name:
+                await history_handler.aadd_messages([
+                    HumanMessage(
+                        content=f'[Selecionado]: {plan.filters.researcher_name}'
+                    )
+                ])
 
         if not plan:
             if not clarification_response and self.cache:
@@ -291,7 +314,12 @@ class MariaService:
             # 1. Planner
             if not plan:
                 async with tracer.trace_stage('planner'):
-                    plan = await planner.plan(query)
+                    try:
+                        plan = await planner.plan(
+                            query, chat_history=chat_history
+                        )
+                    except TypeError:
+                        plan = await planner.plan(query)
                     tracer.set_meta('intent', plan.intent)
 
                 # 1.5 Clarificação Conversacional (Human-in-the-Loop)
@@ -304,6 +332,11 @@ class MariaService:
                     )
                     if clarification:
                         trace_summary = tracer.finish(status='success')
+                        if history_handler:
+                            await history_handler.aadd_messages([
+                                HumanMessage(content=query),
+                                AIMessage(content=clarification.question),
+                            ])
                         return ChatResponse(
                             answer=clarification.question,
                             intent=plan.intent,
@@ -379,6 +412,7 @@ class MariaService:
                         researchers=[],
                         productions=[],
                         global_metrics=global_metrics,
+                        chat_history=chat_history,
                     )
                     answer = await self.llm.generate(synthesis_prompt)
                 elif total_found == 0:
@@ -391,6 +425,7 @@ class MariaService:
                         researchers=researchers,
                         productions=productions,
                         global_metrics=global_metrics,
+                        chat_history=chat_history,
                     )
                     answer = await self.llm.generate(synthesis_prompt)
 
@@ -406,6 +441,13 @@ class MariaService:
                 telemetry=trace_summary,
                 global_metrics=global_metrics,
             )
+
+            # Grava no histórico conversacional da sessão
+            if history_handler and answer:
+                await history_handler.aadd_messages([
+                    HumanMessage(content=query),
+                    AIMessage(content=answer),
+                ])
 
             # 4. Gravação em Cache
             if self.cache and cache_key:
@@ -430,6 +472,14 @@ class MariaService:
         tracer = self.tracer or AITracer(request_id=msg_id, query=query)
         cache_key = None
 
+        session_id = message_id
+        history_handler = (
+            self.get_chat_history(session_id) if session_id else None
+        )
+        chat_history: List[BaseMessage] = (
+            await history_handler.aget_messages() if history_handler else []
+        )
+
         plan = None
         if (
             clarification_response
@@ -442,6 +492,12 @@ class MariaService:
                     clarification_response=clarification_response,
                 )
             )
+            if plan and history_handler and plan.filters.researcher_name:
+                await history_handler.aadd_messages([
+                    HumanMessage(
+                        content=f'[Selecionado]: {plan.filters.researcher_name}'
+                    )
+                ])
 
         if not plan:
             if not clarification_response and self.cache:
@@ -471,7 +527,12 @@ class MariaService:
             # 1. Planejamento
             if not plan:
                 async with tracer.trace_stage('planner'):
-                    plan = await planner.plan(query)
+                    try:
+                        plan = await planner.plan(
+                            query, chat_history=chat_history
+                        )
+                    except TypeError:
+                        plan = await planner.plan(query)
                     tracer.set_meta('intent', plan.intent)
 
                 # 1.5 Clarificação Conversacional (Human-in-the-Loop)
@@ -492,6 +553,11 @@ class MariaService:
                         accumulated_events.append(
                             clarification_event.model_dump()
                         )
+                        if history_handler:
+                            await history_handler.aadd_messages([
+                                HumanMessage(content=query),
+                                AIMessage(content=clarification.question),
+                            ])
                         yield clarification_event
 
                         trace_summary = tracer.finish(status='success')
@@ -578,6 +644,7 @@ class MariaService:
             yield meta_event
 
             # 4. Síntese / Emissão de Deltas
+            full_answer = ''
             async with tracer.trace_stage('synthesis'):
                 if plan.intent == 'general_question':
                     synthesis_prompt = build_synthesis_prompt(
@@ -587,10 +654,12 @@ class MariaService:
                         researchers=[],
                         productions=[],
                         global_metrics=global_metrics,
+                        chat_history=chat_history,
                     )
                     async for chunk in self.llm.generate_stream(
                         synthesis_prompt
                     ):
+                        full_answer += chunk
                         delta_event = ChatStreamEvent(
                             type=ChatStreamEventType.DELTA,
                             message_id=msg_id,
@@ -600,6 +669,7 @@ class MariaService:
                         yield delta_event
                         await asyncio.sleep(0.015)
                 elif total_found == 0:
+                    full_answer = MARIA_EMPTY_FALLBACK_MESSAGE
                     delta_event = ChatStreamEvent(
                         type=ChatStreamEventType.DELTA,
                         message_id=msg_id,
@@ -615,10 +685,12 @@ class MariaService:
                         researchers=researchers,
                         productions=productions,
                         global_metrics=global_metrics,
+                        chat_history=chat_history,
                     )
                     async for chunk in self.llm.generate_stream(
                         synthesis_prompt
                     ):
+                        full_answer += chunk
                         delta_event = ChatStreamEvent(
                             type=ChatStreamEventType.DELTA,
                             message_id=msg_id,
@@ -627,6 +699,13 @@ class MariaService:
                         accumulated_events.append(delta_event.model_dump())
                         yield delta_event
                         await asyncio.sleep(0.015)
+
+            # Grava no histórico conversacional da sessão
+            if history_handler and full_answer:
+                await history_handler.aadd_messages([
+                    HumanMessage(content=query),
+                    AIMessage(content=full_answer),
+                ])
 
             trace_summary = tracer.finish(status='success')
             done_event = ChatStreamEvent(
