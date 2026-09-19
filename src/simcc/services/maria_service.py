@@ -125,6 +125,8 @@ class MariaService:
             ui_f['researcher_name'] = filters.researcher_name
         if filters.city:
             ui_f['city'] = filters.city
+        if getattr(filters, 'identity_territory', None):
+            ui_f['identity_territory'] = filters.identity_territory
         if filters.year_from or filters.year_to:
             if filters.year_from and filters.year_to:
                 ui_f['period'] = f'{filters.year_from} - {filters.year_to}'
@@ -138,10 +140,15 @@ class MariaService:
     def _build_sources(researchers: list, productions: list) -> List[str]:
         sources = []
         if researchers:
-            sources.extend([
-                f'{r["name"]} ({r.get("institution_acronym") or r.get("institution") or "BA"})'
-                for r in researchers
-            ])
+            for r in researchers:
+                inst_part = (
+                    r.get('institution_acronym')
+                    or r.get('institution')
+                    or 'BA'
+                )
+                if r.get('territories'):
+                    inst_part += f' - {r["territories"][0]}'
+                sources.append(f'{r["name"]} ({inst_part})')
         if productions:
             sources.extend([
                 f'{p.get("title")} [{p.get("type")}] '
@@ -359,7 +366,6 @@ class MariaService:
                 if plan.intent in {
                     'researcher_search',
                     'researcher_profile',
-                    'aggregation',
                 }:
                     researchers = (
                         await search_service.search_researchers_hybrid(
@@ -391,6 +397,38 @@ class MariaService:
                                 plan.filters.year_to,
                             )
                         ]
+                elif plan.intent == 'aggregation':
+                    if plan.filters.production_types:
+                        productions = (
+                            await search_service.search_productions_hybrid(
+                                session=session,
+                                query=plan.semantic_query,
+                                limit=10,
+                                filters=filters_dict,
+                            )
+                        )
+                        if (
+                            plan.filters.year_from is not None
+                            or plan.filters.year_to is not None
+                        ):
+                            productions = [
+                                p
+                                for p in productions
+                                if self._is_production_in_temporal_window(
+                                    p,
+                                    plan.filters.year_from,
+                                    plan.filters.year_to,
+                                )
+                            ]
+                    else:
+                        researchers = (
+                            await search_service.search_researchers_hybrid(
+                                session=session,
+                                query=plan.semantic_query,
+                                limit=10,
+                                filters=filters_dict,
+                            )
+                        )
 
             global_metrics = await self._enrich_metrics_and_context(
                 session=session,
@@ -579,7 +617,6 @@ class MariaService:
                 if plan.intent in {
                     'researcher_search',
                     'researcher_profile',
-                    'aggregation',
                 }:
                     researchers = (
                         await search_service.search_researchers_hybrid(
@@ -611,6 +648,38 @@ class MariaService:
                                 plan.filters.year_to,
                             )
                         ]
+                elif plan.intent == 'aggregation':
+                    if plan.filters.production_types:
+                        productions = (
+                            await search_service.search_productions_hybrid(
+                                session=session,
+                                query=plan.semantic_query,
+                                limit=10,
+                                filters=filters_dict,
+                            )
+                        )
+                        if (
+                            plan.filters.year_from is not None
+                            or plan.filters.year_to is not None
+                        ):
+                            productions = [
+                                p
+                                for p in productions
+                                if self._is_production_in_temporal_window(
+                                    p,
+                                    plan.filters.year_from,
+                                    plan.filters.year_to,
+                                )
+                            ]
+                    else:
+                        researchers = (
+                            await search_service.search_researchers_hybrid(
+                                session=session,
+                                query=plan.semantic_query,
+                                limit=10,
+                                filters=filters_dict,
+                            )
+                        )
 
             global_metrics = await self._enrich_metrics_and_context(
                 session=session,

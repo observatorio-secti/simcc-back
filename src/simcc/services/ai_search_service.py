@@ -9,6 +9,7 @@ from simcc.core.db.models.ai import (
     SearchDocumentResearcher,
 )
 from simcc.core.db.models.institution import Institution
+from simcc.core.db.models.location import City
 from simcc.core.db.models.production import (
     BibliographicProduction,
     BibliographicProductionArticle,
@@ -19,6 +20,7 @@ from simcc.core.db.models.production import (
     Software,
 )
 from simcc.core.db.models.researcher import Researcher
+from simcc.core.db.models.researcher_institution import ResearcherInstitution
 
 
 class AISearchService:
@@ -88,7 +90,23 @@ class AISearchService:
                 for tok in tokens:
                     stmt = stmt.filter(Researcher.name.ilike(f'%{tok}%'))
 
-        # 4. Ordenação e Busca Semântica com Linha de Corte
+        # 4. Filtro por Território de Identidade (N:N em researcher_institution)
+        identity_territory = filters.get('identity_territory')
+        if identity_territory:
+            clean_terr = identity_territory.strip()
+            if clean_terr:
+                terr_sub = (
+                    select(ResearcherInstitution.researcher_id)
+                    .filter(
+                        ResearcherInstitution.identity_territory.ilike(
+                            f'%{clean_terr}%'
+                        )
+                    )
+                    .distinct()
+                )
+                stmt = stmt.filter(Researcher.id.in_(terr_sub))
+
+        # 5. Ordenação e Busca Semântica com Linha de Corte
         if query and query.strip():
             vector = await self.embeddings.get_embeddings(query.strip())
             dist_expr = SearchDocumentResearcher.embedding.cosine_distance(
@@ -104,11 +122,56 @@ class AISearchService:
         result = await session.execute(stmt)
         rows = result.all()
 
-        # 5. Mapear e retornar
+        # 6. Carregar em lote vínculos N:N (researcher_institution)
+        r_ids = [researcher.id for _, researcher, _ in rows if hasattr(researcher, 'id')]
+        affiliations_by_rid: Dict[str, List[Dict[str, Any]]] = {}
+        if r_ids:
+            try:
+                stmt_aff = (
+                    select(
+                        ResearcherInstitution.researcher_id,
+                        ResearcherInstitution.identity_territory,
+                        ResearcherInstitution.workload,
+                        Institution.name.label('institution_name'),
+                        Institution.acronym.label('institution_acronym'),
+                        City.name.label('city_name'),
+                    )
+                    .join(
+                        Institution,
+                        Institution.id == ResearcherInstitution.institution_id,
+                    )
+                    .outerjoin(City, City.id == ResearcherInstitution.city_id)
+                    .filter(ResearcherInstitution.researcher_id.in_(r_ids))
+                )
+                res_aff = await session.execute(stmt_aff)
+                for aff in res_aff.all():
+                    rid_str = str(aff.researcher_id)
+                    if rid_str not in affiliations_by_rid:
+                        affiliations_by_rid[rid_str] = []
+                    affiliations_by_rid[rid_str].append({
+                        'institution': aff.institution_name,
+                        'institution_acronym': aff.institution_acronym,
+                        'identity_territory': aff.identity_territory,
+                        'workload': float(aff.workload)
+                        if aff.workload is not None
+                        else None,
+                        'city': aff.city_name,
+                    })
+            except Exception:
+                pass
+
+        # 7. Mapear e retornar
         response = []
         for doc, researcher, institution in rows:
+            rid_str = str(researcher.id)
+            affs = affiliations_by_rid.get(rid_str, [])
+            territories = sorted(list({
+                a['identity_territory']
+                for a in affs
+                if a.get('identity_territory')
+            }))
             response.append({
-                'id': str(researcher.id),
+                'id': rid_str,
                 'name': researcher.name,
                 'institution': institution.name if institution else None,
                 'institution_acronym': institution.acronym
@@ -117,6 +180,8 @@ class AISearchService:
                 'lattes_id': researcher.lattes_id,
                 'abstract': researcher.abstract or researcher.abstract_ai,
                 'semantic_content': doc.document_content,
+                'territories': territories,
+                'affiliations': affs,
             })
 
         return response
@@ -168,6 +233,40 @@ class AISearchService:
                     bp_sub.union_all(pat_sub, soft_sub, rep_sub)
                 )
             )
+
+        # Filtro por Território de Identidade (N:N em researcher_institution)
+        identity_territory = filters.get('identity_territory')
+        if identity_territory:
+            clean_terr = identity_territory.strip()
+            if clean_terr:
+                rids_sub = (
+                    select(ResearcherInstitution.researcher_id)
+                    .filter(
+                        ResearcherInstitution.identity_territory.ilike(
+                            f'%{clean_terr}%'
+                        )
+                    )
+                    .distinct()
+                )
+                bp_sub_terr = select(BibliographicProduction.id).filter(
+                    BibliographicProduction.researcher_id.in_(rids_sub)
+                )
+                pat_sub_terr = select(Patent.id).filter(
+                    Patent.researcher_id.in_(rids_sub)
+                )
+                soft_sub_terr = select(Software.id).filter(
+                    Software.researcher_id.in_(rids_sub)
+                )
+                rep_sub_terr = select(ResearchReport.id).filter(
+                    ResearchReport.researcher_id.in_(rids_sub)
+                )
+                stmt = stmt.filter(
+                    SearchDocumentProduction.production_id.in_(
+                        bp_sub_terr.union_all(
+                            pat_sub_terr, soft_sub_terr, rep_sub_terr
+                        )
+                    )
+                )
 
         # Filtro temporal (year_from e year_to)
         year_from = filters.get('year_from')
@@ -453,5 +552,60 @@ class AISearchService:
             response.append(prod_info)
             if len(response) >= limit:
                 break
+
+        # Enriquecer pesquisadores das produções com vínculos e territórios
+        unique_author_rids = []
+        for p in response:
+            r_info = p.get('researcher')
+            if r_info and r_info.get('id'):
+                try:
+                    from uuid import UUID
+                    unique_author_rids.append(UUID(str(r_info['id'])))
+                except (ValueError, TypeError):
+                    pass
+
+        if unique_author_rids:
+            try:
+                stmt_author_aff = (
+                    select(
+                        ResearcherInstitution.researcher_id,
+                        ResearcherInstitution.identity_territory,
+                        Institution.name.label('institution_name'),
+                        Institution.acronym.label('institution_acronym'),
+                    )
+                    .join(
+                        Institution,
+                        Institution.id == ResearcherInstitution.institution_id,
+                    )
+                    .filter(
+                        ResearcherInstitution.researcher_id.in_(
+                            list(set(unique_author_rids))
+                        )
+                    )
+                )
+                res_author_aff = await session.execute(stmt_author_aff)
+                author_territories_by_rid: Dict[str, List[str]] = {}
+                for row in res_author_aff.all():
+                    rid_s = str(row.researcher_id)
+                    if rid_s not in author_territories_by_rid:
+                        author_territories_by_rid[rid_s] = []
+                    if (
+                        row.identity_territory
+                        and row.identity_territory
+                        not in author_territories_by_rid[rid_s]
+                    ):
+                        author_territories_by_rid[rid_s].append(
+                            row.identity_territory
+                        )
+
+                for p in response:
+                    r_info = p.get('researcher')
+                    if r_info and r_info.get('id'):
+                        rid_s = str(r_info['id'])
+                        r_info['territories'] = author_territories_by_rid.get(
+                            rid_s, []
+                        )
+            except Exception:
+                pass
 
         return response

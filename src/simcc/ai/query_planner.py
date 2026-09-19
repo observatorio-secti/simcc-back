@@ -28,6 +28,10 @@ class SearchFilters(BaseModel):
     city: Optional[str] = Field(
         None, description="Nome da cidade, ex: 'Salvador', 'Feira de Santana'"
     )
+    identity_territory: Optional[str] = Field(
+        None,
+        description="Nome do Território de Identidade da Bahia quando mencionado, ex: 'Litoral Sul', 'Metropolitana de Salvador', 'Chapada Diamantina', 'Portal do Sertão', 'Sisal', 'Sertão do São Francisco', 'Médio Rio das Contas', 'Velho Chico', 'Irecê', 'Extremo Sul', 'Recôncavo', 'Bacia do Rio Grande', etc.",
+    )
     year_from: Optional[int] = Field(
         None, description='Ano de início para o filtro temporal'
     )
@@ -56,7 +60,7 @@ Regras de Classificação de Intenção (`intent`):
 1. `production_search`: O usuário quer encontrar artigos, livros, capítulos, patentes, softwares ou relatórios técnicos.
 2. `researcher_profile`: O usuário pergunta sobre um indivíduo específico (ex: "Quem é Eduardo Manuel...", "Qual o currículo de Fulano").
 3. `researcher_search`: O usuário quer localizar ou comparar pesquisadores por área, tema, instituição ou experiência.
-4. `aggregation`: Perguntas quantitativas ("Quantos artigos foram publicados em 2023?").
+4. `aggregation`: Perguntas quantitativas ("Quantos artigos foram publicados em 2023?", "Qual a produção do território Portal do Sertão?").
 5. `general_question`: Cumprimentos, saudações ou dúvidas gerais sobre como o SIMCC funciona.
 
 Regras para Filtros e Tipos de Produção (`production_types`):
@@ -75,6 +79,16 @@ Regras para Demais Filtros Estruturados (`filters`):
   um indivíduo específico (ex: 'Jaqueline Goes de Jesus').
 - `city`: Nome do município/cidade quando especificado na pergunta
   (ex: 'Salvador', 'Feira de Santana', 'Ilhéus').
+- `identity_territory`: Nome do Território de Identidade da Bahia quando mencionado.
+  Exemplos comuns de territórios baianos: 'Irecê', 'Velho Chico', 'Chapada Diamantina',
+  'Sisal', 'Litoral Sul', 'Baixo Sul', 'Extremo Sul', 'Metropolitana de Salvador',
+  'Portal do Sertão', 'Sertão do São Francisco', 'Vitória da Conquista', 'Recôncavo',
+  'Médio Rio das Contas', 'Bacia do Rio Grande', 'Bacia do Paramirim', 'Bacia do Jacuípe',
+  'Bacia do Rio Corrente', 'Itaparica', 'Itapetinga', 'Piemonte da Diamantina',
+  'Piemonte do Paraguaçu', 'Piemonte Norte do Itapicuru', 'Semiárido Nordeste II',
+  'Sertão Produtivo', 'Vale do Jiquiriçá', 'Agreste de Alagoinhas / Litoral Norte'.
+  Atenção: Se o usuário disser "território Portal do Sertão" ou "território de identidade Portal do Sertão",
+  extraia apenas o nome próprio do território: "Portal do Sertão".
 - `year_from`: Ano inicial quando houver expressões como "a partir de 2022",
   "de 2022 em diante", "desde 2022".
 - `year_to`: Ano final quando houver expressões como "até 2020",
@@ -101,6 +115,15 @@ Exemplos:
 
 - "Livros e capítulos publicados sobre história da Bahia"
   -> intent: "production_search", production_types: ["BOOK", "BOOK_CHAPTER"], institutions: [], semantic_query: "história da Bahia historiografia memória"
+
+- "Artigos publicados no território Chapada Diamantina"
+  -> intent: "production_search", production_types: ["ARTICLE"], identity_territory: "Chapada Diamantina", semantic_query: ""
+
+- "Quais pesquisadores atuam no território Litoral Sul?"
+  -> intent: "researcher_search", identity_territory: "Litoral Sul", semantic_query: ""
+
+- "Quantos artigos foram publicados no território Portal do Sertão?"
+  -> intent: "aggregation", production_types: ["ARTICLE"], identity_territory: "Portal do Sertão", semantic_query: ""
 
 - "Softwares e programas desenvolvidos em inteligência artificial na UNEB"
   -> intent: "production_search", production_types: ["SOFTWARE"], institutions: ["UNEB"], semantic_query: "inteligência artificial sistemas de computação"

@@ -151,3 +151,75 @@ def test_build_synthesis_prompt_with_chat_history():
     assert 'DIRETRIZ DE CONTINUIDADE CONVERSACIONAL' in prompt
     assert 'NUNCA cumprimente o usuário ("Olá", "Tudo bem?"' in prompt
     assert 'Vá DIRETO ao ponto' in prompt
+
+
+def test_build_synthesis_prompt_with_territory_and_affiliations():
+    researchers = [
+        {
+            'name': 'Prof. Multi Vínculo',
+            'institution_acronym': 'UFBA',
+            'territories': ['METROPOLITANA DE SALVADOR', 'PORTAL DO SERTÃO'],
+            'affiliations': [
+                {
+                    'institution': 'Universidade Federal da Bahia',
+                    'institution_acronym': 'UFBA',
+                    'city': 'Salvador',
+                    'identity_territory': 'METROPOLITANA DE SALVADOR',
+                    'workload': 40.0,
+                },
+                {
+                    'institution': 'Universidade Estadual de Feira de Santana',
+                    'institution_acronym': 'UEFS',
+                    'city': 'Feira de Santana',
+                    'identity_territory': 'PORTAL DO SERTÃO',
+                    'workload': 20.0,
+                },
+            ],
+            'metrics': {'articles': 30, 'patents': 2},
+        }
+    ]
+    productions = [
+        {
+            'title': 'Estudo em Saúde Coletiva',
+            'type': 'ARTICLE',
+            'researcher': {
+                'name': 'Prof. Multi Vínculo',
+                'institution': 'UFBA',
+                'territories': ['METROPOLITANA DE SALVADOR'],
+            },
+        }
+    ]
+    global_metrics = {
+        'total_matched': 30,
+        'sample_count': 1,
+        'institution_shares': {},
+        'territory_summary': {
+            'territory': 'Portal do Sertão',
+            'researchers_count': 120,
+            'institutions': ['UEFS', 'IFBA'],
+            'total_productions': 540,
+            'articles': 400,
+            'books': 80,
+            'book_chapters': 40,
+            'patents': 15,
+            'software': 5,
+        },
+    }
+
+    prompt = build_synthesis_prompt(
+        query='Artigos no território Portal do Sertão',
+        intent='production_search',
+        filters_dict={'identity_territory': 'Portal do Sertão'},
+        researchers=researchers,
+        productions=productions,
+        global_metrics=global_metrics,
+    )
+
+    assert 'Dados Consolidados do Território de Identidade' in prompt
+    assert 'Portal do Sertão' in prompt
+    assert 'Total de Pesquisadores Cadastrados no Território: 120' in prompt
+    assert 'Produção Acumulada no Território: 540 produções' in prompt
+    assert 'Instituições com Presença no Território: UEFS, IFBA' in prompt
+    assert 'UFBA - Salvador [Território: METROPOLITANA DE SALVADOR] (40h)' in prompt
+    assert 'UEFS - Feira de Santana [Território: PORTAL DO SERTÃO] (20h)' in prompt
+    assert 'Território(s): METROPOLITANA DE SALVADOR' in prompt

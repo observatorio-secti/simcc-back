@@ -125,3 +125,71 @@ async def test_get_global_search_context():
     assert context['sample_count'] == 10
     assert 'UFBA' in context['institution_shares']
     assert 'notice' in context
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_get_territory_summary_success():
+    service = AIMetricsService()
+    session = AsyncMock()
+
+    # 1. Total pesquisadores (count scalar)
+    res_r = MagicMock()
+    res_r.scalar.return_value = 45
+
+    # 2. Instituições (all)
+    res_inst = MagicMock()
+    res_inst.all.return_value = [('UEFS',), ('IFBA',)]
+
+    # 3. Produções agregadas (first row)
+    res_prod = MagicMock()
+    res_prod.first.return_value = (350, 20, 30, 10, 5)
+
+    session.execute.side_effect = [res_r, res_inst, res_prod]
+
+    summary = await service.get_territory_summary(session, 'Portal do Sertão')
+
+    assert summary['territory'] == 'Portal do Sertão'
+    assert summary['researchers_count'] == 45
+    assert summary['institutions'] == ['UEFS', 'IFBA']
+    assert summary['articles'] == 350
+    assert summary['total_productions'] == 415
+    assert summary['patents'] == 10
+
+
+@pytest.mark.unit
+@pytest.mark.asyncio
+async def test_get_global_search_context_with_territory():
+    service = AIMetricsService()
+    session = AsyncMock()
+
+    # Mocks para get_institution_shares
+    res_shares = MagicMock()
+    res_shares.all.return_value = [('UEFS', 200, 10, 10, 5, 5, 30)]
+
+    # Mocks para get_territory_summary
+    res_r = MagicMock()
+    res_r.scalar.return_value = 25
+    res_inst = MagicMock()
+    res_inst.all.return_value = [('UEFS',)]
+    res_prod = MagicMock()
+    res_prod.first.return_value = (150, 5, 5, 2, 1)
+
+    session.execute.side_effect = [res_shares, res_r, res_inst, res_prod]
+
+    plan_mock = MagicMock()
+    plan_mock.filters.model_dump.return_value = {
+        'identity_territory': 'Portal do Sertão'
+    }
+
+    context = await service.get_global_search_context(
+        session=session,
+        plan=plan_mock,
+        sample_count=5,
+        matched_count=25,
+    )
+
+    assert 'territory_summary' in context
+    assert context['territory_summary']['territory'] == 'Portal do Sertão'
+    assert context['territory_summary']['researchers_count'] == 25
+    assert 'Portal do Sertão' in context['notice']

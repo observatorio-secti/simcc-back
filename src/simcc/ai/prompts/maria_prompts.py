@@ -133,10 +133,33 @@ def build_synthesis_prompt(
             else '- Distribuição institucional em consolidação no SIMCC.'
         )
 
+        territory_text = ''
+        if global_metrics.get('territory_summary'):
+            ts = global_metrics['territory_summary']
+            t_name = ts.get('territory', '')
+            t_res = ts.get('researchers_count', 0)
+            t_prods = ts.get('total_productions', 0)
+            t_arts = ts.get('articles', 0)
+            t_bks = (ts.get('books', 0) or 0) + (ts.get('book_chapters', 0) or 0)
+            t_pats = ts.get('patents', 0)
+            t_soft = ts.get('software', 0)
+            t_insts = ', '.join(ts.get('institutions', [])) or 'Não informadas'
+
+            territory_text = (
+                f'\n\n### Dados Consolidados do Território de Identidade ({t_name.upper()}):\n'
+                f'- Total de Pesquisadores Cadastrados no Território: {t_res}\n'
+                f'- Instituições com Presença no Território: {t_insts}\n'
+                f'- Produção Acumulada no Território: {t_prods} produções '
+                f'({t_arts} artigos, {t_bks} livros/capítulos, {t_pats} patentes, {t_soft} softwares).\n'
+                f'> [!DIRETRIZ DE TERRITÓRIO DE IDENTIDADE]\n'
+                f'> Destaque esses totais consolidados e as instituições participantes para fornecer uma visão factual sobre o território {t_name}.'
+            )
+
         global_context_header = (
             f'\n### Contexto Quantitativo Global no SIMCC:\n'
             f'- Registros totais encontrados para estes critérios: {total_matched} (amostra de {sample_count} itens abaixo para detalhamento).\n'
-            f'- Participação Institucional Geral no SIMCC:\n{shares_text}\n\n'
+            f'- Participação Institucional Geral no SIMCC:\n{shares_text}'
+            f'{territory_text}\n\n'
             f'> [!DIRETRIZ DE AMOSTRAGEM E RELEVÂNCIA INSTITUCIONAL]\n'
             f'> ATENÇÃO: NUNCA afirme ou sugira que a produção de uma universidade (especialmente a UFBA) se limita a esta amostra.\n'
             f'> A lista abaixo traz apenas os {sample_count} itens mais aderentes/recentes recuperados por similaridade.\n'
@@ -145,11 +168,28 @@ def build_synthesis_prompt(
 
     researchers_context = ''
     for i, r in enumerate(researchers, 1):
-        inst = (
+        inst_base = (
             r.get('institution_acronym')
             or r.get('institution')
             or 'Instituição não informada'
         )
+
+        aff_parts = []
+        if r.get('affiliations'):
+            for aff in r['affiliations']:
+                acronym = aff.get('institution_acronym') or aff.get('institution') or 'Instituição'
+                c_str = f" - {aff['city']}" if aff.get('city') else ""
+                t_str = f" [Território: {aff['identity_territory']}]" if aff.get('identity_territory') else ""
+                w_str = f" ({int(aff['workload'])}h)" if aff.get('workload') else ""
+                aff_parts.append(f'{acronym}{c_str}{t_str}{w_str}')
+
+        if aff_parts:
+            inst_line = f'Instituição: {inst_base} | Vínculos: {"; ".join(aff_parts)}'
+        elif r.get('territories'):
+            inst_line = f'Instituição: {inst_base} | Território(s): {", ".join(r["territories"])}'
+        else:
+            inst_line = f'Instituição: {inst_base}'
+
         metrics_line = ''
         if r.get('metrics'):
             m = r['metrics']
@@ -173,7 +213,7 @@ def build_synthesis_prompt(
         researchers_context += (
             f'\n[Pesquisador {i}]\n'
             f'Nome: {r.get("name")}\n'
-            f'Instituição: {inst}\n'
+            f'{inst_line}\n'
             f'{metrics_line}'
             f'Resumo/Atuação: {r.get("semantic_content") or r.get("abstract") or "N/D"}\n'
         )
@@ -181,8 +221,11 @@ def build_synthesis_prompt(
     productions_context = ''
     for i, p in enumerate(productions, 1):
         r_info = p.get('researcher', {})
+        inst_desc = r_info.get('institution', '')
+        if r_info.get('territories'):
+            inst_desc += f' | Território(s): {", ".join(r_info["territories"])}'
         author_inst = (
-            f'{r_info.get("name", "")} ({r_info.get("institution", "")})'
+            f'{r_info.get("name", "")} ({inst_desc})'
         )
         prod_metrics_line = ''
         if r_info.get('metrics'):

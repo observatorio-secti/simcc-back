@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from simcc.core.db.models.institution import Institution
 from simcc.core.db.models.openalex import OpenAlexResearcher
 from simcc.core.db.models.researcher import Researcher, ResearcherProduction
+from simcc.core.db.models.researcher_institution import ResearcherInstitution
 
 logger = logging.getLogger(__name__)
 
@@ -194,6 +195,121 @@ class AIMetricsService:
 
         return shares
 
+    async def get_territory_summary(
+        self,
+        session: AsyncSession,
+        territory_name: str,
+    ) -> Dict[str, Any]:
+        """
+        Retorna o resumo quantitativo consolidado de um Território de Identidade da Bahia:
+        - Total de pesquisadores únicos atuantes
+        - Instituições com presença no território
+        - Somatório de produções por tipo (artigos, livros, patentes, software)
+        Garante deduplicação para pesquisadores com múltiplos vínculos (N:N).
+        """
+        clean_name = territory_name.strip()
+        if not clean_name:
+            return {
+                'territory': territory_name,
+                'researchers_count': 0,
+                'institutions': [],
+                'total_productions': 0,
+                'articles': 0,
+                'books': 0,
+                'book_chapters': 0,
+                'patents': 0,
+                'software': 0,
+            }
+
+        try:
+            # 1. Total de pesquisadores únicos e subquery para deduplicação
+            rids_sub = (
+                select(ResearcherInstitution.researcher_id)
+                .filter(
+                    ResearcherInstitution.identity_territory.ilike(
+                        f'%{clean_name}%'
+                    )
+                )
+                .distinct()
+            )
+
+            stmt_r_count = select(
+                func.count(
+                    func.distinct(ResearcherInstitution.researcher_id)
+                )
+            ).filter(
+                ResearcherInstitution.identity_territory.ilike(
+                    f'%{clean_name}%'
+                )
+            )
+            res_r_count = await session.execute(stmt_r_count)
+            total_researchers = res_r_count.scalar() or 0
+
+            # 2. Instituições atuantes no território
+            stmt_inst = (
+                select(func.distinct(Institution.acronym))
+                .join(
+                    Institution,
+                    Institution.id == ResearcherInstitution.institution_id,
+                )
+                .filter(
+                    ResearcherInstitution.identity_territory.ilike(
+                        f'%{clean_name}%'
+                    )
+                )
+            )
+            res_inst = await session.execute(stmt_inst)
+            institutions = [row[0] for row in res_inst.all() if row[0]]
+
+            # 3. Agregação de produções deduplicadas dos pesquisadores do território
+            stmt_prod = (
+                select(
+                    func.coalesce(func.sum(ResearcherProduction.articles), 0),
+                    func.coalesce(func.sum(ResearcherProduction.book), 0),
+                    func.coalesce(
+                        func.sum(ResearcherProduction.book_chapters), 0
+                    ),
+                    func.coalesce(func.sum(ResearcherProduction.patent), 0),
+                    func.coalesce(func.sum(ResearcherProduction.software), 0),
+                ).filter(ResearcherProduction.researcher_id.in_(rids_sub))
+            )
+            res_prod = await session.execute(stmt_prod)
+            row_p = res_prod.first()
+
+            articles = int(row_p[0] or 0) if row_p else 0
+            books = int(row_p[1] or 0) if row_p else 0
+            chapters = int(row_p[2] or 0) if row_p else 0
+            patents = int(row_p[3] or 0) if row_p else 0
+            software = int(row_p[4] or 0) if row_p else 0
+            total_prod = articles + books + chapters + patents + software
+
+            return {
+                'territory': clean_name,
+                'researchers_count': total_researchers,
+                'institutions': institutions,
+                'total_productions': total_prod,
+                'articles': articles,
+                'books': books,
+                'book_chapters': chapters,
+                'patents': patents,
+                'software': software,
+            }
+        except Exception as ex:
+            logger.warning(
+                f'Erro ao calcular métricas do território {territory_name}: {ex}'
+            )
+            return {
+                'territory': clean_name,
+                'researchers_count': 0,
+                'institutions': [],
+                'total_productions': 0,
+                'articles': 0,
+                'books': 0,
+                'book_chapters': 0,
+                'patents': 0,
+                'software': 0,
+            }
+
     async def get_global_search_context(
         self,
         session: AsyncSession,
@@ -217,15 +333,37 @@ class AIMetricsService:
             elif isinstance(plan.filters, dict):
                 filters_dict = plan.filters
 
-        return {
-            'total_matched': total_matched,
-            'sample_count': sample_count,
-            'institution_shares': shares,
-            'filters_applied': filters_dict,
-            'notice': (
+        territory_summary = None
+        territory_name = filters_dict.get('identity_territory')
+        if territory_name:
+            territory_summary = await self.get_territory_summary(
+                session=session,
+                territory_name=territory_name,
+            )
+
+        if territory_summary and territory_summary.get('researchers_count', 0) > 0:
+            notice = (
+                f"Exibindo dados e produções do Território de Identidade '{territory_name}'. "
+                f"O acervo cadastrado no SIMCC contempla {territory_summary['researchers_count']} "
+                f"pesquisador(es) e {territory_summary['total_productions']} produção(ões) "
+                f"acumuladas neste território."
+            )
+        else:
+            notice = (
                 f'Exibindo amostra de {sample_count} itens mais '
                 f'relevantes no SIMCC. O acervo completo das '
                 f'instituições baianas (como UFBA) contém '
                 f'expressivamente mais produções na base.'
-            ),
+            )
+
+        context: Dict[str, Any] = {
+            'total_matched': total_matched,
+            'sample_count': sample_count,
+            'institution_shares': shares,
+            'filters_applied': filters_dict,
+            'notice': notice,
         }
+        if territory_summary:
+            context['territory_summary'] = territory_summary
+
+        return context
