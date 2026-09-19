@@ -148,8 +148,8 @@ def test_main_success(tmp_path):
     assert sync_rating_programs.items_succeeded == 2
     assert sync_rating_programs.items_failed == 2
 
-    # Verifica que session.execute foi chamado com UPDATE
-    assert mock_session.execute.call_count == 2  # 1 mapping + 1 update
+    # 1 mapping + 1 update ratings + 1 update nulos
+    assert mock_session.execute.call_count == 3
     update_call_args = mock_session.execute.call_args_list[1]
     update_query = str(update_call_args[0][0])
     update_data = update_call_args[0][1]
@@ -161,6 +161,13 @@ def test_main_success(tmp_path):
         {'code': '42051010002P0', 'rating': '5'},
         {'code': '32020015008P9', 'rating': '4'},
     ]
+
+    null_update_call_args = mock_session.execute.call_args_list[2]
+    null_update_query = str(null_update_call_args[0][0])
+    assert 'UPDATE public.graduate_program' in null_update_query
+    assert "SET rating = 'Não informado'" in null_update_query
+    assert 'WHERE rating IS NULL' in null_update_query
+
     mock_session.commit.assert_called_once()
 
 
