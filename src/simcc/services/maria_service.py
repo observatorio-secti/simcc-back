@@ -127,6 +127,8 @@ class MariaService:
             ui_f['city'] = filters.city
         if getattr(filters, 'identity_territory', None):
             ui_f['identity_territory'] = filters.identity_territory
+        if getattr(filters, 'qualis', None):
+            ui_f['qualis'] = filters.qualis
         if filters.year_from or filters.year_to:
             if filters.year_from and filters.year_to:
                 ui_f['period'] = f'{filters.year_from} - {filters.year_to}'

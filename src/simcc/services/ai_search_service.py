@@ -106,7 +106,28 @@ class AISearchService:
                 )
                 stmt = stmt.filter(Researcher.id.in_(terr_sub))
 
-        # 5. Ordenação e Busca Semântica com Linha de Corte
+        # 5. Filtro por Qualis (pesquisadores com artigos nos estratos informados)
+        qualis_raw = filters.get('qualis')
+        if qualis_raw:
+            if isinstance(qualis_raw, str):
+                qualis_raw = [qualis_raw]
+            qualis_list = [q.strip().upper() for q in qualis_raw if q.strip()]
+            if qualis_list:
+                sub_r_qualis = (
+                    select(BibliographicProduction.researcher_id)
+                    .join(
+                        BibliographicProductionArticle,
+                        BibliographicProductionArticle.bibliographic_production_id
+                        == BibliographicProduction.id,
+                    )
+                    .filter(
+                        BibliographicProductionArticle.qualis.in_(qualis_list)
+                    )
+                    .distinct()
+                )
+                stmt = stmt.filter(Researcher.id.in_(sub_r_qualis))
+
+        # 6. Ordenação e Busca Semântica com Linha de Corte
         if query and query.strip():
             vector = await self.embeddings.get_embeddings(query.strip())
             dist_expr = SearchDocumentResearcher.embedding.cosine_distance(
@@ -266,6 +287,22 @@ class AISearchService:
                             pat_sub_terr, soft_sub_terr, rep_sub_terr
                         )
                     )
+                )
+
+        # Filtro por Qualis (BibliographicProductionArticle)
+        qualis_raw = filters.get('qualis')
+        if qualis_raw:
+            if isinstance(qualis_raw, str):
+                qualis_raw = [qualis_raw]
+            qualis_list = [q.strip().upper() for q in qualis_raw if q.strip()]
+            if qualis_list:
+                art_sub_qualis = select(
+                    BibliographicProductionArticle.bibliographic_production_id
+                ).filter(
+                    BibliographicProductionArticle.qualis.in_(qualis_list)
+                )
+                stmt = stmt.filter(
+                    SearchDocumentProduction.production_id.in_(art_sub_qualis)
                 )
 
         # Filtro temporal (year_from e year_to)
@@ -548,6 +585,22 @@ class AISearchService:
                         continue
                 except (ValueError, TypeError):
                     continue
+
+            # Validação defensiva de qualis (compatibilidade unitária e banco)
+            if qualis_raw:
+                if isinstance(qualis_raw, str):
+                    qualis_raw = [qualis_raw]
+                qualis_list = [
+                    q.strip().upper() for q in qualis_raw if q.strip()
+                ]
+                if qualis_list:
+                    prod_qualis = (
+                        (prod_info.get('details', {}).get('qualis') or '')
+                        .strip()
+                        .upper()
+                    )
+                    if prod_qualis not in qualis_list:
+                        continue
 
             response.append(prod_info)
             if len(response) >= limit:

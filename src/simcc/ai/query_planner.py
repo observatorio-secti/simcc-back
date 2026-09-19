@@ -32,6 +32,10 @@ class SearchFilters(BaseModel):
         None,
         description="Nome do Território de Identidade da Bahia quando mencionado, ex: 'Litoral Sul', 'Metropolitana de Salvador', 'Chapada Diamantina', 'Portal do Sertão', 'Sisal', 'Sertão do São Francisco', 'Médio Rio das Contas', 'Velho Chico', 'Irecê', 'Extremo Sul', 'Recôncavo', 'Bacia do Rio Grande', etc.",
     )
+    qualis: Optional[List[str]] = Field(
+        default=None,
+        description="Lista de estratos Qualis da CAPES para artigos: 'A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4', 'C', 'SQ'. Pode conter múltiplos valores, ex: ['A1', 'A2'], ['B1', 'B2', 'B3']",
+    )
     year_from: Optional[int] = Field(
         None, description='Ano de início para o filtro temporal'
     )
@@ -64,13 +68,13 @@ Regras de Classificação de Intenção (`intent`):
 5. `general_question`: Cumprimentos, saudações ou dúvidas gerais sobre como o SIMCC funciona.
 
 Regras para Filtros e Tipos de Produção (`production_types`):
-- Se o usuário mencionar artigos, adicione 'ARTICLE'.
+- Se o usuário mencionar artigos ou estratos Qualis (ex: A1, A2, B1), adicione 'ARTICLE'.
 - Se mencionar livros, adicione 'BOOK'.
 - Se mencionar capítulos, adicione 'BOOK_CHAPTER'.
 - Se mencionar patentes ou propriedade intelectual, adicione 'PATENT'.
 - Se mencionar softwares, programas ou sistemas desenvolvidos, adicione 'SOFTWARE'.
 - Se mencionar relatórios técnicos ou de pesquisa, adicione 'REPORT'.
-- Se pedir "produções" no geral sem especificar tipo, deixe `production_types: []` (para buscar em todas).
+- Se pedir "produções" no geral sem especificar tipo nem Qualis, deixe `production_types: []` (para buscar em todas).
 
 Regras para Demais Filtros Estruturados (`filters`):
 - `institutions`: Siglas ou nomes de universidades e instituições de pesquisa
@@ -89,6 +93,10 @@ Regras para Demais Filtros Estruturados (`filters`):
   'Sertão Produtivo', 'Vale do Jiquiriçá', 'Agreste de Alagoinhas / Litoral Norte'.
   Atenção: Se o usuário disser "território Portal do Sertão" ou "território de identidade Portal do Sertão",
   extraia apenas o nome próprio do território: "Portal do Sertão".
+- `qualis`: Lista de estratos Qualis da CAPES informados para artigos.
+  Sempre converta para maiúsculas: 'A1', 'A2', 'A3', 'A4', 'B1', 'B2', 'B3', 'B4', 'C', 'SQ'.
+  Permite múltiplos valores quando o usuário citar mais de um (ex: "A1 e A2" -> ['A1', 'A2'];
+  "Qualis A" -> ['A1', 'A2', 'A3', 'A4']; "Qualis B" -> ['B1', 'B2', 'B3', 'B4']; "B1, B2 e B3" -> ['B1', 'B2', 'B3']).
 - `year_from`: Ano inicial quando houver expressões como "a partir de 2022",
   "de 2022 em diante", "desde 2022".
 - `year_to`: Ano final quando houver expressões como "até 2020",
@@ -109,6 +117,12 @@ Regras de Continuidade e Resolução de Referências (Histórico Recente):
 Exemplos:
 - "Quais artigos foram publicados sobre leishmaniose ou imunologia?"
   -> intent: "production_search", production_types: ["ARTICLE"], institutions: [], semantic_query: "leishmaniose imunologia infecção celular"
+
+- "Quais artigos A1 e A2 foram publicados sobre inteligência artificial?"
+  -> intent: "production_search", production_types: ["ARTICLE"], qualis: ["A1", "A2"], semantic_query: "inteligência artificial redes neurais"
+
+- "Artigos com Qualis B1 ou B2 na UFBA"
+  -> intent: "production_search", production_types: ["ARTICLE"], qualis: ["B1", "B2"], institutions: ["UFBA"], semantic_query: ""
 
 - "Quais patentes e registros foram desenvolvidos na UFBA?"
   -> intent: "production_search", production_types: ["PATENT"], institutions: ["UFBA"], semantic_query: ""

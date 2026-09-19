@@ -83,6 +83,7 @@ A estrutura é composta por:
 | `production_types` | `List[str]` | Lista de tipos específicos de produção catalogados (vazio busca em todas). | `["ARTICLE"]`, `["PATENT"]`, `["BOOK", "BOOK_CHAPTER"]` |
 | `city` | `Optional[str]` | Polo municipal ou cidade do Estado da Bahia mencionada. | `"Salvador"`, `"Feira de Santana"`, `"Ilhéus"` |
 | `identity_territory` | `Optional[str]` | Nome do Território de Identidade da Bahia (tabela relacional N:N `researcher_institution`). | `"Portal do Sertão"`, `"Chapada Diamantina"`, `"Litoral Sul"` |
+| `qualis` | `List[str]` | Lista de estratos Qualis da CAPES para artigos de periódicos. Permite filtragem múltipla simultânea. | `["A1"]`, `["A1", "A2"]`, `["B1", "B2", "B3"]` |
 | `year_from` | `Optional[int]` | Ano inicial para recorte temporal da busca. | `2019`, `2024` |
 | `year_to` | `Optional[int]` | Ano final para recorte temporal da pesquisa. | `2023`, `2026` |
 

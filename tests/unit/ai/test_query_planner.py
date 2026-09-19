@@ -15,27 +15,33 @@ def test_search_filters_defaults():
     assert filters.researcher_name is None
     assert filters.city is None
     assert filters.identity_territory is None
+    assert filters.qualis is None
 
 
 @pytest.mark.unit
 def test_query_plan_valid_structure():
-    """Valida instanciação e serialização de QueryPlan com identity_territory."""
+    """Valida instanciação e serialização de QueryPlan
+    com identity_territory e qualis.
+    """
     plan = QueryPlan(
         intent='researcher_search',
         semantic_query='tecnologia e inovação',
         filters=SearchFilters(
             institutions=['UFBA', 'UNEB'],
             identity_territory='Portal do Sertão',
+            qualis=['A1', 'A2'],
         ),
     )
     assert plan.intent == 'researcher_search'
     assert len(plan.filters.institutions) == 2  # noqa: PLR2004
     assert plan.filters.identity_territory == 'Portal do Sertão'
+    assert plan.filters.qualis == ['A1', 'A2']
 
     data = plan.model_dump()
     assert 'institutions' in data['filters']
     assert data['filters']['institutions'] == ['UFBA', 'UNEB']
     assert data['filters']['identity_territory'] == 'Portal do Sertão'
+    assert data['filters']['qualis'] == ['A1', 'A2']
 
 
 @pytest.mark.unit
