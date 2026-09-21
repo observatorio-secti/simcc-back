@@ -4,6 +4,7 @@ from uuid import uuid4
 
 import pytest
 
+from simcc.v2.schemas.filters import ResearcherFilter
 from simcc.v2.services.researcher_service import search_researchers
 
 
@@ -24,10 +25,11 @@ async def test_search_researchers_service_success():
         new_callable=AsyncMock,
     ) as mock_fetch:
         mock_fetch.return_value = (mock_data, 50)
+        filter_obj = ResearcherFilter(q='Silva')
 
         response = await search_researchers(
             session=mock_session,
-            q='Silva',
+            filters=filter_obj,
             page=1,
             per_page=20,
             sort_by='name',
@@ -51,11 +53,7 @@ async def test_search_researchers_service_success():
 
         mock_fetch.assert_called_once_with(
             session=mock_session,
-            q='Silva',
-            year_start=None,
-            year_end=None,
-            institution_id=None,
-            graduate_program_id=None,
+            filters=filter_obj,
             page=1,
             per_page=20,
             sort_by='name',

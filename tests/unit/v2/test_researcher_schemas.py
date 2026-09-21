@@ -4,6 +4,14 @@ from uuid import uuid4
 
 import pytest
 
+from simcc.v2.schemas import (
+    BaseFilter,
+    BaseTemporalFilter,
+    GraduateProgramFilter,
+    InstitutionFilter,
+    ProductionFilter,
+    ResearcherFilter,
+)
 from simcc.v2.schemas.researcher import (
     FiltersApplied,
     Meta,
@@ -49,6 +57,58 @@ def test_filters_applied_schema_defaults():
 
 
 @pytest.mark.unit
+def test_unified_filter_schemas_defaults():
+    base = BaseFilter()
+    assert base.q is None
+
+    temporal = BaseTemporalFilter(q='IA', year_start=2020, year_end=2024)
+    assert temporal.q == 'IA'
+    assert temporal.year_start == 2020
+    assert temporal.year_end == 2024
+
+    r_id = uuid4()
+    inst_id = uuid4()
+    gp_id = uuid4()
+
+    rf = ResearcherFilter(
+        q='Carlos', institution_id=inst_id, graduate_program_id=gp_id
+    )
+    assert rf.q == 'Carlos'
+    assert rf.institution_id == inst_id
+    assert rf.graduate_program_id == gp_id
+
+    pf = ProductionFilter(
+        q='Redes Neurais',
+        year_start=2019,
+        year_end=2023,
+        researcher_id=r_id,
+        type='ARTIGO',
+        qualis='A1',
+        magazine='IEEE',
+    )
+    assert pf.type == 'ARTIGO'
+    assert pf.qualis == 'A1'
+    assert pf.magazine == 'IEEE'
+    assert pf.researcher_id == r_id
+
+    inf = InstitutionFilter(q='UFBA', state='BA', city='Salvador')
+    assert inf.q == 'UFBA'
+    assert inf.state == 'BA'
+    assert inf.city == 'Salvador'
+
+    gpf = GraduateProgramFilter(
+        q='Ciência da Computação',
+        area='Exatas',
+        modality='ACADÊMICO',
+        rating='5',
+    )
+    assert gpf.q == 'Ciência da Computação'
+    assert gpf.area == 'Exatas'
+    assert gpf.modality == 'ACADÊMICO'
+    assert gpf.rating == '5'
+
+
+@pytest.mark.unit
 def test_search_response_envelope():
     r_id = uuid4()
     now = datetime.now(timezone.utc)
@@ -62,7 +122,7 @@ def test_search_response_envelope():
             has_next=False,
             has_prev=False,
         ),
-        filters_applied=FiltersApplied(q='Carlos'),
+        filters_applied=ResearcherFilter(q='Carlos'),
         sort=Sort(by='name', order='asc'),
         meta=Meta(took_ms=5, cached=False, timestamp=now),
     )

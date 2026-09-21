@@ -1,3 +1,11 @@
+from simcc.v2.schemas.filters import (
+    BaseFilter,
+    BaseTemporalFilter,
+    GraduateProgramFilter,
+    InstitutionFilter,
+    ProductionFilter,
+    ResearcherFilter,
+)
 from simcc.v2.schemas.researcher import (
     FiltersApplied,
     Meta,
@@ -8,10 +16,16 @@ from simcc.v2.schemas.researcher import (
 )
 
 __all__ = [
-    'Researcher',
-    'Pagination',
+    'BaseFilter',
+    'BaseTemporalFilter',
     'FiltersApplied',
-    'Sort',
+    'GraduateProgramFilter',
+    'InstitutionFilter',
     'Meta',
+    'Pagination',
+    'ProductionFilter',
+    'Researcher',
+    'ResearcherFilter',
     'SearchResponse',
+    'Sort',
 ]

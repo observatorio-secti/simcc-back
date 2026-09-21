@@ -1,6 +1,5 @@
 # ruff: noqa: PLR0913, PLR0917
 from typing import Any, Optional
-from uuid import UUID
 
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,42 +8,37 @@ from simcc.core.db.models.graduate_program import GraduateProgramResearcher
 from simcc.core.db.models.production import BibliographicProduction
 from simcc.core.db.models.researcher import Researcher
 from simcc.core.db.models.researcher_institution import ResearcherInstitution
+from simcc.v2.schemas.filters import ResearcherFilter
 
 
-def _build_filters(
-    q: Optional[str] = None,
-    year_start: Optional[int] = None,
-    year_end: Optional[int] = None,
-    institution_id: Optional[UUID] = None,
-    graduate_program_id: Optional[UUID] = None,
-) -> list:
+def _build_filters(filters: ResearcherFilter) -> list:
     conditions = []
 
-    if q and q.strip():
-        conditions.append(Researcher.name.ilike(f'%{q.strip()}%'))
+    if filters.q and filters.q.strip():
+        conditions.append(Researcher.name.ilike(f'%{filters.q.strip()}%'))
 
-    if institution_id:
+    if filters.institution_id:
         sub_inst = select(ResearcherInstitution.researcher_id).where(
-            ResearcherInstitution.institution_id == institution_id
+            ResearcherInstitution.institution_id == filters.institution_id
         )
         conditions.append(
-            (Researcher.institution_id == institution_id)
+            (Researcher.institution_id == filters.institution_id)
             | (Researcher.id.in_(sub_inst))
         )
 
-    if graduate_program_id:
+    if filters.graduate_program_id:
         sub_gp = select(GraduateProgramResearcher.researcher_id).where(
             GraduateProgramResearcher.graduate_program_id
-            == graduate_program_id
+            == filters.graduate_program_id
         )
         conditions.append(Researcher.id.in_(sub_gp))
 
-    if year_start is not None or year_end is not None:
+    if filters.year_start is not None or filters.year_end is not None:
         p_conds = []
-        if year_start is not None:
-            p_conds.append(BibliographicProduction.year_ >= year_start)
-        if year_end is not None:
-            p_conds.append(BibliographicProduction.year_ <= year_end)
+        if filters.year_start is not None:
+            p_conds.append(BibliographicProduction.year_ >= filters.year_start)
+        if filters.year_end is not None:
+            p_conds.append(BibliographicProduction.year_ <= filters.year_end)
         sub_bp = select(BibliographicProduction.researcher_id).where(
             and_(*p_conds)
         )
@@ -55,23 +49,14 @@ def _build_filters(
 
 async def fetch_researchers(
     session: AsyncSession,
-    q: Optional[str] = None,
-    year_start: Optional[int] = None,
-    year_end: Optional[int] = None,
-    institution_id: Optional[UUID] = None,
-    graduate_program_id: Optional[UUID] = None,
+    filters: Optional[ResearcherFilter] = None,
     page: int = 1,
     per_page: int = 20,
     sort_by: str = 'name',
     sort_order: str = 'asc',
 ) -> tuple[list[dict[str, Any]], int]:
-    conditions = _build_filters(
-        q=q,
-        year_start=year_start,
-        year_end=year_end,
-        institution_id=institution_id,
-        graduate_program_id=graduate_program_id,
-    )
+    resolved_filters = filters or ResearcherFilter()
+    conditions = _build_filters(resolved_filters)
 
     count_stmt = select(func.count(Researcher.id.distinct()))
     if conditions:

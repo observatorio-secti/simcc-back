@@ -3,13 +3,12 @@ import math
 import time
 from datetime import datetime, timezone
 from typing import Optional
-from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from simcc.v2.repositories import researcher_repo
+from simcc.v2.schemas.filters import ResearcherFilter
 from simcc.v2.schemas.researcher import (
-    FiltersApplied,
     Meta,
     Pagination,
     Researcher,
@@ -20,25 +19,18 @@ from simcc.v2.schemas.researcher import (
 
 async def search_researchers(
     session: AsyncSession,
-    q: Optional[str] = None,
-    year_start: Optional[int] = None,
-    year_end: Optional[int] = None,
-    institution_id: Optional[UUID] = None,
-    graduate_program_id: Optional[UUID] = None,
+    filters: Optional[ResearcherFilter] = None,
     page: int = 1,
     per_page: int = 20,
     sort_by: str = 'name',
     sort_order: str = 'asc',
 ) -> SearchResponse:
     start_time = time.perf_counter()
+    resolved_filters = filters or ResearcherFilter()
 
     items, total_items = await researcher_repo.fetch_researchers(
         session=session,
-        q=q,
-        year_start=year_start,
-        year_end=year_end,
-        institution_id=institution_id,
-        graduate_program_id=graduate_program_id,
+        filters=resolved_filters,
         page=page,
         per_page=per_page,
         sort_by=sort_by,
@@ -63,13 +55,7 @@ async def search_researchers(
             has_next=has_next,
             has_prev=has_prev,
         ),
-        filters_applied=FiltersApplied(
-            q=q,
-            year_start=year_start,
-            year_end=year_end,
-            institution_id=institution_id,
-            graduate_program_id=graduate_program_id,
-        ),
+        filters_applied=resolved_filters,
         sort=Sort(by=sort_by, order=sort_order),
         meta=Meta(
             took_ms=took_ms,

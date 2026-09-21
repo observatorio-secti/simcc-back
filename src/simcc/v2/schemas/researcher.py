@@ -4,6 +4,10 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from simcc.v2.schemas.filters import ResearcherFilter
+
+FiltersApplied = ResearcherFilter
+
 
 class Researcher(BaseModel):
     researcher_id: UUID
@@ -17,14 +21,6 @@ class Pagination(BaseModel):
     total_pages: int
     has_next: bool
     has_prev: bool
-
-
-class FiltersApplied(BaseModel):
-    q: Optional[str] = None
-    year_start: Optional[int] = None
-    year_end: Optional[int] = None
-    institution_id: Optional[UUID] = None
-    graduate_program_id: Optional[UUID] = None
 
 
 class Sort(BaseModel):
@@ -41,7 +37,7 @@ class Meta(BaseModel):
 class SearchResponse(BaseModel):
     data: List[Researcher]
     pagination: Pagination
-    filters_applied: FiltersApplied
+    filters_applied: ResearcherFilter
     sort: Sort
     meta: Meta
     facets: Optional[Dict[str, Any]] = None
