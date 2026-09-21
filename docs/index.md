@@ -44,6 +44,8 @@ Todas as decisões arquiteturais seguem a **Constituição do SIMCC**, asseguran
 
 Navegue pelas seções para aprofundar-se nas especificações e guias práticos:
 
+* [**Arquitetura da API V2 e Camadas Funcionais**](v2_architecture.md): Especificação da sub-aplicação V2 montada em `/v2`, camadas enxutas orientadas a funções (sem classes de serviço/repositório), filtros unificados e envelope padronizado de resposta.
+* [**Motor de Busca V2 (Visões Materializadas)**](search_materialized_views.md): Conceito e arquitetura em 2 camadas (fontes granulares e consolidada), índices GIN e automação no pipeline de rotinas (`post_hop.sh`).
 * [**Arquitetura e Pipeline da MarIA**](ai_architecture.md): Descubra o ciclo completo da pipeline de IA — desde o *Query Planner*, busca vetorial no `pgvector`, limiar de corte cosseno, até a geração de variações empáticas de resposta.
 * [**Cache Distribuído e Telemetria**](cache_and_telemetry.md): Entenda como o Redis gerencia namespaces, serialização segura, replay de streams e como a telemetria em JSONL quantifica custos e latências por estágio.
 * [**Contratos de API e Streaming**](api_contracts.md): Especificação detalhada dos payloads JSON para `/ai/chat/ask` e da sequência padronizada de eventos SSE para `/ai/chat/ask/stream`.

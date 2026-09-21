@@ -60,10 +60,12 @@ markdown_extensions:
 
 nav:
   - Início: index.md
+  - Sub-aplicação V2:
+      - Arquitetura e Camadas Funcionais: v2_architecture.md
+      - Motor de Busca (Visões Materializadas): search_materialized_views.md
   - Inteligência Artificial (MarIA):
       - Arquitetura e Pipeline: ai_architecture.md
       - Cache Distribuído e Telemetria: cache_and_telemetry.md
       - Contratos de API e Streaming: api_contracts.md
       - Metodologia de Testes e Golden Dataset: ai_testing_and_dataset.md
-  - Motor de Busca V2 (Visões Materializadas): search_materialized_views.md
   - Observabilidade e OpenTelemetry: observability.md

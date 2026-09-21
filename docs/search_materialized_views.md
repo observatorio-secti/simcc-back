@@ -87,35 +87,7 @@ A Camada 2 consolida o perfil completo do pesquisador, agregando as produções 
 
 ---
 
-## 3. Modelo de Busca em Duas Fases
-
-O consumo das visões materializadas segue um fluxo otimizado em duas fases distintas:
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor Cliente as Cliente / Frontend
-    participant API as API V2
-    participant Camada2 as Camada 2 (mv_researcher_search)
-    participant Camada1 as Camada 1 (MVs de Fontes)
-
-    Cliente->>API: Busca por termo ("inteligência artificial") + filtros
-    API->>Camada2: Fase 1: Ranqueamento global e paginação
-    Camada2-->>API: Top 20 pesquisadores ordenados por relevância
-    API->>Camada1: Fase 2: Evidências pontuais para os 20 IDs da página
-    Camada1-->>API: Documentos específicos correspondentes (matched_in)
-    API-->>Cliente: Resposta com dados dos pesquisadores + itens de evidência
-```
-
-1. **Fase 1 — Ranqueamento Global e Paginação (Camada 2)**:
-   A consulta inicial atinge unicamente a visão agregada `mv_researcher_search`. Com apenas uma linha por pesquisador e índices invertidos GIN, o banco aplica filtros estruturados (instituição, programa, período) e calcula o ranking de relevância (`ts_rank`) com extrema agilidade, determinando os itens da página solicitada.
-
-2. **Fase 2 — Extração de Evidências e Matched-In (Camada 1)**:
-   Após identificar os pesquisadores que compõem a página atual, a API consulta pontualmente as visões da Camada 1 filtrando apenas pelos identificadores desses pesquisadores. Isso permite extrair exatamente quais produções justificaram o resultado (ex: artigos ou patentes onde o termo ocorreu), sem precisar inspecionar a base inteira.
-
----
-
-## 4. Estratégia de Indexação e Atualização Concorrente
+## 3. Estratégia de Indexação e Atualização Concorrente
 
 Para garantir alta disponibilidade e consultas em milissegundos, as visões contam com índices estratégicos:
 
@@ -131,10 +103,21 @@ Para garantir alta disponibilidade e consultas em milissegundos, as visões cont
 
 ---
 
-## 5. Normalização Linguística (`pt_unaccent`)
+## 4. Normalização Linguística (`pt_unaccent`)
 
 Todas as visões utilizam uma configuração de busca textual dedicada (`pt_unaccent`), configurada a nível de banco de dados:
 
 - Realiza o processo de **stemming** (redução a radicais em português).
 - Aplica a remoção de acentuação (**unaccent**) diretamente no analisador léxico.
 - Garante paridade semântica: termos com ou sem acentos (ex: *inteligência* e *inteligencia*) geram os mesmos lexemas e encontram resultados de forma idêntica e sem esforço manual em código.
+
+---
+
+## 5. Automação no Pipeline de Rotinas (`post_hop.sh`)
+
+A sincronização das visões materializadas é acionada automaticamente ao término de cada ciclo de ingestão de dados:
+
+1. **Gatilho de Execução**: O orquestrador `routine.sh` dispara o pipeline de pós-processamento (`scripts/routines/post_hop.sh`) após a conclusão da extração de currículos e produções.
+2. **Script Dedicado (`refresh_search_views.py`)**: Posicionado como a última etapa do `post_hop.sh`, garantindo que todas as tabelas brutas e enriquecimentos (OpenAlex, classificações, etc.) já estejam comitados.
+3. **Isolamento de Transação**: A execução ocorre sob modo `AUTOCOMMIT` na conexão com o banco de dados, requisito técnico fundamental para que o `REFRESH CONCURRENTLY` ocorra sem concorrência de travas.
+4. **Sequenciamento**: As quatro visões da Camada 1 são atualizadas primeiro em paralelo/sequência e, logo após, a visão agregada da Camada 2 é atualizada com base nos dados novos da Camada 1.
