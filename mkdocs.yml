@@ -65,4 +65,6 @@ nav:
       - Cache Distribuído e Telemetria: cache_and_telemetry.md
       - Contratos de API e Streaming: api_contracts.md
       - Metodologia de Testes e Golden Dataset: ai_testing_and_dataset.md
+  - Motor de Busca e Desempenho:
+      - Visões Materializadas e FTS: search_optimization_materialized_views.md
   - Observabilidade e OpenTelemetry: observability.md

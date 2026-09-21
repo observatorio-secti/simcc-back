@@ -32,6 +32,7 @@ from simcc.routers.production import (
     projects_guidance,
     summaries,
 )
+from simcc.v2 import v2_router
 
 settings = Settings()
 
@@ -45,7 +46,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-from simcc.core.telemetry import init_telemetry
+from simcc.core.telemetry import init_telemetry  # noqa: E402
 
 app = FastAPI(lifespan=lifespan)
 init_telemetry(app)
@@ -76,6 +77,7 @@ app.include_router(maria.router)
 app.include_router(routines.router)
 app.include_router(powerBi.router)
 app.include_router(logs.router)
+app.include_router(v2_router)
 
 
 STATIC_DIR = Path(__file__).resolve().parent / 'static'
