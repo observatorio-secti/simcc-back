@@ -12,6 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from simcc.core.logging.cleanup import clean_old_logs
 from simcc.core.logging.middleware import LoggingMiddleware
 from simcc.core.settings import Settings
+from simcc.core.telemetry import init_telemetry
 from simcc.routers import (
     external,
     graduate_program,
@@ -32,6 +33,7 @@ from simcc.routers.production import (
     projects_guidance,
     summaries,
 )
+from simcc.v2 import v2_app
 
 settings = Settings()
 
@@ -44,8 +46,6 @@ async def lifespan(app: FastAPI):
         sys.stderr.write(f'[Log Cleanup] Startup cleanup failed: {e}\n')
     yield
 
-
-from simcc.core.telemetry import init_telemetry
 
 app = FastAPI(lifespan=lifespan)
 init_telemetry(app)
@@ -76,6 +76,9 @@ app.include_router(maria.router)
 app.include_router(routines.router)
 app.include_router(powerBi.router)
 app.include_router(logs.router)
+
+v2_app.dependency_overrides = app.dependency_overrides
+app.mount('/v2', v2_app)
 
 
 STATIC_DIR = Path(__file__).resolve().parent / 'static'
