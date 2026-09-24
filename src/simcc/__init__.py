@@ -81,14 +81,6 @@ v2_app.dependency_overrides = app.dependency_overrides
 app.mount('/v2', v2_app)
 
 
-STATIC_DIR = Path(__file__).resolve().parent / 'static'
-STATIC_DIR.mkdir(parents=True, exist_ok=True)
-app.mount(
-    '/static',
-    StaticFiles(directory=str(STATIC_DIR), html=True),
-    name='static',
-)
-
 STORAGE_INSTITUTIONS_DIR = Path('storage/institutions').resolve()
 STORAGE_INSTITUTIONS_DIR.mkdir(parents=True, exist_ok=True)
 app.mount(

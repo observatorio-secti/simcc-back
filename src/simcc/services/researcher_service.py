@@ -4,7 +4,6 @@ from typing import Any
 import polars as pl
 
 from simcc.core.utils import (
-    DEFAULT_AVATAR_PATH,
     download_researcher_image,
     get_institution_cover_url,
     get_institution_logo_url,
@@ -364,9 +363,6 @@ async def get_researcher_image_path(session, researcher_id):
 
     if not path_image.exists():
         await download_researcher_image(researcher_id, session=session)
-
-    if not path_image.exists():
-        return str(DEFAULT_AVATAR_PATH)
 
     return str(path_image)
 

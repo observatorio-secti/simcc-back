@@ -222,30 +222,21 @@ async def get_researcher_image(
     lattes_id: str | None = Query(None),
 ):
     if not (researcher_id or lattes_id or name):
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail='Parâmetro obrigatório não informado',
-        )
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST)
 
     resolved_id = await researcher_service.get_researcher_id_by_params(
         session, lattes_id=lattes_id, name=name, researcher_id=researcher_id
     )
 
     if not resolved_id:
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail='Pesquisador não encontrado',
-        )
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
 
     path = await researcher_service.get_researcher_image_path(
         session, resolved_id
     )
 
     if not os.path.exists(path):
-        raise HTTPException(
-            status_code=HTTPStatus.NOT_FOUND,
-            detail='Imagem não encontrada',
-        )
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
 
     return FileResponse(path)
 
