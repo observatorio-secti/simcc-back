@@ -6,12 +6,6 @@ from uuid import uuid4
 from opentelemetry.trace import StatusCode
 
 from simcc.core.logging import logger
-from simcc.core.telemetry.metrics import (
-    record_ai_error,
-    record_ai_request,
-    record_ai_stage_duration,
-)
-from simcc.core.telemetry.tracing import get_tracer
 
 
 class AITracer:
@@ -31,7 +25,6 @@ class AITracer:
             'model': 'gpt-4o-mini',
         }
 
-        self.tracer = get_tracer('simcc.ai')
         self.pipeline_span = self.tracer.start_span('ai.pipeline')
         self.pipeline_span.set_attribute('ai.pipeline.name', 'maria_chat')
         self.pipeline_span.set_attribute('ai.model', 'gpt-4o-mini')
@@ -48,21 +41,17 @@ class AITracer:
         t0 = time.perf_counter()
         stage_span = self.tracer.start_span(f'ai.{stage_name}')
         stage_span.set_attribute('ai.stage', stage_name)
-        status = 'success'
         try:
             yield
         except Exception as exc:
-            status = 'error'
             stage_span.record_exception(exc)
             stage_span.set_status(StatusCode.ERROR, str(exc))
-            record_ai_error(stage_name, exc.__class__.__name__)
             raise
         finally:
             elapsed_ms = round((time.perf_counter() - t0) * 1000.0, 2)
             self.stages[stage_name] = elapsed_ms
             stage_span.set_attribute('ai.stage_duration_ms', elapsed_ms)
             stage_span.end()
-            record_ai_stage_duration(stage_name, status, elapsed_ms)
 
     def finish(
         self, status: str = 'success', error_message: Optional[str] = None
@@ -144,11 +133,5 @@ class AITracer:
             )
 
         self.pipeline_span.end()
-        record_ai_request(
-            model=self.metadata.get('model', 'gpt-4o-mini'),
-            intent=str(self.metadata.get('intent', 'unknown')),
-            cache_hit=bool(self.metadata.get('cache_hit', False)),
-            status=status,
-        )
 
         return trace_summary

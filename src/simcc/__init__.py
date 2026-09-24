@@ -12,7 +12,6 @@ from fastapi.staticfiles import StaticFiles
 from simcc.core.logging.cleanup import clean_old_logs
 from simcc.core.logging.middleware import LoggingMiddleware
 from simcc.core.settings import Settings
-from simcc.core.telemetry import init_telemetry
 from simcc.v1.routers import (
     external,
     graduate_program,
@@ -48,7 +47,6 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(lifespan=lifespan)
-init_telemetry(app)
 
 app.add_middleware(
     CORSMiddleware,
