@@ -8,7 +8,11 @@ from testcontainers.postgres import PostgresContainer
 from simcc import app
 from simcc.core.db.database import get_async_session
 from simcc.core.db.models import table_registry
-from tests.factories import InstitutionFactory, ResearcherFactory
+
+pytest_plugins = [
+    'tests.fixtures.institution',
+    'tests.fixtures.researcher',
+]
 
 
 @pytest.fixture
@@ -53,29 +57,3 @@ async def session(engine):
                 join_transaction_mode='create_savepoint',
             ) as session:
                 yield session
-
-
-@pytest_asyncio.fixture
-def institution_factory(session: AsyncSession):
-    async def _create_institution(**kwargs):
-        institution = InstitutionFactory(**kwargs)
-        session.add(institution)
-        await session.commit()
-        return institution
-
-    return _create_institution
-
-
-@pytest_asyncio.fixture
-def researcher_factory(session: AsyncSession, institution_factory):
-    async def _create_researcher(**kwargs):
-        if 'institution_id' not in kwargs:
-            institution = await institution_factory()
-            kwargs['institution_id'] = institution.id
-
-        researcher = ResearcherFactory(**kwargs)
-        session.add(researcher)
-        await session.commit()
-        return researcher
-
-    return _create_researcher
