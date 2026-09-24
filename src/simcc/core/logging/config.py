@@ -2,8 +2,8 @@ import logging
 from datetime import datetime
 from typing import Any
 
-from opentelemetry import trace as otel_trace
 import structlog
+from opentelemetry import trace as otel_trace
 
 from simcc.core.logging.context import get_logging_context
 from simcc.core.logging.handlers import dispatch_log
@@ -245,7 +245,7 @@ def get_logical_operation_name() -> str:
                     'simcc.repositories',
                     'simcc.queries',
                     'scripts',
-                    'simcc.services',
+                    'simcc.v1.services',
                 ]
             ):
                 func_name = frame_info.function

@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from simcc.ai.providers.base import EmbeddingsProvider, LLMProvider
-from simcc.ai.query_planner import QueryPlan, SearchFilters
+from simcc.v1.ai.providers.base import EmbeddingsProvider, LLMProvider
+from simcc.v1.ai.query_planner import QueryPlan, SearchFilters
 
 
 class MockLLMProvider(LLMProvider):

@@ -1,13 +1,13 @@
 import pytest
 
 from simcc import app
-from simcc.ai.dependencies import (
+from simcc.v1.ai.dependencies import (
     get_embeddings_provider,
     get_llm_provider,
     get_query_planner,
 )
-from simcc.ai.providers.openai_provider import OpenAIProvider
-from simcc.ai.query_planner import QueryPlanner
+from simcc.v1.ai.providers.openai_provider import OpenAIProvider
+from simcc.v1.ai.query_planner import QueryPlanner
 
 
 @pytest.mark.integration

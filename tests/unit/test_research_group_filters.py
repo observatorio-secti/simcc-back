@@ -7,12 +7,12 @@ from fastapi.testclient import TestClient
 
 from simcc import app
 from simcc.core.db.database import get_async_session
-from simcc.queries.research_group_query import (
+from simcc.v1.queries.research_group_query import (
     ResearchGroupCountQuery,
     ResearchGroupQuery,
 )
-from simcc.schemas import DefaultFilters
-from simcc.services import research_group_service
+from simcc.v1.schemas import DefaultFilters
+from simcc.v1.services import research_group_service
 
 
 class DummySession:

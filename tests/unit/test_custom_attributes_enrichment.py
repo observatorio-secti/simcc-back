@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from simcc.repositories import researcher_repo
-from simcc.services import researcher_service
+from simcc.v1.repositories import researcher_repo
+from simcc.v1.services import researcher_service
 
 
 @pytest.mark.unit

@@ -4,8 +4,8 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage
 
-from simcc.ai.chat_history import SIMCCChatMessageHistory
 from simcc.core.cache import CacheService
+from simcc.v1.ai.chat_history import SIMCCChatMessageHistory
 
 
 @pytest.mark.unit

@@ -2,8 +2,8 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from simcc.ai.query_planner import QueryPlan, SearchFilters
-from simcc.services.maria_service import MariaService
+from simcc.v1.ai.query_planner import QueryPlan, SearchFilters
+from simcc.v1.services.maria_service import MariaService
 
 
 @pytest.mark.unit

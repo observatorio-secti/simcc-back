@@ -5,7 +5,7 @@ import pytest
 
 from simcc.core.db.models.openalex import OpenAlexResearcher
 from simcc.core.db.models.researcher import ResearcherProduction
-from simcc.services.ai_metrics_service import AIMetricsService
+from simcc.v1.services.ai_metrics_service import AIMetricsService
 
 
 @pytest.mark.unit

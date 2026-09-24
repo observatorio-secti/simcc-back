@@ -1,9 +1,10 @@
 from unittest.mock import AsyncMock
 from uuid import uuid4
+
 import pytest
 
-from simcc.repositories import researcher_repo
-from simcc.services import researcher_service
+from simcc.v1.repositories import researcher_repo
+from simcc.v1.services import researcher_service
 
 
 @pytest.mark.unit
@@ -43,7 +44,9 @@ async def test_list_institutions_enrichment(monkeypatch):
     async def mock_list_institutions(session):
         return mock_data
 
-    monkeypatch.setattr(researcher_repo, 'list_institutions', mock_list_institutions)
+    monkeypatch.setattr(
+        researcher_repo, 'list_institutions', mock_list_institutions
+    )
 
     result = await researcher_service.list_institutions(session)
     assert len(result) == 2
@@ -83,7 +86,9 @@ async def test_get_institution_enrichment(monkeypatch):
     async def mock_get_institution(session, institution_id):
         return mock_data
 
-    monkeypatch.setattr(researcher_repo, 'get_institution', mock_get_institution)
+    monkeypatch.setattr(
+        researcher_repo, 'get_institution', mock_get_institution
+    )
 
     result = await researcher_service.get_institution(session, inst_id)
     assert result is not None
@@ -131,14 +136,34 @@ async def test_enrich_researchers_with_institution_object(monkeypatch):
             }
         ]
 
-    monkeypatch.setattr(researcher_repo, 'list_graduate_programs_by_ids', mock_list_gp)
-    monkeypatch.setattr(researcher_repo, 'list_research_groups_by_ids', mock_list_rg)
-    monkeypatch.setattr(researcher_repo, 'list_subsidy_by_ids', mock_list_subsidy)
-    monkeypatch.setattr(researcher_repo, 'list_departments_by_ids', mock_list_dep)
-    monkeypatch.setattr(researcher_repo, 'list_ufmg_data_by_ids', mock_list_ufmg)
-    monkeypatch.setattr(researcher_repo, 'list_user_data_by_lattes_ids', mock_list_user)
-    monkeypatch.setattr(researcher_repo, 'list_institution_data_by_researcher_ids', mock_list_inst)
-    monkeypatch.setattr(researcher_repo, 'list_institutions_by_ids', mock_list_institutions_by_ids)
+    monkeypatch.setattr(
+        researcher_repo, 'list_graduate_programs_by_ids', mock_list_gp
+    )
+    monkeypatch.setattr(
+        researcher_repo, 'list_research_groups_by_ids', mock_list_rg
+    )
+    monkeypatch.setattr(
+        researcher_repo, 'list_subsidy_by_ids', mock_list_subsidy
+    )
+    monkeypatch.setattr(
+        researcher_repo, 'list_departments_by_ids', mock_list_dep
+    )
+    monkeypatch.setattr(
+        researcher_repo, 'list_ufmg_data_by_ids', mock_list_ufmg
+    )
+    monkeypatch.setattr(
+        researcher_repo, 'list_user_data_by_lattes_ids', mock_list_user
+    )
+    monkeypatch.setattr(
+        researcher_repo,
+        'list_institution_data_by_researcher_ids',
+        mock_list_inst,
+    )
+    monkeypatch.setattr(
+        researcher_repo,
+        'list_institutions_by_ids',
+        mock_list_institutions_by_ids,
+    )
 
     researchers = [
         {
@@ -156,10 +181,12 @@ async def test_enrich_researchers_with_institution_object(monkeypatch):
             'name': 'Pesquisador Sem Instituição',
             'institution_id': None,
             'university': None,
-        }
+        },
     ]
 
-    enriched = await researcher_service.enrich_researchers(session, researchers)
+    enriched = await researcher_service.enrich_researchers(
+        session, researchers
+    )
     assert len(enriched) == 2
 
     # Pesquisador 1: deve possuir o objeto institution completo
@@ -168,8 +195,12 @@ async def test_enrich_researchers_with_institution_object(monkeypatch):
     assert r1['institution']['id'] == inst_id
     assert r1['institution']['name'] == 'Universidade Federal da Bahia'
     assert r1['institution']['acronym'] == 'UFBA'
-    assert r1['institution']['image'] == '/storage/institutions/picture/UFBA.png'
-    assert r1['institution']['cover'] == '/storage/institutions/covers/UFBA.jpg'
+    assert (
+        r1['institution']['image'] == '/storage/institutions/picture/UFBA.png'
+    )
+    assert (
+        r1['institution']['cover'] == '/storage/institutions/covers/UFBA.jpg'
+    )
     assert r1['image_university'] == '/storage/institutions/picture/UFBA.png'
 
     # Pesquisador 2: sem instituição

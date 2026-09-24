@@ -3,8 +3,8 @@ from http import HTTPStatus
 from unittest.mock import AsyncMock
 
 from simcc import app
-from simcc.ai.dependencies import get_ai_search_service, get_llm_provider
-from simcc.ai.providers.base import LLMProvider
+from simcc.v1.ai.dependencies import get_ai_search_service, get_llm_provider
+from simcc.v1.ai.providers.base import LLMProvider
 
 
 def test_chat_ask_stream_endpoint_success(client):

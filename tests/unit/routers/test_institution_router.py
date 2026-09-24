@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from simcc import app
 from simcc.core.db.database import get_async_session
-from simcc.services import researcher_service
+from simcc.v1.services import researcher_service
 
 
 @pytest.fixture

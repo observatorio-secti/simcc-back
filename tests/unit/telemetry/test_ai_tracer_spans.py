@@ -1,6 +1,5 @@
 import pytest
 
-from simcc.ai.telemetry.tracer import AITracer
 from simcc.core.telemetry.config import TelemetryConfig
 from simcc.core.telemetry.metrics import reset_metrics_for_tests
 from simcc.core.telemetry.tracing import (
@@ -8,6 +7,7 @@ from simcc.core.telemetry.tracing import (
     reset_tracing_for_tests,
     setup_tracing,
 )
+from simcc.v1.ai.telemetry.tracer import AITracer
 
 
 @pytest.fixture(autouse=True)

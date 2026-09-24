@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from simcc.ai.query_planner import QueryPlan, SearchFilters
+from simcc.v1.ai.query_planner import QueryPlan, SearchFilters
 from tests.integration.ai.test_live_planner_filters import (
     assert_filter_matches,
 )
@@ -83,7 +83,8 @@ def test_assert_filter_matches_failure_formats_table():
         intent='production_search',
         semantic_query='artigos',
         filters=SearchFilters(
-            institutions=['UESC'], production_types=[]  # Falta ARTICLE
+            institutions=['UESC'],
+            production_types=[],  # Falta ARTICLE
         ),
     )
 

@@ -20,14 +20,14 @@ os.environ.setdefault('OPENAI_API_KEY', 'dummy-key-for-tests')
 pytest_plugins = ['tests.ai.fixtures.ai_fixtures']
 
 from simcc import app
-from simcc.ai.dependencies import (
+from simcc.core.db.database import get_async_session
+from simcc.core.db.models import table_registry
+from simcc.core.settings import Settings
+from simcc.v1.ai.dependencies import (
     get_embeddings_provider,
     get_llm_provider,
     get_query_planner,
 )
-from simcc.core.db.database import get_async_session
-from simcc.core.db.models import table_registry
-from simcc.core.settings import Settings
 
 
 def pytest_configure(config):
@@ -182,6 +182,6 @@ def live_planner(settings):
             'OPENAI_API_KEY real não configurada (definida como dummy ou ausente)'
         )
 
-    from simcc.ai.query_planner import QueryPlanner
+    from simcc.v1.ai.query_planner import QueryPlanner
 
     return QueryPlanner(api_key=api_key)

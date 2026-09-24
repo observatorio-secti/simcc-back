@@ -3,9 +3,9 @@ from uuid import uuid4
 
 import pytest
 
-from simcc.ai.query_planner import QueryPlan, SearchFilters
-from simcc.services.ai_search_service import AISearchService
-from simcc.services.maria_service import MariaService
+from simcc.v1.ai.query_planner import QueryPlan, SearchFilters
+from simcc.v1.services.ai_search_service import AISearchService
+from simcc.v1.services.maria_service import MariaService
 
 YEAR_2018 = 2018
 YEAR_2019 = 2019

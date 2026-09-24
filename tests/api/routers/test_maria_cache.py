@@ -3,12 +3,12 @@ from unittest.mock import AsyncMock
 import pytest
 
 from simcc import app
-from simcc.ai.dependencies import (
+from simcc.core.cache import CacheService
+from simcc.v1.ai.dependencies import (
     get_ai_search_service,
     get_cache_service,
     get_query_planner,
 )
-from simcc.core.cache import CacheService
 
 
 @pytest.mark.integration

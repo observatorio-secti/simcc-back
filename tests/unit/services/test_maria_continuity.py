@@ -4,11 +4,11 @@ from uuid import uuid4
 
 import pytest
 
-from simcc.ai.chat_history import SIMCCChatMessageHistory
-from simcc.ai.query_planner import QueryPlan, SearchFilters
-from simcc.ai.schemas.clarification import ClarificationResponse
 from simcc.core.cache import CacheService
-from simcc.services.maria_service import MariaService
+from simcc.v1.ai.chat_history import SIMCCChatMessageHistory
+from simcc.v1.ai.query_planner import QueryPlan, SearchFilters
+from simcc.v1.ai.schemas.clarification import ClarificationResponse
+from simcc.v1.services.maria_service import MariaService
 
 
 @pytest.mark.unit
@@ -38,8 +38,8 @@ async def test_maria_continuity_in_session(mock_embeddings_provider):
     mock_cache = AsyncMock(spec=CacheService)
     mock_cache.enabled = True
     mock_cache.default_ttl = 3600
-    mock_cache.build_key.side_effect = (
-        lambda prefix, namespace, key: f'simcc:{prefix}:{namespace}:{key}'
+    mock_cache.build_key.side_effect = lambda prefix, namespace, key: (
+        f'simcc:{prefix}:{namespace}:{key}'
     )
     cache_store = {}
 

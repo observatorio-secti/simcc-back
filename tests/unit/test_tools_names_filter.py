@@ -1,6 +1,6 @@
-from simcc.queries.researcher_query import ResearcherSearchQuery
-from simcc.queries.term_query import OriginalWordsQuery
-from simcc.repositories.tools import names_filter
+from simcc.v1.queries.researcher_query import ResearcherSearchQuery
+from simcc.v1.queries.term_query import OriginalWordsQuery
+from simcc.v1.repositories.tools import names_filter
 
 
 def test_names_filter_multi_token_matches():

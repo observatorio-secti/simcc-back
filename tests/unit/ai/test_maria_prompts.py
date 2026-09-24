@@ -1,6 +1,6 @@
 from langchain_core.messages import AIMessage, HumanMessage
 
-from simcc.ai.prompts.maria_prompts import (
+from simcc.v1.ai.prompts.maria_prompts import (
     MARIA_EMPTY_FALLBACK_MESSAGE,
     build_synthesis_prompt,
 )
@@ -220,6 +220,12 @@ def test_build_synthesis_prompt_with_territory_and_affiliations():
     assert 'Total de Pesquisadores Cadastrados no Território: 120' in prompt
     assert 'Produção Acumulada no Território: 540 produções' in prompt
     assert 'Instituições com Presença no Território: UEFS, IFBA' in prompt
-    assert 'UFBA - Salvador [Território: METROPOLITANA DE SALVADOR] (40h)' in prompt
-    assert 'UEFS - Feira de Santana [Território: PORTAL DO SERTÃO] (20h)' in prompt
+    assert (
+        'UFBA - Salvador [Território: METROPOLITANA DE SALVADOR] (40h)'
+        in prompt
+    )
+    assert (
+        'UEFS - Feira de Santana [Território: PORTAL DO SERTÃO] (20h)'
+        in prompt
+    )
     assert 'Território(s): METROPOLITANA DE SALVADOR' in prompt

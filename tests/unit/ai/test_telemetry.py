@@ -1,7 +1,7 @@
 import pytest
 
-from simcc.ai.telemetry.pricing import calculate_cost, estimate_tokens
-from simcc.ai.telemetry.tracer import AITracer
+from simcc.v1.ai.telemetry.pricing import calculate_cost, estimate_tokens
+from simcc.v1.ai.telemetry.tracer import AITracer
 
 
 @pytest.mark.unit

@@ -1,7 +1,7 @@
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
-from simcc.ai.telemetry.tracer import AITracer
 from simcc.core.telemetry.config import TelemetryConfig
 from simcc.core.telemetry.metrics import reset_metrics_for_tests
 from simcc.core.telemetry.tracing import (
@@ -9,7 +9,8 @@ from simcc.core.telemetry.tracing import (
     reset_tracing_for_tests,
     setup_tracing,
 )
-from simcc.services.maria_service import MariaService
+from simcc.v1.ai.telemetry.tracer import AITracer
+from simcc.v1.services.maria_service import MariaService
 
 
 @pytest.fixture(autouse=True)

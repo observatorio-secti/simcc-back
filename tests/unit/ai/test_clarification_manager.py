@@ -4,14 +4,14 @@ from uuid import uuid4
 
 import pytest
 
-from simcc.ai.clarification import ClarificationManager
-from simcc.ai.query_planner import QueryPlan, SearchFilters
-from simcc.ai.schemas.clarification import (
+from simcc.core.cache import CacheService
+from simcc.v1.ai.clarification import ClarificationManager
+from simcc.v1.ai.query_planner import QueryPlan, SearchFilters
+from simcc.v1.ai.schemas.clarification import (
     ClarificationResponse,
     ClarificationType,
 )
-from simcc.core.cache import CacheService
-from simcc.services.researcher_matcher import ResearcherCandidate
+from simcc.v1.services.researcher_matcher import ResearcherCandidate
 
 
 @pytest.mark.unit

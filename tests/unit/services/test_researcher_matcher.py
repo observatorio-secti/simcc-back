@@ -3,7 +3,9 @@ from uuid import uuid4
 
 import pytest
 
-from simcc.services.researcher_matcher import ResearcherCandidate, ResearcherMatcher
+from simcc.v1.services.researcher_matcher import (
+    ResearcherMatcher,
+)
 
 
 @pytest.mark.unit
@@ -16,7 +18,9 @@ def test_researcher_matcher_normalization():
     assert 'regina' in tokens
 
     # 2. Remoção de preposições e artigos comuns
-    tokens_eduardo = matcher.normalize_tokens('Eduardo Manuel de Freitas Jorge')
+    tokens_eduardo = matcher.normalize_tokens(
+        'Eduardo Manuel de Freitas Jorge'
+    )
     assert tokens_eduardo == ['eduardo', 'manuel', 'freitas', 'jorge']
     assert 'de' not in tokens_eduardo
 
@@ -108,5 +112,7 @@ async def test_researcher_matcher_empty_input():
     matcher = ResearcherMatcher()
     mock_session = AsyncMock()
 
-    candidates = await matcher.find_candidates(session=mock_session, raw_name='')
+    candidates = await matcher.find_candidates(
+        session=mock_session, raw_name=''
+    )
     assert candidates == []

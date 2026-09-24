@@ -13,7 +13,7 @@ from simcc.core.logging.cleanup import clean_old_logs
 from simcc.core.logging.middleware import LoggingMiddleware
 from simcc.core.settings import Settings
 from simcc.core.telemetry import init_telemetry
-from simcc.routers import (
+from simcc.v1.routers import (
     external,
     graduate_program,
     institution,
@@ -25,7 +25,7 @@ from simcc.routers import (
     researcher,
     routines,
 )
-from simcc.routers.production import (
+from simcc.v1.routers.production import (
     bibliographic,
     events,
     experience,

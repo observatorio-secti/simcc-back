@@ -4,7 +4,7 @@ from typing import Any, Dict
 
 import pytest
 
-from simcc.ai.query_planner import QueryPlan
+from simcc.v1.ai.query_planner import QueryPlan
 
 REFERENCE_TABLE = """| Filtro             | Teste isolado                                                                                         | Teste combinado                                                                                                       |
 | ------------------ | ----------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
@@ -20,11 +20,16 @@ def _normalize(text: str) -> str:
     """Remove acentos e converte para minúsculas."""
     if not text:
         return ''
-    return ''.join(
-        c
-        for c in unicodedata.normalize('NFD', text)
-        if unicodedata.category(c) != 'Mn'
-    ).lower().strip()
+    return (
+        ''
+        .join(
+            c
+            for c in unicodedata.normalize('NFD', text)
+            if unicodedata.category(c) != 'Mn'
+        )
+        .lower()
+        .strip()
+    )
 
 
 def _generate_failure_report(
@@ -40,40 +45,40 @@ def _generate_failure_report(
     col3_w = max(len('Valor Obtido no Plano'), *(len(r[2]) for r in rows))
     col4_w = 10
 
-    sep = f"+{'-' * (col1_w + 2)}+{'-' * (col2_w + 2)}+{'-' * (col3_w + 2)}+{'-' * (col4_w + 2)}+"
+    sep = f'+{"-" * (col1_w + 2)}+{"-" * (col2_w + 2)}+{"-" * (col3_w + 2)}+{"-" * (col4_w + 2)}+'
     header = (
-        f"| {'Filtro Testado'.ljust(col1_w)} | "
-        f"{'Valor Esperado'.ljust(col2_w)} | "
-        f"{'Valor Obtido no Plano'.ljust(col3_w)} | "
-        f"{'Status'.ljust(col4_w)} |"
+        f'| {"Filtro Testado".ljust(col1_w)} | '
+        f'{"Valor Esperado".ljust(col2_w)} | '
+        f'{"Valor Obtido no Plano".ljust(col3_w)} | '
+        f'{"Status".ljust(col4_w)} |'
     )
 
     table_lines = [sep, header, sep]
     for r in rows:
         table_lines.append(
-            f"| {r[0].ljust(col1_w)} | "
-            f"{r[1].ljust(col2_w)} | "
-            f"{r[2].ljust(col3_w)} | "
-            f"{r[3].ljust(col4_w)} |"
+            f'| {r[0].ljust(col1_w)} | '
+            f'{r[1].ljust(col2_w)} | '
+            f'{r[2].ljust(col3_w)} | '
+            f'{r[3].ljust(col4_w)} |'
         )
     table_lines.append(sep)
     table_str = '\n'.join(table_lines)
 
     return (
-        f"\n{'=' * 80}\n"
-        f"🚨 FALHA NA EXTRAÇÃO DOS FILTROS ESTRUTURADOS\n"
-        f"{'=' * 80}\n"
-        f"Pergunta   : \"{question}\"\n"
-        f"Filtro     : {filter_category}\n"
-        f"Modalidade : {test_type}\n\n"
-        f"{table_str}\n\n"
-        f"Dados Completos do Plano Extraído:\n"
-        f"  • Intent:         {plan.intent}\n"
-        f"  • Semantic Query: {plan.semantic_query}\n"
-        f"  • Filtros:        {plan.filters.model_dump()}\n\n"
-        f"Referência de Filtros Solicitada:\n"
-        f"{REFERENCE_TABLE}\n"
-        f"{'=' * 80}\n"
+        f'\n{"=" * 80}\n'
+        f'🚨 FALHA NA EXTRAÇÃO DOS FILTROS ESTRUTURADOS\n'
+        f'{"=" * 80}\n'
+        f'Pergunta   : "{question}"\n'
+        f'Filtro     : {filter_category}\n'
+        f'Modalidade : {test_type}\n\n'
+        f'{table_str}\n\n'
+        f'Dados Completos do Plano Extraído:\n'
+        f'  • Intent:         {plan.intent}\n'
+        f'  • Semantic Query: {plan.semantic_query}\n'
+        f'  • Filtros:        {plan.filters.model_dump()}\n\n'
+        f'Referência de Filtros Solicitada:\n'
+        f'{REFERENCE_TABLE}\n'
+        f'{"=" * 80}\n'
     )
 
 
@@ -134,7 +139,10 @@ def assert_filter_matches(
         print(report, flush=True)
         raise AssertionError(report)
 
-    print(f"\n[PASS] {filter_category} ({test_type}) -> Filtros conferem!", flush=True)
+    print(
+        f'\n[PASS] {filter_category} ({test_type}) -> Filtros conferem!',
+        flush=True,
+    )
 
 
 # ==============================================================================

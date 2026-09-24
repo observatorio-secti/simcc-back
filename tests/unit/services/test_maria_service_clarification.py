@@ -3,15 +3,15 @@ from uuid import uuid4
 
 import pytest
 
-from simcc.ai.query_planner import QueryPlan, SearchFilters
-from simcc.ai.schemas.clarification import (
+from simcc.v1.ai.query_planner import QueryPlan, SearchFilters
+from simcc.v1.ai.schemas.clarification import (
     ClarificationOption,
     ClarificationPayload,
     ClarificationResponse,
     ClarificationType,
 )
-from simcc.ai.schemas.maria import ChatStreamEventType
-from simcc.services.maria_service import MariaService
+from simcc.v1.ai.schemas.maria import ChatStreamEventType
+from simcc.v1.services.maria_service import MariaService
 
 
 @pytest.mark.unit
@@ -41,9 +41,7 @@ async def test_chat_ask_returns_clarification_without_synthesis(
         ],
         original_query='produções de Eduardo Jorge',
     )
-    mock_clarification_manager.evaluate_researcher_clarification.return_value = (
-        payload
-    )
+    mock_clarification_manager.evaluate_researcher_clarification.return_value = payload
 
     mock_llm = AsyncMock()
     mock_search = AsyncMock()
@@ -63,7 +61,10 @@ async def test_chat_ask_returns_clarification_without_synthesis(
 
     assert response.clarification is not None
     assert response.clarification.field_to_bind == 'researcher_id'
-    assert response.clarification.question == 'Qual Eduardo Jorge você deseja consultar?'
+    assert (
+        response.clarification.question
+        == 'Qual Eduardo Jorge você deseja consultar?'
+    )
     # Não deve chamar o LLM nem a busca de produções
     mock_llm.generate.assert_not_called()
     mock_search.search_productions_hybrid.assert_not_called()
@@ -96,9 +97,7 @@ async def test_chat_ask_stream_emits_clarification_event(
         ],
         original_query='produções de Eduardo Jorge',
     )
-    mock_clarification_manager.evaluate_researcher_clarification.return_value = (
-        payload
-    )
+    mock_clarification_manager.evaluate_researcher_clarification.return_value = payload
 
     mock_search = AsyncMock()
     service = MariaService(

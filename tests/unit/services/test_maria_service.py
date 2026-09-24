@@ -2,10 +2,10 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from simcc.ai.prompts.maria_prompts import MARIA_EMPTY_FALLBACK_MESSAGE
-from simcc.ai.query_planner import QueryPlan, SearchFilters
-from simcc.ai.schemas.maria import ChatStreamEventType
-from simcc.services.maria_service import MariaService
+from simcc.v1.ai.prompts.maria_prompts import MARIA_EMPTY_FALLBACK_MESSAGE
+from simcc.v1.ai.query_planner import QueryPlan, SearchFilters
+from simcc.v1.ai.schemas.maria import ChatStreamEventType
+from simcc.v1.services.maria_service import MariaService
 
 
 @pytest.mark.unit

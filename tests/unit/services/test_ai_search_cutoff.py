@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from simcc.services.ai_search_service import AISearchService
+from simcc.v1.services.ai_search_service import AISearchService
 
 
 @pytest.mark.unit

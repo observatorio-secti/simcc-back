@@ -3,8 +3,8 @@ from unittest.mock import AsyncMock
 import pytest
 from sqlalchemy.exc import ProgrammingError
 
-from simcc.repositories import external_repo, powerBi_repo, researcher_repo
-from simcc.services import researcher_service
+from simcc.v1.repositories import external_repo, powerBi_repo, researcher_repo
+from simcc.v1.services import researcher_service
 
 
 @pytest.mark.unit

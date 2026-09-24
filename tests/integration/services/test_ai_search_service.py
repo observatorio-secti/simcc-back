@@ -5,7 +5,7 @@ from sqlalchemy import select
 from simcc.core.db.models.ai import SearchDocumentResearcher
 from simcc.core.db.models.institution import Institution
 from simcc.core.db.models.researcher import Researcher
-from simcc.services.ai_search_service import AISearchService
+from simcc.v1.services.ai_search_service import AISearchService
 
 
 @pytest_asyncio.fixture(autouse=True)

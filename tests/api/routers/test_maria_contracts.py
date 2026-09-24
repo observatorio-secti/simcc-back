@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 import pytest
 
 from simcc import app
-from simcc.ai.dependencies import get_ai_search_service
+from simcc.v1.ai.dependencies import get_ai_search_service
 
 
 @pytest.mark.integration
