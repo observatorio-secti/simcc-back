@@ -1,9 +1,6 @@
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from simcc.v2.services.mv_refresh_service import (
-    refresh_search_materialized_views,
-)
 from tests.factories.researcher import ResearcherFactory
 from tests.factories.researcher_institution import (
     ResearcherInstitutionFactory,
@@ -11,7 +8,7 @@ from tests.factories.researcher_institution import (
 
 
 @pytest_asyncio.fixture
-def researcher_factory(session: AsyncSession):
+def researcher_factory(session: AsyncSession, refresh_mvs):
     """Cria um pesquisador; `institution_id` vira um vínculo em
     `researcher_institution`, não a coluna legada."""
 
@@ -27,7 +24,7 @@ def researcher_factory(session: AsyncSession):
                 )
             )
         await session.commit()
-        await refresh_search_materialized_views(session, concurrently=False)
+        await refresh_mvs()
         return researcher
 
     return _create_researcher

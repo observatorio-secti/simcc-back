@@ -13,24 +13,28 @@ from simcc.core.db.models.research_group import (
     ResearchGroupResearcher,
 )
 from simcc.core.db.models.researcher import ResearcherProduction
-from simcc.v2.services.mv_refresh_service import (
-    refresh_search_materialized_views,
-)
 
 
-async def _add_production(session, researcher_id, **counts):
+async def _add_production(session, refresh_mvs, researcher_id, **counts):
     session.add(ResearcherProduction(researcher_id=researcher_id, **counts))
     await session.commit()
-    await refresh_search_materialized_views(session)
+    await refresh_mvs()
 
 
 @pytest.mark.asyncio
-async def test_list_returns_summary_card(client, session, researcher_factory):
+async def test_list_returns_summary_card(
+    client, session, researcher_factory, refresh_mvs
+):
     researcher = await researcher_factory(
         name='Card Completo', graduation='Doutorado', classification='E+'
     )
     await _add_production(
-        session, researcher.id, articles=5, book_chapters=2, book=1
+        session,
+        refresh_mvs,
+        researcher.id,
+        articles=5,
+        book_chapters=2,
+        book=1,
     )
 
     item = client.get('/v2/researcher?q=Card').json()['data'][0]

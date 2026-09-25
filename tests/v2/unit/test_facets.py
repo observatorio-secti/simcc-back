@@ -4,9 +4,6 @@ from http import HTTPStatus
 import pytest
 
 from simcc.core.db.models.graduate_program import GraduateProgramResearcher
-from simcc.v2.services.mv_refresh_service import (
-    refresh_search_materialized_views,
-)
 
 
 async def _researchers_in(researcher_factory, institution, n, name='Facet'):
@@ -40,7 +37,11 @@ async def test_institution_facet_counts_every_affiliation(
 
 @pytest.mark.asyncio
 async def test_graduate_program_facet(
-    client, session, researcher_factory, graduate_program_factory
+    client,
+    session,
+    researcher_factory,
+    graduate_program_factory,
+    refresh_mvs,
 ):
     gp = await graduate_program_factory(name='Programa Facet')
     researcher = await researcher_factory()
@@ -51,7 +52,7 @@ async def test_graduate_program_facet(
         )
     )
     await session.commit()
-    await refresh_search_materialized_views(session)
+    await refresh_mvs()
 
     response = client.get('/v2/researcher?facets=graduate_program')
 
@@ -179,12 +180,13 @@ async def test_facet_keeps_selected_value_with_zero_count(
 
 
 @pytest.mark.asyncio
-async def test_facet_respects_other_filters(
+async def test_facet_respects_other_filters(  # noqa: PLR0913, PLR0917
     client,
     session,
     researcher_factory,
     institution_factory,
     graduate_program_factory,
+    refresh_mvs,
 ):
     inst = await institution_factory(name='Instituto Programa')
     gp_in = await graduate_program_factory(name='Programa Dentro')
@@ -202,7 +204,7 @@ async def test_facet_respects_other_filters(
         ),
     ])
     await session.commit()
-    await refresh_search_materialized_views(session)
+    await refresh_mvs()
 
     facet = client.get(
         f'/v2/researcher?facets=graduate_program&institution_id={inst.id}'

@@ -5,9 +5,6 @@ import pytest
 from sqlalchemy import event
 
 from simcc.core.db.models.production import Software
-from simcc.v2.services.mv_refresh_service import (
-    refresh_search_materialized_views,
-)
 
 
 @pytest.mark.asyncio
@@ -67,7 +64,10 @@ async def test_full_text_search_profile_unaccent(client, researcher_factory):
 
 @pytest.mark.asyncio
 async def test_full_text_search_production_document_and_matches(
-    client, session, researcher_factory
+    client,
+    session,
+    researcher_factory,
+    refresh_mvs,
 ):
     r1 = await researcher_factory(name='Ada Lovelace')
     await researcher_factory(name='Charles Babbage')
@@ -80,7 +80,7 @@ async def test_full_text_search_production_document_and_matches(
     )
     session.add(sw)
     await session.commit()
-    await refresh_search_materialized_views(session, concurrently=False)
+    await refresh_mvs()
 
     # Busca por "simulador algebrico" deve achar Ada Lovelace via Camada 1
     res = client.get('/v2/researcher?q=simulador algebrico&include=matches')
@@ -132,9 +132,7 @@ async def test_disjunctive_facets(
     # Mas o facet de instituições é DISJUNTIVO (mostra inst1 e inst2)
     assert body['facets'] is not None
     assert 'institution' in body['facets']
-    facet_values = [
-        f['value'] for f in body['facets']['institution']['items']
-    ]
+    facet_values = [f['value'] for f in body['facets']['institution']['items']]
     assert str(inst1.id) in facet_values
     assert str(inst2.id) in facet_values
 
@@ -194,7 +192,10 @@ async def test_query_count_budget(client, session, researcher_factory, engine):
 
 @pytest.mark.asyncio
 async def test_relevance_ranking_by_production_volume(
-    client, session, researcher_factory
+    client,
+    session,
+    researcher_factory,
+    refresh_mvs,
 ):
     r_few = await researcher_factory(name='Pesquisador Poucas Ocorrências')
     sw1 = Software(
@@ -214,7 +215,7 @@ async def test_relevance_ranking_by_production_volume(
         session.add(sw)
 
     await session.commit()
-    await refresh_search_materialized_views(session, concurrently=False)
+    await refresh_mvs()
 
     res = client.get('/v2/researcher?q=Dengue&sort_by=relevance')
     assert res.status_code == HTTPStatus.OK

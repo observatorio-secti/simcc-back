@@ -3,9 +3,6 @@ from http import HTTPStatus
 
 import pytest
 
-from simcc.v2.services.mv_refresh_service import (
-    refresh_search_materialized_views,
-)
 from tests.factories.researcher import ResearcherFactory
 
 
@@ -76,14 +73,17 @@ async def test_researcher_affiliations_multiple_institutions(
 
 @pytest.mark.asyncio
 async def test_researcher_affiliations_ignores_legacy_institution_id(
-    client, session, institution_factory
+    client,
+    session,
+    institution_factory,
+    refresh_mvs,
 ):
     institution = await institution_factory()
     session.add(
         ResearcherFactory(name='Vinculo Legado', institution_id=institution.id)
     )
     await session.commit()
-    await refresh_search_materialized_views(session)
+    await refresh_mvs()
 
     response = client.get('/v2/researcher?q=Legado')
     assert response.status_code == HTTPStatus.OK
