@@ -179,9 +179,15 @@ class InstitutionFrequencyQuery(BaseQuery):
             """
 
         elif self.type_ in ['ARTICLE', 'BOOK']:
+            is_article = self.type_ == 'ARTICLE'
+            abstract_join = (
+                tools.openalex_abstract_join('b') if is_article else ''
+            )
             if self.terms:
-                sql_terms, params = tools.websearch_filter(
-                    'b.title', self.terms
+                sql_terms, params = tools.title_abstract_filter(
+                    'b.title',
+                    'oa.abstract' if is_article else None,
+                    self.terms,
                 )
                 filter_terms = self._format_websearch(sql_terms)
                 self.params.update(params)
@@ -197,6 +203,7 @@ class InstitutionFrequencyQuery(BaseQuery):
                 FROM researcher r
                 INNER JOIN institution i ON r.institution_id = i.id
                 INNER JOIN bibliographic_production b ON r.id = b.researcher_id
+                {abstract_join}
                 WHERE i.acronym IS NOT NULL
                 {filter_type}
                 {filter_inst}

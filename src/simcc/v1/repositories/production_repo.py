@@ -133,7 +133,9 @@ async def list_recently_updated(session, filters):
 
 
 async def list_bibliographic_production(session, filters, qualis: str | None):
-    cf = build_common_filters(filters, table_alias='b', year_col='year')
+    cf = build_common_filters(
+        filters, table_alias='b', year_col='year', abstract_col='opa.abstract'
+    )
 
     params = cf['params']
     FILTERS_SQL = cf['filters_sql']

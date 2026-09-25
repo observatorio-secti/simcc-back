@@ -721,10 +721,17 @@ class ResearcherSearchQuery(BaseQuery):
         )
         alias = 'p' if self.search_type == 'PATENT' else 'bp'
 
+        is_article = self.search_type == 'ARTICLE'
+        abstract_join = (
+            tools.openalex_abstract_join('bp') if is_article else ''
+        )
+
         filter_terms = ''
         if self.term_value:
-            filter_terms, term_params = tools.websearch_filter(
-                term_col, self.term_value
+            filter_terms, term_params = tools.title_abstract_filter(
+                term_col,
+                'oa.abstract' if is_article else None,
+                self.term_value,
             )
             self.params.update(term_params)
             filter_terms = self._format_websearch(filter_terms)
@@ -738,10 +745,11 @@ class ResearcherSearchQuery(BaseQuery):
             INNER JOIN (
                 SELECT {alias}.researcher_id, COUNT(*) AS among
                 FROM {table_name} {alias}
+                {abstract_join}
                 WHERE 1 = 1 {type_filter}
                 {filter_terms}
                 {filter_year}
-                GROUP BY researcher_id
+                GROUP BY {alias}.researcher_id
             ) {alias} ON {alias}.researcher_id = r.id
         """
         return inner_join, f'{alias}.among'

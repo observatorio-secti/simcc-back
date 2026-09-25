@@ -5,12 +5,13 @@ def _format_websearch(sql_string):
     return sql_string.replace('%(', ':').replace(')s', '')
 
 
-def build_common_filters(
+def build_common_filters(  # noqa: PLR0913, PLR0917
     filters,
     table_alias='bp',
     year_col='year',
     researcher_id_col='researcher_id',
     distinct_col='title',
+    abstract_col=None,
 ):
     params = {}
     filters_sql = []
@@ -25,8 +26,8 @@ def build_common_filters(
     distinct_sql = ''
 
     if getattr(filters, 'term', None):
-        filter_terms, term_params = tools.websearch_filter(
-            f'{table_alias}.{distinct_col}', filters.term
+        filter_terms, term_params = tools.title_abstract_filter(
+            f'{table_alias}.{distinct_col}', abstract_col, filters.term
         )
         params.update(term_params)
         filters_sql.append(_format_websearch(filter_terms))

@@ -136,10 +136,16 @@ class BaseMetricsQuery(BaseQuery):
             'WORK_IN_EVENT',
             'TEXT_IN_NEWSPAPER_MAGAZINE',
         }:
+            is_article = type_value == 'ARTICLE'
             self.join_type_specific = f"INNER JOIN bibliographic_production bp ON bp.researcher_id = r.id AND bp.type = '{type_value}'"
+            self.join_type_specific += (
+                f' {tools.openalex_abstract_join("bp")}' if is_article else ''
+            )
             if self.term_value:
-                filter_terms, term_params = tools.websearch_filter(
-                    'bp.title', self.term_value
+                filter_terms, term_params = tools.title_abstract_filter(
+                    'bp.title',
+                    'oa.abstract' if is_article else None,
+                    self.term_value,
                 )
                 self.params.update(term_params)
                 self.type_specific_filters.append(
@@ -592,8 +598,12 @@ class YearlyProductionMetricsQuery(BaseMetricsQuery):
         filters_sql = ' '.join(self.filters_sql)
         term_filter = ''
         if self.term_value:
-            filter_terms, term_params = tools.websearch_filter(
-                f'{self.table_alias}.title', self.term_value
+            # O SQL de artigos já faz LEFT JOIN openalex_article opa
+            is_article = self.production_type == 'ARTICLE'
+            filter_terms, term_params = tools.title_abstract_filter(
+                f'{self.table_alias}.title',
+                'opa.abstract' if is_article else None,
+                self.term_value,
             )
             self.params.update(term_params)
             term_filter = self._format_websearch(filter_terms)

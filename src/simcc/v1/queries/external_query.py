@@ -124,10 +124,14 @@ class DocenteSearchQuery(BaseQuery):
             'WORK_IN_EVENT',
             'TEXT_IN_NEWSPAPER_MAGAZINE',
         ]:
+            is_article = type_val == 'ARTICLE'
             join_filter = f"INNER JOIN bibliographic_production bp ON bp.researcher_id = ur.researcher_id AND bp.type = '{type_val}'"
+            join_filter += (
+                f' {tools.openalex_abstract_join("bp")}' if is_article else ''
+            )
             if term_val:
-                term_sql, term_params = tools.websearch_filter(
-                    'bp.title', term_val
+                term_sql, term_params = tools.title_abstract_filter(
+                    'bp.title', 'oa.abstract' if is_article else None, term_val
                 )
                 self.params.update(term_params)
                 type_filter = self._format_websearch(term_sql)
