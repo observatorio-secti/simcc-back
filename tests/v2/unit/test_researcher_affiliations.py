@@ -3,6 +3,11 @@ from http import HTTPStatus
 
 import pytest
 
+from simcc.v2.services.mv_refresh_service import (
+    refresh_search_materialized_views,
+)
+from tests.factories.researcher import ResearcherFactory
+
 
 @pytest.mark.asyncio
 async def test_researcher_affiliations_full_link(
@@ -71,15 +76,22 @@ async def test_researcher_affiliations_multiple_institutions(
 
 @pytest.mark.asyncio
 async def test_researcher_affiliations_ignores_legacy_institution_id(
-    client, researcher_factory
+    client, session, institution_factory
 ):
-    # `researcher_factory` preenche apenas `researcher.institution_id`
-    await researcher_factory(name='Vinculo Legado')
+    institution = await institution_factory()
+    session.add(
+        ResearcherFactory(name='Vinculo Legado', institution_id=institution.id)
+    )
+    await session.commit()
+    await refresh_search_materialized_views(session)
 
     response = client.get('/v2/researcher?q=Legado')
-
     assert response.status_code == HTTPStatus.OK
     assert response.json()['data'][0]['affiliations'] == []
+
+    # A coluna legada também não alimenta o filtro por instituição
+    response = client.get(f'/v2/researcher?institution_id={institution.id}')
+    assert response.json()['data'] == []
 
 
 @pytest.mark.asyncio

@@ -55,10 +55,13 @@ async def setup_database(engine):
 @pytest_asyncio.fixture
 async def session(engine):
     async with engine.connect() as connection:
-        async with connection.begin():
-            async with AsyncSession(
-                bind=connection,
-                expire_on_commit=False,
-                join_transaction_mode='create_savepoint',
-            ) as session:
-                yield session
+        transaction = await connection.begin()
+        async with AsyncSession(
+            bind=connection,
+            expire_on_commit=False,
+            join_transaction_mode='create_savepoint',
+        ) as session:
+            yield session
+        # Rollback explícito: sair de `connection.begin()` faria commit
+        # e vazaria os dados deste teste para os seguintes.
+        await transaction.rollback()
