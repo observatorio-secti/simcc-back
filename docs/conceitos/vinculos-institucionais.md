@@ -38,7 +38,8 @@ Por isso a resposta usa **composição**: o objeto `institution` é sempre o mes
 
 ## Origem dos Dados
 
-* Os vínculos vêm **exclusivamente** da tabela `researcher_institution`. A coluna legada `researcher.institution_id` não é considerada.
+* Os vínculos vêm **exclusivamente** da tabela `researcher_institution`. A coluna legada `researcher.institution_id` é ignorada em toda a V2: vínculos, filtro `institution_id` e facet de instituição.
+* Um pesquisador com vínculo em várias instituições é contado em cada uma delas no facet `institution`.
 * `image` e `cover` são resolvidos pela sigla em `storage/institutions/picture` e `storage/institutions/covers`. Quando não há logo em disco, `image` usa a coluna `institution.image`.
 * As URLs das imagens ficam em cache por processo: um arquivo novo só aparece após reiniciar o servidor.
 * Os vínculos são buscados em **uma única consulta** para todos os pesquisadores da página, e a lista vem ordenada pelo nome da instituição.
