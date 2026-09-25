@@ -53,3 +53,20 @@ markdown_extensions:
 
 nav:
   - Início: index.md
+  - Conceitos da V2:
+      - Arquitetura e MVs: conceitos/arquitetura.md
+      - Filtros e Busca Textual: conceitos/filtros-e-busca.md
+      - Facets e Evidências: conceitos/facets-e-evidencias.md
+  - Guia de Contribuição:
+      - Visão Geral: guia-contribuicao/index.md
+      - 1. Criação de Rotinas e Serviços: guia-contribuicao/rotinas.md
+      - 2. Criação de Endpoints: guia-contribuicao/endpoints.md
+      - 3. Criação de Testes: guia-contribuicao/testes.md
+  - Recursos em Construção: em-construcao.md
+
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
