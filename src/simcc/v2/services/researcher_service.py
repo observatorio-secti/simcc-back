@@ -122,6 +122,7 @@ async def search_researchers(
             session=session,
             filters=resolved_filters,
             requested_facets=resolved_options.facets,
+            limit=resolved_options.facet_limit,
         )
 
     took_ms = int((time.perf_counter() - start_time) * 1000)

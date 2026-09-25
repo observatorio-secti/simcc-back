@@ -24,6 +24,7 @@ from simcc.v2.schemas.params import (
 from simcc.v2.schemas.researcher import (
     Affiliation,
     FacetItem,
+    FacetResult,
     FiltersApplied,
     MatchesSummary,
     MatchItem,
@@ -42,6 +43,7 @@ __all__ = [
     'CatalogResponse',
     'CityRef',
     'FacetItem',
+    'FacetResult',
     'FiltersApplied',
     'GraduateProgramFilter',
     'InstitutionFilter',

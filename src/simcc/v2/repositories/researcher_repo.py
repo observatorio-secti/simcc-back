@@ -1,20 +1,25 @@
 """Repositório de acesso a dados para pesquisadores v2 sobre MVs."""
 
+from collections.abc import Sequence
 from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import (
+    ColumnElement,
     Float,
+    RowMapping,
     Select,
-    String,
     and_,
     cast,
+    false,
     func,
     literal_column,
+    or_,
     select,
     text,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import InstrumentedAttribute
 
 from simcc.core.db.models.graduate_program import (
     GraduateProgram as GraduateProgramDB,
@@ -36,6 +41,7 @@ from simcc.v2.schemas.params import PaginationParams, SortParams
 from simcc.v2.schemas.researcher import (
     Affiliation,
     FacetItem,
+    FacetResult,
     MatchesSummary,
     MatchItem,
     ResearcherCounts,
@@ -311,105 +317,134 @@ async def fetch_matches(
     }
 
 
+async def _fetch_entity_facet(  # noqa: PLR0913
+    session: AsyncSession,
+    filters: ResearcherFilter,
+    *,
+    filter_key: str,
+    array_column: ColumnElement,
+    entity: type,
+    entity_id: InstrumentedAttribute,
+    selected: list[UUID],
+    limit: int,
+) -> FacetResult:
+    """Facet disjuntivo sobre uma coluna de array de ids da MV.
+
+    Devolve os `limit` valores com mais pesquisadores (desempate por nome)
+    e sempre inclui os valores selecionados no filtro, mesmo fora do top ou
+    com contagem zero, para que o frontend não perca o item marcado.
+    """
+    conditions = build_researcher_conditions(
+        filters, exclude=frozenset({filter_key})
+    )
+    r = mv_researcher_search
+
+    unnested = select(
+        r.c.researcher_id,
+        func.unnest(array_column).label('entity_id'),
+    )
+    if conditions:
+        unnested = unnested.where(and_(*conditions))
+    unnested = unnested.subquery()
+
+    agg = (
+        select(
+            unnested.c.entity_id,
+            func.count(func.distinct(unnested.c.researcher_id)).label('n'),
+        )
+        .group_by(unnested.c.entity_id)
+        .subquery()
+    )
+
+    count_col = func.coalesce(agg.c.n, 0)
+    is_selected = entity_id.in_(selected) if selected else false()
+    ranked = (
+        select(
+            entity_id.label('value'),
+            entity.name.label('label'),
+            entity.acronym.label('acronym'),
+            count_col.label('count'),
+            is_selected.label('selected'),
+            func
+            .row_number()
+            .over(
+                order_by=(count_col.desc(), entity.name.asc(), entity_id.asc())
+            )
+            .label('rank'),
+            func.count(agg.c.entity_id).over().label('total'),
+        )
+        .select_from(entity)
+        .outerjoin(agg, agg.c.entity_id == entity_id)
+        .where(or_(agg.c.entity_id.isnot(None), is_selected))
+        .subquery()
+    )
+    stmt = (
+        select(ranked)
+        .where(or_(ranked.c.rank <= limit, ranked.c.selected))
+        .order_by(ranked.c.rank)
+    )
+
+    rows = (await session.execute(stmt)).mappings().all()
+    return _to_facet_result(rows)
+
+
+def _to_facet_result(rows: Sequence[RowMapping]) -> FacetResult:
+    return FacetResult(
+        total=rows[0]['total'] if rows else 0,
+        items=[
+            FacetItem(
+                value=str(row['value']),
+                label=str(row['label']),
+                count=row['count'],
+                acronym=row.get('acronym'),
+                selected=row.get('selected', False),
+            )
+            for row in rows
+        ],
+    )
+
+
 async def fetch_institution_facet(
     session: AsyncSession,
     filters: ResearcherFilter,
     limit: int = 20,
-) -> list[FacetItem]:
-    """Calcula facet de instituições com faceting disjuntivo e unnest."""
-    exclude = frozenset({'institution_id'})
-    conditions = build_researcher_conditions(filters, exclude=exclude)
-    r = mv_researcher_search
-
-    subq = select(
-        r.c.researcher_id,
-        func.unnest(r.c.institution_ids).label('inst_id'),
+) -> FacetResult:
+    """Calcula facet de instituições com faceting disjuntivo."""
+    return await _fetch_entity_facet(
+        session,
+        filters,
+        filter_key='institution_id',
+        array_column=mv_researcher_search.c.institution_ids,
+        entity=Institution,
+        entity_id=Institution.id,
+        selected=filters.institution_id,
+        limit=limit,
     )
-    if conditions:
-        subq = subq.where(and_(*conditions))
-    subq = subq.subquery()
-
-    stmt = (
-        select(
-            Institution.id.cast(String).label('value'),
-            func.coalesce(
-                Institution.name,
-                Institution.acronym,
-                'Outra Instituição',
-            ).label('label'),
-            func.count(func.distinct(subq.c.researcher_id)).label('count'),
-        )
-        .join(subq, subq.c.inst_id == Institution.id)
-        .group_by(Institution.id, Institution.name, Institution.acronym)
-        .order_by(literal_column('count').desc())
-        .limit(limit)
-    )
-
-    rows = (await session.execute(stmt)).mappings().all()
-    return [
-        FacetItem(
-            value=row['value'],
-            label=row['label'],
-            count=row['count'],
-        )
-        for row in rows
-    ]
 
 
 async def fetch_graduate_program_facet(
     session: AsyncSession,
     filters: ResearcherFilter,
     limit: int = 20,
-) -> list[FacetItem]:
-    """Calcula facet de programas de pós-graduação com unnest."""
-    exclude = frozenset({'graduate_program_id'})
-    conditions = build_researcher_conditions(filters, exclude=exclude)
-    r = mv_researcher_search
-
-    subq = select(
-        r.c.researcher_id,
-        func.unnest(r.c.graduate_program_ids).label('gp_id'),
+) -> FacetResult:
+    """Calcula facet de programas de pós-graduação com faceting disjuntivo."""
+    return await _fetch_entity_facet(
+        session,
+        filters,
+        filter_key='graduate_program_id',
+        array_column=mv_researcher_search.c.graduate_program_ids,
+        entity=GraduateProgramDB,
+        entity_id=GraduateProgramDB.graduate_program_id,
+        selected=filters.graduate_program_id,
+        limit=limit,
     )
-    if conditions:
-        subq = subq.where(and_(*conditions))
-    subq = subq.subquery()
-
-    main_stmt = (
-        select(
-            GraduateProgramDB.graduate_program_id.cast(String).label('value'),
-            func.coalesce(
-                GraduateProgramDB.name,
-                GraduateProgramDB.acronym,
-                'Programa',
-            ).label('label'),
-            func.count(func.distinct(subq.c.researcher_id)).label('count'),
-        )
-        .join(subq, subq.c.gp_id == GraduateProgramDB.graduate_program_id)
-        .group_by(
-            GraduateProgramDB.graduate_program_id,
-            GraduateProgramDB.name,
-            GraduateProgramDB.acronym,
-        )
-        .order_by(literal_column('count').desc())
-        .limit(limit)
-    )
-
-    rows = (await session.execute(main_stmt)).mappings().all()
-    return [
-        FacetItem(
-            value=row['value'],
-            label=row['label'],
-            count=row['count'],
-        )
-        for row in rows
-    ]
 
 
 async def fetch_year_facet(
     session: AsyncSession,
     filters: ResearcherFilter,
     limit: int = 20,
-) -> list[FacetItem]:
+) -> FacetResult:
     """Calcula histograma de anos com unnest."""
     exclude = frozenset({'year_range'})
     conditions = build_researcher_conditions(filters, exclude=exclude)
@@ -425,9 +460,10 @@ async def fetch_year_facet(
 
     stmt = (
         select(
-            subq.c.yr.cast(String).label('value'),
-            subq.c.yr.cast(String).label('label'),
+            subq.c.yr.label('value'),
+            subq.c.yr.label('label'),
             func.count(func.distinct(subq.c.researcher_id)).label('count'),
+            func.count().over().label('total'),
         )
         .group_by(subq.c.yr)
         .order_by(literal_column('count').desc(), subq.c.yr.desc())
@@ -435,24 +471,17 @@ async def fetch_year_facet(
     )
 
     rows = (await session.execute(stmt)).mappings().all()
-    return [
-        FacetItem(
-            value=row['value'],
-            label=row['label'],
-            count=row['count'],
-        )
-        for row in rows
-    ]
+    return _to_facet_result(rows)
 
 
 async def fetch_source_type_facet(
     session: AsyncSession,
     filters: ResearcherFilter,
     limit: int = 20,
-) -> list[FacetItem]:
+) -> FacetResult:
     """Calcula facet de tipos de fontes documentais (apenas com q)."""
     if not filters.q or not filters.q.strip():
-        return []
+        return FacetResult(total=0, items=[])
 
     conditions = build_researcher_conditions(filters)
     clean_q = filters.q.strip()
@@ -471,6 +500,7 @@ async def fetch_source_type_facet(
             d.c.source_type.label('value'),
             d.c.source_type.label('label'),
             func.count(func.distinct(d.c.researcher_id)).label('count'),
+            func.count().over().label('total'),
         )
         .where(
             and_(
@@ -479,19 +509,12 @@ async def fetch_source_type_facet(
             )
         )
         .group_by(d.c.source_type)
-        .order_by(literal_column('count').desc())
+        .order_by(literal_column('count').desc(), d.c.source_type.asc())
         .limit(limit)
     )
 
     rows = (await session.execute(stmt)).mappings().all()
-    return [
-        FacetItem(
-            value=row['value'],
-            label=row['label'],
-            count=row['count'],
-        )
-        for row in rows
-    ]
+    return _to_facet_result(rows)
 
 
 FACET_BUILDERS = {
@@ -507,9 +530,9 @@ async def fetch_requested_facets(
     filters: ResearcherFilter,
     requested_facets: list[str],
     limit: int = 20,
-) -> dict[str, list[FacetItem]]:
+) -> dict[str, FacetResult]:
     """Calcula todos os facets requisitados respeitando o orçamento."""
-    facets_result: dict[str, list[FacetItem]] = {}
+    facets_result: dict[str, FacetResult] = {}
     for facet_name in requested_facets:
         builder = FACET_BUILDERS.get(facet_name)
         if builder:

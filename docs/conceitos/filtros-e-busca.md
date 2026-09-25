@@ -19,7 +19,8 @@ Todos os endpoints de busca de pesquisadores e catálogos seguem a mesma conven�
 | `per_page` | Número inteiro | `?per_page=20` | Quantidade de itens por página (entre 1 e 100, padrão 20). |
 | `sort_by` | Texto fixo | `?sort_by=relevance` | Campo de ordenação: `name`, `id` ou `relevance`. |
 | `sort_order` | Texto fixo | `?sort_order=desc` | Sentido da ordenação: `asc` (crescente) ou `desc` (decrescente). |
-| `facets` | Lista de textos | `?facets=institution,year` | Facets opt-in solicitados para compor painéis laterais de contagem. |
+| `facets` | Lista de textos | `?facets=institution,year` | Facets opt-in solicitados para compor painéis laterais de contagem. Veja [Facets](facets-e-evidencias.md#referencia-dos-facets). |
+| `facet_limit` | Número inteiro | `?facet_limit=10` | Quantidade máxima de valores por facet (1 a 100, padrão 20). Valores selecionados no filtro sempre voltam, mesmo além do limite. |
 | `include` | Lista de textos | `?include=matches` | Recursos adicionais opt-in (ex.: trechos de evidência com destaque). |
 | `matches_limit` | Número inteiro | `?matches_limit=3` | Quantidade máxima de evidências por pesquisador (1 a 5, padrão 3). |
 

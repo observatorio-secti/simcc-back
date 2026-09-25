@@ -108,9 +108,24 @@ class ResearcherDetail(ResearcherBase):
 
 
 class FacetItem(BaseModel):
-    value: str
-    label: str
-    count: int
+    value: str = Field(description='Valor a enviar no filtro correspondente')
+    label: str = Field(description='Texto de exibição')
+    count: int = Field(description='Pesquisadores com esse valor')
+    acronym: Optional[str] = Field(
+        None, description='Sigla, quando o valor for uma entidade'
+    )
+    selected: bool = Field(
+        False, description='Se o valor está aplicado no filtro atual'
+    )
+
+
+class FacetResult(BaseModel):
+    total: int = Field(
+        description='Quantidade de valores distintos com resultados'
+    )
+    items: list[FacetItem] = Field(
+        description='Valores mais frequentes e os valores selecionados'
+    )
 
 
 class Sort(BaseModel):
@@ -131,5 +146,5 @@ class SearchResponse(BaseModel):
     filters_applied: ResearcherFilter
     sort: Sort
     meta: Meta
-    facets: Optional[dict[str, list[FacetItem]]] = None
+    facets: Optional[dict[str, FacetResult]] = None
     summary: Optional[dict[str, Any]] = None

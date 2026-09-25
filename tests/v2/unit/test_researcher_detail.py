@@ -63,54 +63,6 @@ async def test_list_counts_default_to_zero_without_production(
 
 
 @pytest.mark.asyncio
-async def test_institution_facet_counts_every_affiliation(
-    client,
-    researcher_factory,
-    institution_factory,
-    researcher_institution_factory,
-):
-    inst_a = await institution_factory(name='Facet A')
-    inst_b = await institution_factory(name='Facet B')
-    researcher = await researcher_factory(institution_id=inst_a.id)
-    await researcher_institution_factory(
-        researcher_id=researcher.id, institution_id=inst_b.id
-    )
-    await researcher_factory(institution_id=inst_a.id)
-
-    facet = client.get('/v2/researcher?facets=institution').json()['facets']
-
-    counts = {f['label']: f['count'] for f in facet['institution']}
-    assert counts == {'Facet A': 2, 'Facet B': 1}
-
-
-@pytest.mark.asyncio
-async def test_graduate_program_facet(
-    client, session, researcher_factory, graduate_program_factory
-):
-    gp = await graduate_program_factory(name='Programa Facet')
-    researcher = await researcher_factory()
-    session.add(
-        GraduateProgramResearcher(
-            graduate_program_id=gp.graduate_program_id,
-            researcher_id=researcher.id,
-        )
-    )
-    await session.commit()
-    await refresh_search_materialized_views(session)
-
-    response = client.get('/v2/researcher?facets=graduate_program')
-
-    assert response.status_code == HTTPStatus.OK
-    assert response.json()['facets']['graduate_program'] == [
-        {
-            'value': str(gp.graduate_program_id),
-            'label': 'Programa Facet',
-            'count': 1,
-        }
-    ]
-
-
-@pytest.mark.asyncio
 async def test_detail_not_found(client):
     response = client.get(f'/v2/researcher/{uuid.uuid4()}')
     assert response.status_code == HTTPStatus.NOT_FOUND

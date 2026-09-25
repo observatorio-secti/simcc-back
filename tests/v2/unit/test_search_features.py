@@ -132,7 +132,9 @@ async def test_disjunctive_facets(
     # Mas o facet de instituições é DISJUNTIVO (mostra inst1 e inst2)
     assert body['facets'] is not None
     assert 'institution' in body['facets']
-    facet_values = [f['value'] for f in body['facets']['institution']]
+    facet_values = [
+        f['value'] for f in body['facets']['institution']['items']
+    ]
     assert str(inst1.id) in facet_values
     assert str(inst2.id) in facet_values
 

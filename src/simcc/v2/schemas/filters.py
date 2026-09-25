@@ -70,6 +70,7 @@ class ResearcherFilter(BaseTemporalFilter):
                 'facets',
                 'include',
                 'matches_limit',
+                'facet_limit',
             }
             return {k: v for k, v in data.items() if k not in endpoint_params}
         return data
@@ -100,6 +101,7 @@ KNOWN_RESEARCHER_PARAMS = {
     'facets',
     'include',
     'matches_limit',
+    'facet_limit',
 }
 
 

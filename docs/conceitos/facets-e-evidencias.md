@@ -35,6 +35,57 @@ Dessa forma, o usuário que selecionou uma instituição continua vendo as opç�
 
 ---
 
+## Referência dos Facets
+
+### Facets disponíveis
+
+| Facet | Filtro que alimenta | Ignora (disjuntivo) | Observações |
+|---|---|---|---|
+| `institution` | `institution_id` | `institution_id` | Conta cada vínculo de `researcher_institution`: quem está em duas instituições conta nas duas. |
+| `graduate_program` | `graduate_program_id` | `graduate_program_id` | |
+| `year` | `year_start` / `year_end` | intervalo de anos | Histograma dos anos de produção. |
+| `source_type` | — | nada | Só é calculado com `q`; conta pesquisadores por tipo de obra que casou com a busca (`ARTICLE`, `BOOK`...). |
+
+### Formato da resposta
+
+Cada facet solicitado vira uma chave em `facets`, sempre com o mesmo formato:
+
+```json
+"facets": {
+  "institution": {
+    "total": 34,
+    "items": [
+      { "value": "<uuid>", "label": "Universidade Federal da Bahia", "acronym": "UFBA", "count": 42, "selected": false },
+      { "value": "<uuid>", "label": "Universidade do Estado da Bahia", "acronym": "UNEB", "count": 17, "selected": true }
+    ]
+  }
+}
+```
+
+| Campo | Significado |
+|---|---|
+| `total` | Quantos valores distintos têm pelo menos um pesquisador. Use para exibir "ver todas (34)" quando `total > items.length`. |
+| `items[].value` | O valor a enviar no filtro correspondente (ex.: `institution_id=<value>`). |
+| `items[].label` | Texto de exibição (nome completo). |
+| `items[].acronym` | Sigla, quando o valor for uma entidade que tenha uma. `null` em `year` e `source_type`. |
+| `items[].count` | Quantos pesquisadores do resultado atual possuem esse valor. |
+| `items[].selected` | `true` quando o valor já está aplicado no filtro da requisição. |
+
+### Regras de montagem da lista
+
+1. **Ordenação:** do maior `count` para o menor. Empates são resolvidos pelo nome (`year` desempata do ano mais recente para o mais antigo), então a ordem é estável entre requisições.
+2. **Limite:** até `facet_limit` itens (padrão 20, máximo 100).
+3. **Selecionados sempre presentes** (`institution` e `graduate_program`): um valor enviado no filtro volta com `selected: true` mesmo que esteja fora do limite, ao final da lista. Se os outros filtros zerarem o resultado dele, ele volta com `count: 0`. Assim o checkbox marcado nunca some da tela.
+4. Valores com `count: 0` só aparecem quando selecionados, e **não** entram em `total`.
+
+!!! example "Receita para a barra lateral"
+    1. Busca inicial: `GET /v2/researcher?q=dengue&facets=institution,graduate_program`.
+    2. Renderize um checkbox por item, marcado conforme `selected`, exibindo `acronym` (ou `label`) e `count`.
+    3. Ao marcar ou desmarcar, refaça a chamada com o conjunto atual de `institution_id` / `graduate_program_id`. Não é preciso guardar estado de contagem no frontend.
+    4. Se `total > items.length`, ofereça "ver todas", repetindo a chamada com `facet_limit` maior.
+
+---
+
 ## O que são Evidências (Matches)?
 
 Enquanto os facets fornecem **contagens agregadas**, as evidências (**matches**) fornecem **provas concretas por pesquisador**:

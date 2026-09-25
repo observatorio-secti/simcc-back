@@ -62,6 +62,12 @@ class SearchOptions(BaseModel):
         le=5,
         description='Número máximo de evidências por pesquisador',
     )
+    facet_limit: int = Field(
+        20,
+        ge=1,
+        le=100,
+        description='Número máximo de valores por facet',
+    )
 
     @field_validator('facets', 'include', mode='before')
     @classmethod
@@ -123,6 +129,15 @@ def get_search_options(
         le=5,
         description='Número máximo de evidências por pesquisador',
     ),
+    facet_limit: int = Query(
+        20,
+        ge=1,
+        le=100,
+        description=(
+            'Número máximo de valores por facet. Valores selecionados '
+            'no filtro são sempre incluídos, mesmo além desse limite.'
+        ),
+    ),
 ) -> SearchOptions:
     """Extrai opções de busca de parâmetros de query string."""
     try:
@@ -130,6 +145,7 @@ def get_search_options(
             facets=facets,
             include=include,
             matches_limit=matches_limit,
+            facet_limit=facet_limit,
         )
     except ValidationError as err:
         raise HTTPException(
