@@ -5,7 +5,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field
 
-from simcc.v2.schemas.researcher import Pagination
+from simcc.v2.schemas.params import Pagination
 
 
 class CatalogItem(BaseModel):

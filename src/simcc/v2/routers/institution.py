@@ -7,21 +7,20 @@ from fastapi import APIRouter, Depends, Query
 
 from simcc.core.dependencies import AsyncSession
 from simcc.v2.repositories import catalog_repo
-from simcc.v2.schemas.catalog import CatalogResponse
-from simcc.v2.schemas.params import PaginationParams
-from simcc.v2.schemas.researcher import Pagination
+from simcc.v2.schemas.institution import InstitutionListResponse
+from simcc.v2.schemas.params import Pagination, PaginationParams
 
 router = APIRouter(tags=['Institution v2'])
 
 
-@router.get('/institution', response_model=CatalogResponse)
+@router.get('/institution', response_model=InstitutionListResponse)
 async def list_institutions(
     session: AsyncSession,
     q: Optional[str] = Query(
         None, description='Termo para busca por nome ou sigla'
     ),
     pagination: PaginationParams = Depends(),
-) -> CatalogResponse:
+) -> InstitutionListResponse:
     """Retorna lista paginada de instituições cadastradas."""
     items, total_items = await catalog_repo.fetch_institutions(
         session=session,
@@ -41,7 +40,7 @@ async def list_institutions(
         has_next = pagination.page < total_pages
         has_prev = pagination.page > 1 and pagination.page <= total_pages + 1
 
-    return CatalogResponse(
+    return InstitutionListResponse(
         data=items,
         pagination=Pagination(
             page=pagination.page,

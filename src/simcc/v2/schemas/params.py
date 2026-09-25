@@ -16,6 +16,15 @@ class PaginationParams(BaseModel):
     per_page: int = Field(20, ge=1, le=100, description='Itens por página')
 
 
+class Pagination(BaseModel):
+    page: int
+    per_page: int
+    total_items: int
+    total_pages: int
+    has_next: bool
+    has_prev: bool
+
+
 class SortParams(BaseModel):
     sort_by: Literal['name', 'id', 'relevance'] = Field(
         'name', description='Campo para ordenação'

@@ -8,8 +8,7 @@ from fastapi import APIRouter, Depends, Query
 from simcc.core.dependencies import AsyncSession
 from simcc.v2.repositories import catalog_repo
 from simcc.v2.schemas.catalog import CatalogResponse
-from simcc.v2.schemas.params import PaginationParams
-from simcc.v2.schemas.researcher import Pagination
+from simcc.v2.schemas.params import Pagination, PaginationParams
 
 router = APIRouter(tags=['Graduate Program v2'])
 

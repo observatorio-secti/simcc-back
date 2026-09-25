@@ -1,4 +1,5 @@
 import re
+from functools import lru_cache
 from pathlib import Path
 
 import httpx
@@ -85,6 +86,8 @@ def get_institution_cover_path(acronym: str | None) -> Path | None:
     return None
 
 
+# Cacheado por processo: arquivos novos exigem reinício do servidor.
+@lru_cache(maxsize=256)
 def get_institution_logo_url(acronym: str | None) -> str | None:
     path = get_institution_logo_path(acronym)
     if path:
@@ -92,6 +95,7 @@ def get_institution_logo_url(acronym: str | None) -> str | None:
     return None
 
 
+@lru_cache(maxsize=256)
 def get_institution_cover_url(acronym: str | None) -> str | None:
     path = get_institution_cover_path(acronym)
     if path:

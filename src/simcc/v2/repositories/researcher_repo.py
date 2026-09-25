@@ -19,6 +19,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from simcc.core.db.models.graduate_program import (
     GraduateProgram as GraduateProgramDB,
 )
+from simcc.core.db.models.institution import Institution
+from simcc.core.db.models.location import City
+from simcc.core.db.models.researcher_institution import ResearcherInstitution
 from simcc.v2.repositories.researcher_filters import (
     build_researcher_conditions,
 )
@@ -26,9 +29,12 @@ from simcc.v2.repositories.search_tables import (
     mv_researcher_search,
     mv_search_documents,
 )
+from simcc.v2.schemas.city import CityRef
 from simcc.v2.schemas.filters import ResearcherFilter
+from simcc.v2.schemas.institution import InstitutionRef
 from simcc.v2.schemas.params import PaginationParams, SortParams
 from simcc.v2.schemas.researcher import (
+    Affiliation,
     FacetItem,
     MatchesSummary,
     MatchItem,
@@ -145,6 +151,49 @@ async def fetch_researchers(
     ]
 
     return data, total_items
+
+
+async def fetch_affiliations(
+    session: AsyncSession,
+    page_ids: list[UUID],
+) -> dict[UUID, list[Affiliation]]:
+    """Busca os vínculos institucionais dos pesquisadores da página."""
+    if not page_ids:
+        return {}
+
+    ri = ResearcherInstitution
+    stmt = (
+        select(
+            ri.researcher_id,
+            ri.workload,
+            ri.identity_territory,
+            Institution.id,
+            Institution.name,
+            Institution.acronym,
+            Institution.image,
+            City.id.label('city_id'),
+            City.name.label('city_name'),
+        )
+        .join(Institution, Institution.id == ri.institution_id)
+        .outerjoin(City, City.id == ri.city_id)
+        .where(ri.researcher_id.in_(page_ids))
+        .order_by(Institution.name.asc(), Institution.id.asc())
+    )
+
+    affiliations: dict[UUID, list[Affiliation]] = {pid: [] for pid in page_ids}
+    for row in (await session.execute(stmt)).mappings().all():
+        city = None
+        if row['city_id'] is not None:
+            city = CityRef(id=row['city_id'], name=row['city_name'])
+        affiliations[row['researcher_id']].append(
+            Affiliation(
+                institution=InstitutionRef.from_row(row),
+                workload=row['workload'],
+                identity_territory=row['identity_territory'],
+                city=city,
+            )
+        )
+    return affiliations
 
 
 async def fetch_matches(

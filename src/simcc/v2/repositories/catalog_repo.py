@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from simcc.core.db.models.graduate_program import GraduateProgram
 from simcc.core.db.models.institution import Institution
 from simcc.v2.schemas.catalog import CatalogItem
+from simcc.v2.schemas.institution import InstitutionRef
 from simcc.v2.schemas.params import PaginationParams
 
 
@@ -15,7 +16,7 @@ async def fetch_institutions(
     session: AsyncSession,
     q: Optional[str] = None,
     pagination: Optional[PaginationParams] = None,
-) -> tuple[list[CatalogItem], int]:
+) -> tuple[list[InstitutionRef], int]:
     """Retorna lista paginada e total de instituições cadastradas."""
     pag = pagination or PaginationParams()
     cond = None
@@ -40,6 +41,7 @@ async def fetch_institutions(
             Institution.id,
             Institution.name,
             Institution.acronym,
+            Institution.image,
         )
         .order_by(Institution.name.asc(), Institution.id.asc())
         .offset(offset)
@@ -49,14 +51,7 @@ async def fetch_institutions(
         data_stmt = data_stmt.where(cond)
 
     rows = (await session.execute(data_stmt)).mappings().all()
-    items = [
-        CatalogItem(
-            id=row['id'],
-            name=row['name'],
-            acronym=row['acronym'],
-        )
-        for row in rows
-    ]
+    items = [InstitutionRef.from_row(row) for row in rows]
     return items, total_items
 
 

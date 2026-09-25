@@ -11,19 +11,34 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from simcc.v2.repositories import researcher_repo
 from simcc.v2.schemas.filters import ResearcherFilter
 from simcc.v2.schemas.params import (
+    Pagination,
     PaginationParams,
     SearchOptions,
     SortParams,
 )
 from simcc.v2.schemas.researcher import (
     Meta,
-    Pagination,
+    Researcher,
     SearchResponse,
     Sort,
 )
 from simcc.v2.services import mv_refresh_service
 
 MAX_MATCHES_PER_PAGE = 50
+
+
+async def _attach_affiliations(
+    session: AsyncSession, items: list[Researcher]
+) -> None:
+    """Preenche os vínculos institucionais dos pesquisadores da página."""
+    if not items:
+        return
+    affiliations_map = await researcher_repo.fetch_affiliations(
+        session=session,
+        page_ids=[r.researcher_id for r in items],
+    )
+    for r in items:
+        r.affiliations = affiliations_map[r.researcher_id]
 
 
 async def search_researchers(
@@ -80,6 +95,8 @@ async def search_researchers(
         pagination=resolved_pagination,
         sort=resolved_sort,
     )
+
+    await _attach_affiliations(session, items)
 
     # Inclusão de matches (evidências textuais nos documentos e perfil)
     if 'matches' in resolved_options.include and items:

@@ -1,4 +1,5 @@
 from simcc.v2.schemas.catalog import CatalogItem, CatalogResponse
+from simcc.v2.schemas.city import CityRef
 from simcc.v2.schemas.filters import (
     BaseFilter,
     BaseTemporalFilter,
@@ -9,33 +10,42 @@ from simcc.v2.schemas.filters import (
     get_researcher_filter,
     validate_unknown_researcher_params,
 )
+from simcc.v2.schemas.institution import (
+    InstitutionListResponse,
+    InstitutionRef,
+)
 from simcc.v2.schemas.params import (
+    Pagination,
     PaginationParams,
     SearchOptions,
     SortParams,
     get_search_options,
 )
 from simcc.v2.schemas.researcher import (
+    Affiliation,
     FacetItem,
     FiltersApplied,
     MatchesSummary,
     MatchItem,
     Meta,
-    Pagination,
     Researcher,
     SearchResponse,
     Sort,
 )
 
 __all__ = [
+    'Affiliation',
     'BaseFilter',
     'BaseTemporalFilter',
     'CatalogItem',
     'CatalogResponse',
+    'CityRef',
     'FacetItem',
     'FiltersApplied',
     'GraduateProgramFilter',
     'InstitutionFilter',
+    'InstitutionListResponse',
+    'InstitutionRef',
     'MatchItem',
     'MatchesSummary',
     'Meta',
