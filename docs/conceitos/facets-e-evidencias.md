@@ -39,12 +39,18 @@ Dessa forma, o usuário que selecionou uma instituição continua vendo as opç�
 
 ### Facets disponíveis
 
-| Facet | Filtro que alimenta | Ignora (disjuntivo) | Observações |
+Cada facet é calculado com todos os filtros da requisição, **exceto o do próprio campo**.
+
+| Facet | Filtro que alimenta | `value` | Observações |
 |---|---|---|---|
-| `institution` | `institution_id` | `institution_id` | Conta cada vínculo de `researcher_institution`: quem está em duas instituições conta nas duas. |
-| `graduate_program` | `graduate_program_id` | `graduate_program_id` | |
-| `year` | `year_start` / `year_end` | intervalo de anos | Histograma dos anos de produção. |
-| `source_type` | — | nada | Só é calculado com `q`; conta pesquisadores por tipo de obra que casou com a busca (`ARTICLE`, `BOOK`...). |
+| `institution` | `institution_id` | UUID | Conta cada vínculo: quem está em duas instituições conta nas duas. Traz `acronym`. |
+| `graduate_program` | `graduate_program_id` | UUID | Traz `acronym`. |
+| `city` | `city_id` | UUID | Cidade de cada vínculo institucional. |
+| `identity_territory` | `identity_territory` | texto | Território de identidade de cada vínculo. |
+| `graduation` | `graduation` | texto | Maior titulação. |
+| `classification` | `classification` | `A+` … `E` | |
+| `source_type` | `source_type` | `ARTICLE`, `BOOK`, `BOOK_CHAPTER`, `PATENT`, `SOFTWARE` | Pesquisadores por tipo de obra que conta para a busca (casa com `q` e está no intervalo de anos). Funciona com ou sem `q`. |
+| `year` | `year_start` / `year_end` | ano | Com `q` ou `source_type`, conta os anos das obras que contam para a busca; sem eles, os anos de qualquer produção. Não tem `selected` (é um intervalo). |
 
 ### Formato da resposta
 
@@ -75,7 +81,7 @@ Cada facet solicitado vira uma chave em `facets`, sempre com o mesmo formato:
 
 1. **Ordenação:** do maior `count` para o menor. Empates são resolvidos pelo nome (`year` desempata do ano mais recente para o mais antigo), então a ordem é estável entre requisições.
 2. **Limite:** até `facet_limit` itens (padrão 20, máximo 100).
-3. **Selecionados sempre presentes** (`institution` e `graduate_program`): um valor enviado no filtro volta com `selected: true` mesmo que esteja fora do limite, ao final da lista. Se os outros filtros zerarem o resultado dele, ele volta com `count: 0`. Assim o checkbox marcado nunca some da tela.
+3. **Selecionados sempre presentes** (todos, exceto `year`): um valor enviado no filtro volta com `selected: true` mesmo que esteja fora do limite, ao final da lista. Se os outros filtros zerarem o resultado dele, ele volta com `count: 0`. Assim o checkbox marcado nunca some da tela.
 4. Valores com `count: 0` só aparecem quando selecionados, e **não** entram em `total`.
 
 !!! example "Receita para a barra lateral"

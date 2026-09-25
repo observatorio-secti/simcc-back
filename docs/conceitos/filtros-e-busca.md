@@ -13,6 +13,11 @@ Todos os endpoints de busca de pesquisadores e catálogos seguem a mesma conven�
 | `q` | Texto | `?q=inteligência artificial` | Termo ou frase de busca textual. Ignora acentuação (`pt_unaccent`) e maiúsculas/minúsculas. |
 | `institution_id` | Lista de UUIDs | `?institution_id=<uuid>&institution_id=<uuid>` | Filtra pesquisadores vinculados às instituições indicadas. |
 | `graduate_program_id` | Lista de UUIDs | `?graduate_program_id=<uuid>` | Filtra pesquisadores associados a programas de pós-graduação. |
+| `city_id` | Lista de UUIDs | `?city_id=<uuid>` | Cidade de algum vínculo institucional do pesquisador. |
+| `identity_territory` | Lista de textos | `?identity_territory=Sisal` | Território de identidade de algum vínculo do pesquisador. |
+| `graduation` | Lista de textos | `?graduation=Doutorado&graduation=Mestrado` | Maior titulação. |
+| `classification` | Lista (`A+`, `A`, `B+`, `B`, `C+`, `C`, `D+`, `D`, `E+`, `E`) | `?classification=A%2B` | Classificação do pesquisador. Valores fora da lista retornam 422. Na URL, `+` deve ser codificado como `%2B`. |
+| `source_type` | Lista (`ARTICLE`, `BOOK`, `BOOK_CHAPTER`, `PATENT`, `SOFTWARE`) | `?source_type=ARTICLE` | Tipos de obra considerados. Veja [Tipos de obra](#tipos-de-obra-source_type). |
 | `year_start` | Número inteiro | `?year_start=2018` | Ano inicial do intervalo de produção. |
 | `year_end` | Número inteiro | `?year_end=2024` | Ano final do intervalo de produção. Deve ser maior ou igual a `year_start`. |
 | `page` | Número inteiro | `?page=1` | Número da página solicitada (mínimo 1, padrão 1). |
@@ -40,7 +45,18 @@ Para quem desenvolve a interface ou consome a API, as regras de combinação sã
 
 1. **Dentro do mesmo filtro (Multivalorado):** A combinação é do tipo **OU (OR)**. Se o usuário seleciona duas instituições, ele deseja ver pesquisadores que estejam na primeira *ou* na segunda.
 2. **Entre filtros diferentes:** A combinação é do tipo **E (AND)**. Se o usuário seleciona uma instituição e um intervalo de anos, o sistema busca pesquisadores que atendam à instituição *e* tenham publicado naquele intervalo.
-3. **Validação Defensiva (Parâmetros Desconhecidos):** Qualquer parâmetro enviado na URL que não pertença à lista de parâmetros conhecidos retorna imediatamente erro **HTTP 422 (Entidade Não Processável)**. Isso evita que erros de digitação no frontend passem despercebidos.
+3. **Obras que contam:** busca textual, intervalo de anos e `source_type` definem juntos quais obras contam. A mesma regra vale para o filtro, a ordenação por relevância, as evidências (`matches`) e os facets. Uma evidência nunca mostra uma obra de fora do intervalo de anos pedido.
+4. **Validação Defensiva (Parâmetros Desconhecidos):** Qualquer parâmetro enviado na URL que não pertença à lista de parâmetros conhecidos retorna imediatamente erro **HTTP 422 (Entidade Não Processável)**. Isso evita que erros de digitação no frontend passem despercebidos.
+
+---
+
+### Tipos de obra (`source_type`)
+
+| Combinação | Resultado |
+|---|---|
+| `source_type` sem `q` | Pesquisadores com **pelo menos uma obra** desses tipos (no intervalo de anos, se houver). |
+| `q` sem `source_type` | O termo pode casar com o **perfil** (nome e resumo) **ou** com qualquer obra. |
+| `q` com `source_type` | O termo precisa casar com uma **obra desses tipos**. O perfil deixa de contar: quem escolheu "buscar em artigos" não quer pesquisadores que só têm o termo no resumo do Lattes. |
 
 ---
 
