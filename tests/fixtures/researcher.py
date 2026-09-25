@@ -1,6 +1,9 @@
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from simcc.v2.services.mv_refresh_service import (
+    refresh_search_materialized_views,
+)
 from tests.factories.researcher import ResearcherFactory
 
 
@@ -14,6 +17,7 @@ def researcher_factory(session: AsyncSession, institution_factory):
         researcher = ResearcherFactory(**kwargs)
         session.add(researcher)
         await session.commit()
+        await refresh_search_materialized_views(session, concurrently=False)
         return researcher
 
     return _create_researcher

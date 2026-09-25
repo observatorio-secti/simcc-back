@@ -1,3 +1,3 @@
-from simcc.v2.routers import researcher
+from simcc.v2.routers import graduate_program, institution, researcher
 
-__all__ = ['researcher']
+__all__ = ['graduate_program', 'institution', 'researcher']

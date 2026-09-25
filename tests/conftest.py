@@ -8,8 +8,10 @@ from testcontainers.postgres import PostgresContainer
 from simcc import app
 from simcc.core.db.database import get_async_session
 from simcc.core.db.models import table_registry
+from tests.setup_mvs import drop_test_mvs, init_test_mvs
 
 pytest_plugins = [
+    'tests.fixtures.graduate_program',
     'tests.fixtures.institution',
     'tests.fixtures.researcher',
 ]
@@ -42,8 +44,10 @@ async def setup_database(engine):
         await conn.execute(text('CREATE EXTENSION IF NOT EXISTS vector'))
 
         await conn.run_sync(table_registry.metadata.create_all)
+        await init_test_mvs(conn)
     yield
     async with engine.begin() as conn:
+        await drop_test_mvs(conn)
         await conn.run_sync(table_registry.metadata.drop_all)
 
 
