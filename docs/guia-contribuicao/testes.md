@@ -6,12 +6,40 @@ No SIMCC V2, os testes são projetados para serem **simples, diretos, rápidos e
 
 ## Como o Ambiente de Testes Funciona
 
-* **PostgreSQL Real via Testcontainers:** Os testes da V2 não usam bancos em memória simplificados (como SQLite), pois precisamos testar recursos reais do PostgreSQL: índices GIN, busca textual unaccent e Visões Materializadas.
+* **PostgreSQL e Redis Reais via Testcontainers:** Os testes da V2 não usam bancos em memória simplificados (como SQLite) nem mocks de cache, pois precisamos testar recursos reais: índices GIN, busca textual unaccent, Visões Materializadas e o [cache de buscas](../conceitos/cache.md).
 * **Fábricas de Dados (Factories):** Você não precisa criar registros manualmente com SQL complexo. Utilizamos factories prontas que criam entidades com dados consistentes e realistas:
-  * `researcher_factory(...)`
+  * `researcher_factory(...)` (atualiza as MVs e invalida o cache ao final)
   * `institution_factory(...)`
   * `graduate_program_factory(...)`
+  * `researcher_institution_factory(...)` e `city_factory(...)`
 * **Localização dos Testes:** Todos os testes unitários da V2 residem na pasta `tests/v2/unit/`.
+
+### Infraestrutura: containers, fixtures e `client`
+
+Banco e cache seguem a mesma estrutura: um container por execução da suíte, um recurso isolado por teste e a injeção no app via `dependency_overrides`.
+
+| | Banco de dados | Cache |
+|---|---|---|
+| **Container (escopo de sessão)** | `engine` | `redis_container` |
+| **Recurso por teste** | `session` (transação desfeita ao final) | `cache` (Redis limpo antes e depois) |
+| **Injetado no app como** | `get_async_session` | `get_search_cache` |
+
+O fixture `client` já injeta os dois: todo teste de endpoint roda com banco **e cache ligados**, como em produção.
+
+!!! warning "Mudou os dados? Use `refresh_mvs`"
+    Em produção, as MVs só mudam pela rotina de refresh, que também invalida o cache. Nos testes é igual: depois de inserir dados direto pela `session`, chame o fixture `refresh_mvs()` em vez de `refresh_search_materialized_views`. Sem a invalidação, a próxima requisição pode receber uma resposta antiga do cache.
+
+    ```python
+    async def test_exemplo(client, session, researcher_factory, refresh_mvs):
+        researcher = await researcher_factory()
+        session.add(ResearcherProduction(researcher_id=researcher.id, articles=3))
+        await session.commit()
+        await refresh_mvs()
+
+        response = client.get('/v2/researcher')
+    ```
+
+Para inspecionar o Redis diretamente num teste, use o fixture `redis_url` com um cliente síncrono (`redis.Redis.from_url(redis_url)`).
 
 ---
 

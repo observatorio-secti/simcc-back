@@ -131,6 +131,7 @@ Cada requisição à API possui um orçamento rigoroso de consultas ao banco de 
 | `GET /v2/researcher?facets=institution,year` | **5** (3 base + 2 facets) |
 | `GET /v2/researcher?include=matches` | **5** (3 base + 2 matches) |
 | `GET /v2/researcher?facets=institution&include=matches` | **6** (3 base + 1 facet + 2 matches) |
+| Qualquer busca repetida (acerto no [cache](cache.md)) | **0** |
 
 !!! tip "Trabalho Pesado Apenas no que Será Exibido"
     A geração de trechos com `ts_headline` e destaque visual de termos é uma operação relativamente custosa. Por isso, as evidências só são calculadas para os pesquisadores que **estão na página atual** (máximo 50 itens), e nunca sobre o universo de milhares de resultados.

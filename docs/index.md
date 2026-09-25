@@ -53,4 +53,4 @@ Explore a documentação através das seções abaixo:
 * [**3. Criação de Testes**](guia-contribuicao/testes.md): Como garantir isolamento, uso de factories e checklist de testes.
 
 ### [Recursos em Construção](em-construcao.md)
-* [**Roadmap da V2**](em-construcao.md): Recursos previstos para as próximas iterações (Cache, Paginação por Cursor, etc.).
+* [**Roadmap da V2**](em-construcao.md): Recursos previstos para as próximas iterações (Paginação por Cursor, Exportação em Lote, etc.).

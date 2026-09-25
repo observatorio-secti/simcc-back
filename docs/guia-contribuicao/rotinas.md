@@ -33,6 +33,8 @@ Um exemplo prático de rotina de manutenção na V2 é o serviço de sincroniza�
 * Registra o horário da conclusão na tabela de controle e atualiza o estado em memória da aplicação.
 * Garante que qualquer busca subsequente conheça o horário dos dados (`data_as_of`) sem custos de query adicionais.
 
+Em produção, o refresh roda pela rotina `scripts/routines/refresh_search_views.py` (etapa final do `post_hop.sh`). Ao terminar, ela incrementa a geração do [cache de buscas](../conceitos/cache.md), invalidando todas as respostas guardadas.
+
 ---
 
 ## Checklist para Criação de Rotinas e Serviços
