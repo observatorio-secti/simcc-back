@@ -152,37 +152,37 @@ async def test_query_count_budget(client, session, researcher_factory, engine):
     event.listen(engine.sync_engine, 'before_cursor_execute', count_queries)
 
     try:
-        # 1. Busca básica: exatamente 2 queries (count + page)
+        # 1. Busca básica: exatamente 3 queries (count + page + vínculos)
         query_statements.clear()
         res_basic = client.get('/v2/researcher')
         assert res_basic.status_code == HTTPStatus.OK
-        assert len(query_statements) == 2
+        assert len(query_statements) == 3
 
-        # 2. Busca com include=matches: +2 queries (total 4 queries)
+        # 2. Busca com include=matches: +2 queries (total 5 queries)
         query_statements.clear()
         res_matches = client.get('/v2/researcher?q=Budget&include=matches')
         assert res_matches.status_code == HTTPStatus.OK
-        assert len(query_statements) == 4
+        assert len(query_statements) == 5
 
-        # 3. Busca com 1 facet: +1 query (total 3 queries)
+        # 3. Busca com 1 facet: +1 query (total 4 queries)
         query_statements.clear()
         res_facet = client.get('/v2/researcher?facets=institution')
         assert res_facet.status_code == HTTPStatus.OK
-        assert len(query_statements) == 3
+        assert len(query_statements) == 4
 
-        # 4. Busca com 2 facets: +2 queries (total 4 queries)
+        # 4. Busca com 2 facets: +2 queries (total 5 queries)
         query_statements.clear()
         res_2facets = client.get('/v2/researcher?facets=institution,year')
         assert res_2facets.status_code == HTTPStatus.OK
-        assert len(query_statements) == 4
+        assert len(query_statements) == 5
 
-        # 5. Busca com 1 facet + include=matches: 2 + 1 + 2 = 5 queries
+        # 5. Busca com 1 facet + include=matches: 3 + 1 + 2 = 6 queries
         query_statements.clear()
         res_combo = client.get(
             '/v2/researcher?q=Budget&facets=institution&include=matches'
         )
         assert res_combo.status_code == HTTPStatus.OK
-        assert len(query_statements) == 5
+        assert len(query_statements) == 6
 
     finally:
         event.remove(

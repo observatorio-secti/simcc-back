@@ -96,3 +96,32 @@ async def test_search_graduate_programs_by_query(
     body_name = res_name.json()
     assert len(body_name['data']) == 1
     assert body_name['data'][0]['acronym'] == 'DBIOT'
+
+
+@pytest.mark.asyncio
+async def test_list_institutions_returns_institution_ref(
+    client, institution_factory, institution_storage
+):
+    institution_storage('CIMG')
+    with_images = await institution_factory(
+        name='Catalogo Com Imagem', acronym='CIMG'
+    )
+    await institution_factory(
+        name='Catalogo Sem Imagem',
+        acronym='ISI',
+        image='https://example.com/isi.png',
+    )
+
+    body = client.get('/v2/institution?q=Catalogo').json()
+    items = {item['acronym']: item for item in body['data']}
+
+    assert items['CIMG'] == {
+        'id': str(with_images.id),
+        'name': 'Catalogo Com Imagem',
+        'acronym': 'CIMG',
+        'image': '/storage/institutions/picture/CIMG.png',
+        'cover': '/storage/institutions/covers/CIMG.jpg',
+    }
+    # Sem arquivo em disco, o logo cai para a coluna `institution.image`
+    assert items['ISI']['image'] == 'https://example.com/isi.png'
+    assert items['ISI']['cover'] is None

@@ -13,6 +13,7 @@ from tests.setup_mvs import drop_test_mvs, init_test_mvs
 pytest_plugins = [
     'tests.fixtures.graduate_program',
     'tests.fixtures.institution',
+    'tests.fixtures.location',
     'tests.fixtures.researcher',
 ]
 
