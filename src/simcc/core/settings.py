@@ -37,6 +37,8 @@ class Settings(BaseSettings, extra='ignore'):
     # Configurações de Cache (Redis)
     REDIS_URL: str = 'redis://localhost:6379/0'
     REDIS_ENABLED: bool = True
+    # A invalidação acontece a cada refresh das MVs; o TTL só limita memória
+    V2_SEARCH_CACHE_TTL: int = 21600
 
     # Configurações de IA e Qualidade
     AI_COSINE_DISTANCE_THRESHOLD: float = 0.65

@@ -27,6 +27,7 @@ from simcc.v2.schemas.researcher import (
     Sort,
 )
 from simcc.v2.services import mv_refresh_service
+from simcc.v2.services.search_cache import SearchCache
 
 MAX_MATCHES_PER_PAGE = 50
 
@@ -45,14 +46,19 @@ async def _attach_affiliations(
         r.affiliations = affiliations_map[r.researcher_id]
 
 
-async def search_researchers(
+async def search_researchers(  # noqa: PLR0913
     session: AsyncSession,
     filters: Optional[ResearcherFilter] = None,
     pagination: Optional[PaginationParams] = None,
     sort: Optional[SortParams] = None,
     options: Optional[SearchOptions] = None,
+    *,
+    cache: Optional[SearchCache] = None,
 ) -> SearchResponse:
     """Busca pesquisadores com paginação, ordenação e filtros.
+
+    Com `cache`, a resposta é reaproveitada até o próximo refresh das MVs
+    (ver `search_cache`). Validações sempre rodam antes da consulta ao cache.
 
     Comportamento de paginação: quando uma página além do total de páginas é
     requisitada, retorna lista vazia com `has_next=False`. `has_prev` é True
@@ -93,6 +99,83 @@ async def search_researchers(
                 ),
             )
 
+    cache_key = None
+    if cache is not None:
+        cache_key = await cache.build_key(
+            'researcher_search',
+            _cache_params(
+                resolved_filters,
+                resolved_pagination,
+                resolved_sort,
+                resolved_options,
+            ),
+        )
+    if cache_key is not None:
+        cached = await cache.get(cache_key)
+        if cached is not None:
+            return SearchResponse.model_validate({
+                **cached,
+                'filters_applied': resolved_filters,
+                'meta': _build_meta(start_time, cached=True),
+            })
+
+    response = await _run_search(
+        session,
+        resolved_filters,
+        resolved_pagination,
+        resolved_sort,
+        resolved_options,
+    )
+    response.meta = _build_meta(start_time, cached=False)
+
+    if cache_key is not None:
+        await cache.set(
+            cache_key,
+            response.model_dump(
+                mode='json', exclude={'meta', 'filters_applied'}
+            ),
+        )
+    return response
+
+
+def _cache_params(
+    filters: ResearcherFilter,
+    pagination: PaginationParams,
+    sort: SortParams,
+    options: SearchOptions,
+) -> dict:
+    """Parâmetros normalizados: listas ordenadas geram a mesma chave."""
+    filters_dump = filters.model_dump(mode='json')
+    for field in ('institution_id', 'graduate_program_id'):
+        filters_dump[field] = sorted(filters_dump.get(field) or [])
+    options_dump = options.model_dump(mode='json')
+    for field in ('facets', 'include'):
+        options_dump[field] = sorted(options_dump[field])
+    return {
+        'filters': filters_dump,
+        'pagination': pagination.model_dump(mode='json'),
+        'sort': sort.model_dump(mode='json'),
+        'options': options_dump,
+    }
+
+
+def _build_meta(start_time: float, cached: bool) -> Meta:
+    return Meta(
+        took_ms=int((time.perf_counter() - start_time) * 1000),
+        cached=cached,
+        timestamp=datetime.now(timezone.utc),
+        data_as_of=mv_refresh_service.get_last_refresh_timestamp(),
+    )
+
+
+async def _run_search(
+    session: AsyncSession,
+    resolved_filters: ResearcherFilter,
+    resolved_pagination: PaginationParams,
+    resolved_sort: SortParams,
+    resolved_options: SearchOptions,
+) -> SearchResponse:
+    """Executa a busca no banco (sem cache)."""
     items, total_items = await researcher_repo.fetch_researchers(
         session=session,
         filters=resolved_filters,
@@ -125,8 +208,6 @@ async def search_researchers(
             limit=resolved_options.facet_limit,
         )
 
-    took_ms = int((time.perf_counter() - start_time) * 1000)
-
     if total_items == 0:
         total_pages = 0
         has_next = False
@@ -158,12 +239,7 @@ async def search_researchers(
             by=resolved_sort.sort_by,
             order=resolved_sort.sort_order,
         ),
-        meta=Meta(
-            took_ms=took_ms,
-            cached=False,
-            timestamp=datetime.now(timezone.utc),
-            data_as_of=mv_refresh_service.get_last_refresh_timestamp(),
-        ),
+        meta=_build_meta(time.perf_counter(), cached=False),
         facets=facets,
         summary=None,
     )

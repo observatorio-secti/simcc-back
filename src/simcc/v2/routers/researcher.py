@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
 
 from simcc.core.dependencies import AsyncSession
+from simcc.v2.dependencies import SearchCacheDep
 from simcc.v2.schemas.filters import (
     ResearcherFilter,
     get_researcher_filter,
@@ -28,8 +29,9 @@ router = APIRouter(tags=['Researcher v2'])
     response_model=SearchResponse,
     dependencies=[Depends(validate_unknown_researcher_params)],
 )
-async def list_researchers(
+async def list_researchers(  # noqa: PLR0913, PLR0917
     session: AsyncSession,
+    cache: SearchCacheDep,
     filters: ResearcherFilter = Depends(get_researcher_filter),
     pagination: PaginationParams = Depends(),
     sort: SortParams = Depends(),
@@ -42,6 +44,7 @@ async def list_researchers(
         pagination=pagination,
         sort=sort,
         options=options,
+        cache=cache,
     )
 
 

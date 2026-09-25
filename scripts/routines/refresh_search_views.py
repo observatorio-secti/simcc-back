@@ -9,6 +9,8 @@ from simcc.core.logging.events import (
     routine_step_finished,
     routine_step_started,
 )
+from simcc.core.settings import Settings
+from simcc.v2.services.search_cache import bump_search_generation
 
 SEARCH_MATERIALIZED_VIEWS = [
     # Camada 1: Visões por fonte
@@ -16,6 +18,8 @@ SEARCH_MATERIALIZED_VIEWS = [
     'mv_search_books',
     'mv_search_patents',
     'mv_search_software',
+    # Camada 1 consolidada: UNION ALL das visões por fonte
+    'mv_search_documents',
     # Camada 2: Visão agregada consolidada
     'mv_researcher_search',
 ]
@@ -42,6 +46,17 @@ def _refresh_all_views(conn):
         )
 
 
+def _invalidate_search_cache():
+    settings = Settings()
+    if not settings.REDIS_ENABLED:
+        return
+    generation = bump_search_generation(settings.REDIS_URL)
+    if generation is not None:
+        logger.info(
+            f'[Refresh MV] Cache de busca v2 invalidado (geração {generation})'
+        )
+
+
 def refresh_views(engine=None):
     global items_found, items_succeeded, items_failed
     target_engine = engine or sync_engine
@@ -57,6 +72,8 @@ def refresh_views(engine=None):
             isolation_level='AUTOCOMMIT'
         ) as conn:
             _refresh_all_views(conn)
+
+        _invalidate_search_cache()
 
         routine_step_finished(
             'refresh_search_views', total_processed=items_succeeded
