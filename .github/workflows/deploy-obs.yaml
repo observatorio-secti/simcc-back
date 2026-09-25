@@ -11,6 +11,9 @@ on:
 env:
   REDIS_ENABLED: 'false'
   OPENAI_API_KEY: 'dummy-key-for-tests'
+  
+  DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/db
+  ADMIN_DATABASE_URL: postgresql+asyncpg://postgres:postgres@simcc-admin-db:5432/db_admin
 
 jobs:
   tests:
