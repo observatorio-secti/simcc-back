@@ -21,11 +21,13 @@ DEFAULT_AVATAR_PATH = (
 
 LATTES_10_PATTERN = re.compile(r'^[A-Za-z0-9]{10}$')
 
+RESEARCHER_IMAGE_DIR = Path('storage/image_researcher')
+
 
 async def download_researcher_image(
     researcher_id: str, session: AsyncSession | None = None
 ):
-    path = Path(f'storage/image_researcher/{researcher_id}.jpg')
+    path = RESEARCHER_IMAGE_DIR / f'{researcher_id}.jpg'
 
     if path.exists() or not session:
         return

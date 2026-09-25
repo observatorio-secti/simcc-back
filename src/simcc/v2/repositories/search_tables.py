@@ -1,6 +1,6 @@
 """Definições de tabelas e visões materializadas para busca textual v2."""
 
-from sqlalchemy import Column, Integer, MetaData, String, Table
+from sqlalchemy import Column, DateTime, Integer, MetaData, String, Table
 from sqlalchemy.dialects.postgresql import ARRAY, TSVECTOR
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
@@ -11,9 +11,15 @@ mv_researcher_search = Table(
     search_metadata,
     Column('researcher_id', PG_UUID(as_uuid=True), primary_key=True),
     Column('name', String, nullable=False),
-    Column('institution_id', PG_UUID(as_uuid=True), nullable=True),
-    Column('institution_name', String, nullable=True),
-    Column('institution_acronym', String, nullable=True),
+    Column('graduation', String, nullable=True),
+    Column('classification', String, nullable=True),
+    Column('lattes_update', DateTime, nullable=True),
+    Column('articles', Integer, nullable=False),
+    Column('book_chapters', Integer, nullable=False),
+    Column('books', Integer, nullable=False),
+    Column('patents', Integer, nullable=False),
+    Column('software', Integer, nullable=False),
+    Column('brands', Integer, nullable=False),
     Column('institution_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=False),
     Column(
         'graduate_program_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=False

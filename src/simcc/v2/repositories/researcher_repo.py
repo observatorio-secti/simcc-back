@@ -38,7 +38,9 @@ from simcc.v2.schemas.researcher import (
     FacetItem,
     MatchesSummary,
     MatchItem,
-    Researcher,
+    ResearcherCounts,
+    ResearcherSummary,
+    researcher_image_url,
 )
 
 SORTABLE = {
@@ -116,7 +118,7 @@ async def fetch_researchers(
     filters: ResearcherFilter,
     pagination: PaginationParams,
     sort: SortParams,
-) -> tuple[list[Researcher], int]:
+) -> tuple[list[ResearcherSummary], int]:
     """Consulta pesquisadores aplicando filtros, ordenação e paginação."""
     conditions = build_researcher_conditions(filters)
     r = mv_researcher_search
@@ -131,7 +133,14 @@ async def fetch_researchers(
         return [], 0
 
     # 2. Registros da página
-    stmt = select(r.c.researcher_id, r.c.name)
+    stmt = select(
+        r.c.researcher_id,
+        r.c.name,
+        r.c.graduation,
+        r.c.classification,
+        r.c.lattes_update,
+        *(r.c[field] for field in ResearcherCounts.model_fields),
+    )
     if conditions:
         stmt = stmt.where(and_(*conditions))
 
@@ -143,9 +152,14 @@ async def fetch_researchers(
     result = await session.execute(stmt)
     rows = result.mappings().all()
     data = [
-        Researcher(
+        ResearcherSummary(
             researcher_id=row['researcher_id'],
             name=row['name'],
+            image=researcher_image_url(row['researcher_id']),
+            graduation=row['graduation'],
+            classification=row['classification'],
+            lattes_update=row['lattes_update'],
+            counts=ResearcherCounts.model_validate(dict(row)),
         )
         for row in rows
     ]
@@ -302,31 +316,34 @@ async def fetch_institution_facet(
     filters: ResearcherFilter,
     limit: int = 20,
 ) -> list[FacetItem]:
-    """Calcula facet de instituições com faceting disjuntivo."""
+    """Calcula facet de instituições com faceting disjuntivo e unnest."""
     exclude = frozenset({'institution_id'})
     conditions = build_researcher_conditions(filters, exclude=exclude)
     r = mv_researcher_search
 
+    subq = select(
+        r.c.researcher_id,
+        func.unnest(r.c.institution_ids).label('inst_id'),
+    )
+    if conditions:
+        subq = subq.where(and_(*conditions))
+    subq = subq.subquery()
+
     stmt = (
         select(
-            r.c.institution_id.cast(String).label('value'),
+            Institution.id.cast(String).label('value'),
             func.coalesce(
-                r.c.institution_name,
-                r.c.institution_acronym,
+                Institution.name,
+                Institution.acronym,
                 'Outra Instituição',
             ).label('label'),
-            func.count(r.c.researcher_id).label('count'),
+            func.count(func.distinct(subq.c.researcher_id)).label('count'),
         )
-        .where(r.c.institution_id.isnot(None))
-        .group_by(
-            r.c.institution_id, r.c.institution_name, r.c.institution_acronym
-        )
+        .join(subq, subq.c.inst_id == Institution.id)
+        .group_by(Institution.id, Institution.name, Institution.acronym)
         .order_by(literal_column('count').desc())
         .limit(limit)
     )
-
-    if conditions:
-        stmt = stmt.where(and_(*conditions))
 
     rows = (await session.execute(stmt)).mappings().all()
     return [
@@ -359,7 +376,7 @@ async def fetch_graduate_program_facet(
 
     main_stmt = (
         select(
-            GraduateProgramDB.id.cast(String).label('value'),
+            GraduateProgramDB.graduate_program_id.cast(String).label('value'),
             func.coalesce(
                 GraduateProgramDB.name,
                 GraduateProgramDB.acronym,
@@ -367,9 +384,9 @@ async def fetch_graduate_program_facet(
             ).label('label'),
             func.count(func.distinct(subq.c.researcher_id)).label('count'),
         )
-        .join(subq, subq.c.gp_id == GraduateProgramDB.id)
+        .join(subq, subq.c.gp_id == GraduateProgramDB.graduate_program_id)
         .group_by(
-            GraduateProgramDB.id,
+            GraduateProgramDB.graduate_program_id,
             GraduateProgramDB.name,
             GraduateProgramDB.acronym,
         )

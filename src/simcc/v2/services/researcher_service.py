@@ -3,12 +3,15 @@
 import math
 import time
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Optional
+from uuid import UUID
 
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from simcc.v2.repositories import researcher_repo
+from simcc.core import utils
+from simcc.v2.repositories import researcher_profile_repo, researcher_repo
 from simcc.v2.schemas.filters import ResearcherFilter
 from simcc.v2.schemas.params import (
     Pagination,
@@ -18,7 +21,8 @@ from simcc.v2.schemas.params import (
 )
 from simcc.v2.schemas.researcher import (
     Meta,
-    Researcher,
+    ResearcherBase,
+    ResearcherDetail,
     SearchResponse,
     Sort,
 )
@@ -28,7 +32,7 @@ MAX_MATCHES_PER_PAGE = 50
 
 
 async def _attach_affiliations(
-    session: AsyncSession, items: list[Researcher]
+    session: AsyncSession, items: list[ResearcherBase]
 ) -> None:
     """Preenche os vínculos institucionais dos pesquisadores da página."""
     if not items:
@@ -162,3 +166,49 @@ async def search_researchers(
         facets=facets,
         summary=None,
     )
+
+
+async def get_researcher(
+    session: AsyncSession,
+    researcher_id: UUID,
+) -> ResearcherDetail:
+    """Retorna o perfil completo de um pesquisador."""
+    researcher = await researcher_profile_repo.fetch_researcher_profile(
+        session=session, researcher_id=researcher_id
+    )
+    if researcher is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Pesquisador não encontrado.',
+        )
+
+    await _attach_affiliations(session, [researcher])
+    researcher.graduate_programs = (
+        await researcher_profile_repo.fetch_graduate_programs(
+            session=session, researcher_id=researcher_id
+        )
+    )
+    researcher.research_groups = (
+        await researcher_profile_repo.fetch_research_groups(
+            session=session, researcher_id=researcher_id
+        )
+    )
+    return researcher
+
+
+async def get_researcher_image_path(
+    session: AsyncSession,
+    researcher_id: UUID,
+) -> Path:
+    """Retorna a foto do pesquisador, baixando do CNPq na primeira vez."""
+    path = utils.RESEARCHER_IMAGE_DIR / f'{researcher_id}.jpg'
+    if not path.exists():
+        await utils.download_researcher_image(
+            str(researcher_id), session=session
+        )
+    if not path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail='Foto do pesquisador não encontrada.',
+        )
+    return path
