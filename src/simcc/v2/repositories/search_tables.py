@@ -21,6 +21,8 @@ mv_researcher_search = Table(
     Column('software', Integer, nullable=False),
     Column('brands', Integer, nullable=False),
     Column('institution_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=False),
+    Column('city_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=False),
+    Column('identity_territories', ARRAY(String), nullable=False),
     Column(
         'graduate_program_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=False
     ),

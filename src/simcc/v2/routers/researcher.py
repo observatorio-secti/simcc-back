@@ -1,23 +1,25 @@
 """Router para busca e listagem de pesquisadores v2."""
 
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import FileResponse
 
 from simcc.core.dependencies import AsyncSession
-from simcc.v2.dependencies import SearchCacheDep
+from simcc.v2.dependencies import (
+    SearchCacheDep,
+)
 from simcc.v2.schemas.filters import (
     ResearcherFilter,
-    get_researcher_filter,
     validate_unknown_researcher_params,
 )
 from simcc.v2.schemas.params import (
     PaginationParams,
     SearchOptions,
     SortParams,
-    get_search_options,
 )
+from simcc.v2.schemas.query import as_query
 from simcc.v2.schemas.researcher import ResearcherDetail, SearchResponse
 from simcc.v2.services import researcher_service
 
@@ -32,10 +34,12 @@ router = APIRouter(tags=['Researcher v2'])
 async def list_researchers(  # noqa: PLR0913, PLR0917
     session: AsyncSession,
     cache: SearchCacheDep,
-    filters: ResearcherFilter = Depends(get_researcher_filter),
-    pagination: PaginationParams = Depends(),
-    sort: SortParams = Depends(),
-    options: SearchOptions = Depends(get_search_options),
+    filters: Annotated[ResearcherFilter, Depends(as_query(ResearcherFilter))],
+    pagination: Annotated[
+        PaginationParams, Depends(as_query(PaginationParams))
+    ],
+    sort: Annotated[SortParams, Depends(as_query(SortParams))],
+    options: Annotated[SearchOptions, Depends(as_query(SearchOptions))],
 ) -> SearchResponse:
     """Retorna lista paginada de pesquisadores com filtros e ordenação."""
     return await researcher_service.search_researchers(

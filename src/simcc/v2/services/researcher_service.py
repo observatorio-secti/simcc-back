@@ -11,7 +11,11 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from simcc.core import utils
-from simcc.v2.repositories import researcher_profile_repo, researcher_repo
+from simcc.v2.repositories import (
+    researcher_facets_repo,
+    researcher_profile_repo,
+    researcher_repo,
+)
 from simcc.v2.schemas.filters import ResearcherFilter
 from simcc.v2.schemas.params import (
     Pagination,
@@ -145,17 +149,20 @@ def _cache_params(
     options: SearchOptions,
 ) -> dict:
     """Parâmetros normalizados: listas ordenadas geram a mesma chave."""
-    filters_dump = filters.model_dump(mode='json')
-    for field in ('institution_id', 'graduate_program_id'):
-        filters_dump[field] = sorted(filters_dump.get(field) or [])
-    options_dump = options.model_dump(mode='json')
-    for field in ('facets', 'include'):
-        options_dump[field] = sorted(options_dump[field])
+    filters_dump = _sort_lists(filters.model_dump(mode='json'))
+    options_dump = _sort_lists(options.model_dump(mode='json'))
     return {
         'filters': filters_dump,
         'pagination': pagination.model_dump(mode='json'),
         'sort': sort.model_dump(mode='json'),
         'options': options_dump,
+    }
+
+
+def _sort_lists(dump: dict) -> dict:
+    return {
+        key: sorted(value) if isinstance(value, list) else value
+        for key, value in dump.items()
     }
 
 
@@ -191,7 +198,7 @@ async def _run_search(
         matches_map = await researcher_repo.fetch_matches(
             session=session,
             page_ids=page_ids,
-            q=resolved_filters.q,
+            filters=resolved_filters,
             limit=resolved_options.matches_limit,
         )
         for r in items:
@@ -201,7 +208,7 @@ async def _run_search(
     # Cálculo dos facets opt-in
     facets = None
     if resolved_options.facets:
-        facets = await researcher_repo.fetch_requested_facets(
+        facets = await researcher_facets_repo.fetch_requested_facets(
             session=session,
             filters=resolved_filters,
             requested_facets=resolved_options.facets,

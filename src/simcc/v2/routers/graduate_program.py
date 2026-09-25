@@ -3,12 +3,13 @@
 import math
 from typing import Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Query
 
 from simcc.core.dependencies import AsyncSession
+from simcc.v2.dependencies import PaginationDep
 from simcc.v2.repositories import catalog_repo
 from simcc.v2.schemas.catalog import CatalogResponse
-from simcc.v2.schemas.params import Pagination, PaginationParams
+from simcc.v2.schemas.params import Pagination
 
 router = APIRouter(tags=['Graduate Program v2'])
 
@@ -16,10 +17,10 @@ router = APIRouter(tags=['Graduate Program v2'])
 @router.get('/graduate_program', response_model=CatalogResponse)
 async def list_graduate_programs(
     session: AsyncSession,
+    pagination: PaginationDep,
     q: Optional[str] = Query(
         None, description='Termo para busca por nome ou sigla'
     ),
-    pagination: PaginationParams = Depends(),
 ) -> CatalogResponse:
     """Retorna lista paginada de programas de pós-graduação cadastrados."""
     items, total_items = await catalog_repo.fetch_graduate_programs(

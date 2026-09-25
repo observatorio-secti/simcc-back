@@ -1,16 +1,10 @@
-from typing import Any, Optional
+from typing import Literal, Optional
 from uuid import UUID
 
-from fastapi import HTTPException, Query, Request, status
-from fastapi.encoders import jsonable_encoder
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    Field,
-    ValidationError,
-    field_validator,
-    model_validator,
-)
+from fastapi import HTTPException, Request, status
+from pydantic import BaseModel, Field, model_validator
+
+from simcc.v2.schemas.params import PaginationParams, SearchOptions, SortParams
 
 
 class BaseFilter(BaseModel):
@@ -26,54 +20,53 @@ class BaseTemporalFilter(BaseFilter):
     )
 
 
+SourceType = Literal['ARTICLE', 'BOOK', 'BOOK_CHAPTER', 'PATENT', 'SOFTWARE']
+Classification = Literal['A+', 'A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'E+', 'E']
+
+
 class ResearcherFilter(BaseTemporalFilter):
-    model_config = ConfigDict(extra='forbid')
+    """Filtros de `GET /v2/researcher`, lidos direto da query string.
+
+    Para adicionar um filtro: declare o campo aqui e registre a condição em
+    `repositories/researcher_filters.py`. Listas são repetidas na URL
+    (`?city_id=a&city_id=b`) e combinadas com OU; filtros diferentes, com E.
+    """
 
     q: Optional[str] = Field(
-        None, description='Termo de busca por nome do pesquisador'
+        None,
+        description='Busca textual no perfil (nome e resumo) e nas produções',
     )
     year_start: Optional[int] = Field(
-        None, description='Ano inicial de produção bibliográfica'
+        None, description='Ano inicial de produção'
     )
-    year_end: Optional[int] = Field(
-        None, description='Ano final de produção bibliográfica'
-    )
+    year_end: Optional[int] = Field(None, description='Ano final de produção')
     institution_id: list[UUID] = Field(
-        default=[],
-        description='IDs das instituições de vínculo',
+        default_factory=list, description='IDs das instituições de vínculo'
     )
     graduate_program_id: list[UUID] = Field(
-        default=[],
-        description='IDs dos programas de pós-graduação',
+        default_factory=list, description='IDs dos programas de pós-graduação'
     )
-
-    @field_validator('institution_id', 'graduate_program_id', mode='before')
-    @classmethod
-    def _coerce_uuid_list(cls, value: Any) -> list[UUID]:
-        if not value:
-            return []
-        if isinstance(value, (str, UUID)):
-            return [UUID(str(value))]
-        if isinstance(value, (list, tuple, set)):
-            return [UUID(str(item)) for item in value if item]
-        return []
-
-    @model_validator(mode='before')
-    @classmethod
-    def _ignore_pagination_and_sort_params(cls, data: Any) -> Any:
-        if isinstance(data, dict):
-            endpoint_params = {
-                'page',
-                'per_page',
-                'sort_by',
-                'sort_order',
-                'facets',
-                'include',
-                'matches_limit',
-                'facet_limit',
-            }
-            return {k: v for k, v in data.items() if k not in endpoint_params}
-        return data
+    city_id: list[UUID] = Field(
+        default_factory=list, description='IDs das cidades de vínculo'
+    )
+    identity_territory: list[str] = Field(
+        default_factory=list,
+        description='Territórios de identidade dos vínculos',
+    )
+    graduation: list[str] = Field(
+        default_factory=list, description='Maior titulação (ex.: Doutorado)'
+    )
+    classification: list[Classification] = Field(
+        default_factory=list, description='Classificação do pesquisador'
+    )
+    source_type: list[SourceType] = Field(
+        default_factory=list,
+        description=(
+            'Tipos de produção considerados. Com `q`, restringe as obras '
+            'que podem casar com a busca; sem `q`, exige ao menos uma obra '
+            'desses tipos'
+        ),
+    )
 
     @model_validator(mode='after')
     def validate_year_range(self) -> 'ResearcherFilter':
@@ -88,21 +81,12 @@ class ResearcherFilter(BaseTemporalFilter):
         return self
 
 
-KNOWN_RESEARCHER_PARAMS = {
-    'q',
-    'year_start',
-    'year_end',
-    'institution_id',
-    'graduate_program_id',
-    'page',
-    'per_page',
-    'sort_by',
-    'sort_order',
-    'facets',
-    'include',
-    'matches_limit',
-    'facet_limit',
-}
+KNOWN_RESEARCHER_PARAMS = frozenset().union(
+    ResearcherFilter.model_fields,
+    PaginationParams.model_fields,
+    SortParams.model_fields,
+    SearchOptions.model_fields,
+)
 
 
 def validate_unknown_researcher_params(request: Request) -> None:
@@ -113,40 +97,6 @@ def validate_unknown_researcher_params(request: Request) -> None:
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=f"Parâmetro desconhecido: '{param_name}'",
             )
-
-
-def get_researcher_filter(
-    *,
-    q: Optional[str] = Query(None, description='Termo de busca textual'),
-    year_start: Optional[int] = Query(
-        None, description='Ano inicial de produção bibliográfica'
-    ),
-    year_end: Optional[int] = Query(
-        None, description='Ano final de produção bibliográfica'
-    ),
-    institution_id: list[UUID] = Query(
-        default=[],
-        description='IDs das instituições de vínculo',
-    ),
-    graduate_program_id: list[UUID] = Query(
-        default=[],
-        description='IDs dos programas de pós-graduação',
-    ),
-) -> ResearcherFilter:
-    """Extrai filtros de pesquisador dos parâmetros de query string."""
-    try:
-        return ResearcherFilter(
-            q=q,
-            year_start=year_start,
-            year_end=year_end,
-            institution_id=institution_id,
-            graduate_program_id=graduate_program_id,
-        )
-    except ValidationError as err:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=jsonable_encoder(err.errors()),
-        ) from err
 
 
 class ProductionFilter(BaseTemporalFilter):

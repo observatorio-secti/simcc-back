@@ -7,7 +7,6 @@ from simcc.v2.schemas.filters import (
     InstitutionFilter,
     ProductionFilter,
     ResearcherFilter,
-    get_researcher_filter,
     validate_unknown_researcher_params,
 )
 from simcc.v2.schemas.institution import (
@@ -19,7 +18,6 @@ from simcc.v2.schemas.params import (
     PaginationParams,
     SearchOptions,
     SortParams,
-    get_search_options,
 )
 from simcc.v2.schemas.researcher import (
     Affiliation,
@@ -62,7 +60,5 @@ __all__ = [
     'SearchResponse',
     'Sort',
     'SortParams',
-    'get_researcher_filter',
-    'get_search_options',
     'validate_unknown_researcher_params',
 ]

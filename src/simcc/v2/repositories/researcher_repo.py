@@ -1,34 +1,32 @@
 """Repositório de acesso a dados para pesquisadores v2 sobre MVs."""
 
-from collections.abc import Sequence
-from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import (
     ColumnElement,
     Float,
-    RowMapping,
+    Integer,
     Select,
     and_,
     cast,
-    false,
     func,
+    literal,
     literal_column,
-    or_,
+    null,
     select,
-    text,
+    union_all,
 )
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import InstrumentedAttribute
 
-from simcc.core.db.models.graduate_program import (
-    GraduateProgram as GraduateProgramDB,
-)
 from simcc.core.db.models.institution import Institution
 from simcc.core.db.models.location import City
+from simcc.core.db.models.openalex import OpenAlexArticle
 from simcc.core.db.models.researcher_institution import ResearcherInstitution
 from simcc.v2.repositories.researcher_filters import (
     build_researcher_conditions,
+    document_conditions,
+    profile_counts,
+    search_tsquery,
 )
 from simcc.v2.repositories.search_tables import (
     mv_researcher_search,
@@ -40,8 +38,6 @@ from simcc.v2.schemas.institution import InstitutionRef
 from simcc.v2.schemas.params import PaginationParams, SortParams
 from simcc.v2.schemas.researcher import (
     Affiliation,
-    FacetItem,
-    FacetResult,
     MatchesSummary,
     MatchItem,
     ResearcherCounts,
@@ -49,10 +45,34 @@ from simcc.v2.schemas.researcher import (
     researcher_image_url,
 )
 
+r = mv_researcher_search
+d = mv_search_documents
+
 SORTABLE = {
-    'name': mv_researcher_search.c.name,
-    'id': mv_researcher_search.c.researcher_id,
+    'name': r.c.name,
+    'id': r.c.researcher_id,
 }
+
+
+def _relevance_score(filters: ResearcherFilter, tsq) -> ColumnElement:
+    """Perfil × 1.5 + melhor obra + ln(obras que contam + 1)."""
+    doc_relevance = (
+        select(
+            func.coalesce(func.max(func.ts_rank(d.c.search_vector, tsq)), 0.0)
+            + func.ln(
+                func.coalesce(cast(func.count(d.c.source_id), Float), 0.0)
+                + 1.0
+            )
+        )
+        .where(
+            d.c.researcher_id == r.c.researcher_id,
+            *document_conditions(filters),
+        )
+        .scalar_subquery()
+    )
+    if not profile_counts(filters):
+        return doc_relevance
+    return func.ts_rank(r.c.profile_vector, tsq) * 1.5 + doc_relevance
 
 
 def _apply_sorting(
@@ -61,47 +81,12 @@ def _apply_sorting(
     filters: ResearcherFilter,
 ) -> Select:
     """Aplica ordenação determinística ou por relevância."""
-    r = mv_researcher_search
-    if sort.sort_by == 'relevance' and filters.q and filters.q.strip():
-        clean_q = filters.q.strip()
-        tsq = func.websearch_to_tsquery('pt_unaccent', clean_q)
-        profile_rank = func.ts_rank(r.c.profile_vector, tsq)
-
-        d = mv_search_documents
-        doc_conds = [
-            d.c.researcher_id == r.c.researcher_id,
-            d.c.search_vector.op('@@')(tsq),
-        ]
-        if filters.year_start is not None:
-            doc_conds.append(d.c.year_ >= filters.year_start)
-        if filters.year_end is not None:
-            doc_conds.append(d.c.year_ <= filters.year_end)
-
-        doc_relevance = (
-            select(
-                func.coalesce(
-                    func.max(func.ts_rank(d.c.search_vector, tsq)), 0.0
-                )
-                + func.ln(
-                    func.coalesce(cast(func.count(d.c.source_id), Float), 0.0)
-                    + 1.0
-                )
-            )
-            .where(and_(*doc_conds))
-            .scalar_subquery()
-        )
-
-        relevance_score = (profile_rank * 1.5) + doc_relevance
-        if sort.sort_order == 'desc':
-            return stmt.order_by(
-                relevance_score.desc(),
-                r.c.name.asc(),
-                r.c.researcher_id.asc(),
-            )
+    tsq = search_tsquery(filters)
+    if sort.sort_by == 'relevance' and tsq is not None:
+        score = _relevance_score(filters, tsq)
+        direction = score.desc() if sort.sort_order == 'desc' else score.asc()
         return stmt.order_by(
-            relevance_score.asc(),
-            r.c.name.asc(),
-            r.c.researcher_id.asc(),
+            direction, r.c.name.asc(), r.c.researcher_id.asc()
         )
 
     sort_col = SORTABLE.get(sort.sort_by, r.c.name)
@@ -127,7 +112,6 @@ async def fetch_researchers(
 ) -> tuple[list[ResearcherSummary], int]:
     """Consulta pesquisadores aplicando filtros, ordenação e paginação."""
     conditions = build_researcher_conditions(filters)
-    r = mv_researcher_search
 
     # 1. Total de itens
     count_stmt = select(func.count(r.c.researcher_id))
@@ -219,85 +203,96 @@ async def fetch_affiliations(
 async def fetch_matches(
     session: AsyncSession,
     page_ids: list[UUID],
-    q: Optional[str],
+    filters: ResearcherFilter,
     limit: int = 3,
 ) -> dict[UUID, MatchesSummary]:
-    """Busca evidências de match por pesquisador (Queries C1 e C2)."""
-    if not page_ids or not q or not q.strip():
+    """Evidências por pesquisador da página: as `limit` obras (ou o perfil)
+    que mais casam com `q`, e a contagem por tipo. Usa as mesmas regras de
+    obra da busca (`document_conditions`), incluindo anos e `source_type`."""
+    tsq = search_tsquery(filters)
+    if not page_ids or tsq is None:
         return {}
 
-    str_page_ids = [str(pid) for pid in page_ids]
-    clean_q = q.strip()
+    doc_conds = [
+        d.c.researcher_id.in_(page_ids),
+        *document_conditions(filters),
+    ]
 
-    c1_stmt = text(
-        """
-        WITH q AS (SELECT websearch_to_tsquery('pt_unaccent', :q) AS tsq)
-        SELECT p.researcher_id, m.source_type, m.source_id, m.title,
-               m.year_, m.rank,
-               ts_headline(
-                   'pt_unaccent',
-                   coalesce(
-                       substring(oa.abstract from 1 for 2000), m.title, ''
-                   ),
-                   q.tsq,
-                   'StartSel=[[, StopSel=]]'
-               ) AS snippet
-        FROM unnest(CAST(:page_ids AS uuid[])) AS p(researcher_id)
-        CROSS JOIN q
-        CROSS JOIN LATERAL (
-            SELECT d.source_type, d.source_id, d.title, d.year_,
-                   ts_rank(d.search_vector, q.tsq) AS rank
-            FROM mv_search_documents d
-            WHERE d.researcher_id = p.researcher_id
-              AND d.search_vector @@ q.tsq
-            UNION ALL
-            SELECT 'PROFILE'::text AS source_type,
-                   r_prof.researcher_id AS source_id,
-                   r_prof.name AS title, NULL::int AS year_,
-                   ts_rank(r_prof.profile_vector, q.tsq) AS rank
-            FROM mv_researcher_search r_prof
-            WHERE r_prof.researcher_id = p.researcher_id
-              AND r_prof.profile_vector @@ q.tsq
-            ORDER BY rank DESC, source_id
-            LIMIT :n
-        ) m
-        LEFT JOIN openalex_article oa ON oa.article_id = m.source_id;
-        """
+    candidates = select(
+        d.c.researcher_id,
+        d.c.source_type,
+        d.c.source_id,
+        d.c.title,
+        d.c.year_,
+        func.ts_rank(d.c.search_vector, tsq).label('rank'),
+    ).where(*doc_conds)
+    if profile_counts(filters):
+        candidates = union_all(
+            candidates,
+            select(
+                r.c.researcher_id,
+                literal('PROFILE').label('source_type'),
+                r.c.researcher_id.label('source_id'),
+                r.c.name.label('title'),
+                null().cast(Integer).label('year_'),
+                func.ts_rank(r.c.profile_vector, tsq).label('rank'),
+            ).where(
+                r.c.researcher_id.in_(page_ids),
+                r.c.profile_vector.op('@@')(tsq),
+            ),
+        )
+    candidates = candidates.subquery()
+
+    ranked = select(
+        candidates,
+        func
+        .row_number()
+        .over(
+            partition_by=candidates.c.researcher_id,
+            order_by=(candidates.c.rank.desc(), candidates.c.source_id),
+        )
+        .label('position'),
+    ).subquery()
+
+    snippet_source = func.coalesce(
+        func.substring(OpenAlexArticle.abstract, 1, 2000), ranked.c.title, ''
+    )
+    items_stmt = (
+        select(
+            ranked.c.researcher_id,
+            ranked.c.source_type,
+            ranked.c.source_id,
+            ranked.c.title,
+            ranked.c.year_,
+            func.ts_headline(
+                literal_column("'pt_unaccent'::regconfig"),
+                snippet_source,
+                tsq,
+                literal_column("'StartSel=[[, StopSel=]]'"),
+            ).label('snippet'),
+        )
+        .outerjoin(
+            OpenAlexArticle, OpenAlexArticle.article_id == ranked.c.source_id
+        )
+        .where(ranked.c.position <= limit)
+        .order_by(ranked.c.researcher_id, ranked.c.position)
+    )
+    counts_stmt = (
+        select(d.c.researcher_id, d.c.source_type, func.count().label('n'))
+        .where(*doc_conds)
+        .group_by(d.c.researcher_id, d.c.source_type)
     )
 
-    c2_stmt = text(
-        """
-        WITH q AS (SELECT websearch_to_tsquery('pt_unaccent', :q) AS tsq)
-        SELECT d.researcher_id, d.source_type, count(*) AS n
-        FROM mv_search_documents d, q
-        WHERE d.researcher_id = ANY(CAST(:page_ids AS uuid[]))
-          AND d.search_vector @@ q.tsq
-        GROUP BY d.researcher_id, d.source_type;
-        """
-    )
-
-    c1_res = await session.execute(
-        c1_stmt,
-        {'q': clean_q, 'page_ids': str_page_ids, 'n': limit},
-    )
-    c2_res = await session.execute(
-        c2_stmt,
-        {'q': clean_q, 'page_ids': str_page_ids},
-    )
+    items_rows = (await session.execute(items_stmt)).mappings().all()
+    counts_rows = (await session.execute(counts_stmt)).mappings().all()
 
     by_type_map: dict[UUID, dict[str, int]] = {pid: {} for pid in page_ids}
-    total_map: dict[UUID, int] = {pid: 0 for pid in page_ids}
-    for row in c2_res.mappings().all():
-        r_id = row['researcher_id']
-        st = row['source_type']
-        cnt = int(row['n'])
-        by_type_map[r_id][st] = cnt
-        total_map[r_id] += cnt
+    for row in counts_rows:
+        by_type_map[row['researcher_id']][row['source_type']] = row['n']
 
     items_map: dict[UUID, list[MatchItem]] = {pid: [] for pid in page_ids}
-    for row in c1_res.mappings().all():
-        r_id = row['researcher_id']
-        items_map[r_id].append(
+    for row in items_rows:
+        items_map[row['researcher_id']].append(
             MatchItem(
                 source_type=row['source_type'],
                 source_id=row['source_id'],
@@ -309,234 +304,9 @@ async def fetch_matches(
 
     return {
         pid: MatchesSummary(
-            total=total_map.get(pid, 0),
-            by_type=by_type_map.get(pid, {}),
-            items=items_map.get(pid, []),
+            total=sum(by_type_map[pid].values()),
+            by_type=by_type_map[pid],
+            items=items_map[pid],
         )
         for pid in page_ids
     }
-
-
-async def _fetch_entity_facet(  # noqa: PLR0913
-    session: AsyncSession,
-    filters: ResearcherFilter,
-    *,
-    filter_key: str,
-    array_column: ColumnElement,
-    entity: type,
-    entity_id: InstrumentedAttribute,
-    selected: list[UUID],
-    limit: int,
-) -> FacetResult:
-    """Facet disjuntivo sobre uma coluna de array de ids da MV.
-
-    Devolve os `limit` valores com mais pesquisadores (desempate por nome)
-    e sempre inclui os valores selecionados no filtro, mesmo fora do top ou
-    com contagem zero, para que o frontend não perca o item marcado.
-    """
-    conditions = build_researcher_conditions(
-        filters, exclude=frozenset({filter_key})
-    )
-    r = mv_researcher_search
-
-    unnested = select(
-        r.c.researcher_id,
-        func.unnest(array_column).label('entity_id'),
-    )
-    if conditions:
-        unnested = unnested.where(and_(*conditions))
-    unnested = unnested.subquery()
-
-    agg = (
-        select(
-            unnested.c.entity_id,
-            func.count(func.distinct(unnested.c.researcher_id)).label('n'),
-        )
-        .group_by(unnested.c.entity_id)
-        .subquery()
-    )
-
-    count_col = func.coalesce(agg.c.n, 0)
-    is_selected = entity_id.in_(selected) if selected else false()
-    ranked = (
-        select(
-            entity_id.label('value'),
-            entity.name.label('label'),
-            entity.acronym.label('acronym'),
-            count_col.label('count'),
-            is_selected.label('selected'),
-            func
-            .row_number()
-            .over(
-                order_by=(count_col.desc(), entity.name.asc(), entity_id.asc())
-            )
-            .label('rank'),
-            func.count(agg.c.entity_id).over().label('total'),
-        )
-        .select_from(entity)
-        .outerjoin(agg, agg.c.entity_id == entity_id)
-        .where(or_(agg.c.entity_id.isnot(None), is_selected))
-        .subquery()
-    )
-    stmt = (
-        select(ranked)
-        .where(or_(ranked.c.rank <= limit, ranked.c.selected))
-        .order_by(ranked.c.rank)
-    )
-
-    rows = (await session.execute(stmt)).mappings().all()
-    return _to_facet_result(rows)
-
-
-def _to_facet_result(rows: Sequence[RowMapping]) -> FacetResult:
-    return FacetResult(
-        total=rows[0]['total'] if rows else 0,
-        items=[
-            FacetItem(
-                value=str(row['value']),
-                label=str(row['label']),
-                count=row['count'],
-                acronym=row.get('acronym'),
-                selected=row.get('selected', False),
-            )
-            for row in rows
-        ],
-    )
-
-
-async def fetch_institution_facet(
-    session: AsyncSession,
-    filters: ResearcherFilter,
-    limit: int = 20,
-) -> FacetResult:
-    """Calcula facet de instituições com faceting disjuntivo."""
-    return await _fetch_entity_facet(
-        session,
-        filters,
-        filter_key='institution_id',
-        array_column=mv_researcher_search.c.institution_ids,
-        entity=Institution,
-        entity_id=Institution.id,
-        selected=filters.institution_id,
-        limit=limit,
-    )
-
-
-async def fetch_graduate_program_facet(
-    session: AsyncSession,
-    filters: ResearcherFilter,
-    limit: int = 20,
-) -> FacetResult:
-    """Calcula facet de programas de pós-graduação com faceting disjuntivo."""
-    return await _fetch_entity_facet(
-        session,
-        filters,
-        filter_key='graduate_program_id',
-        array_column=mv_researcher_search.c.graduate_program_ids,
-        entity=GraduateProgramDB,
-        entity_id=GraduateProgramDB.graduate_program_id,
-        selected=filters.graduate_program_id,
-        limit=limit,
-    )
-
-
-async def fetch_year_facet(
-    session: AsyncSession,
-    filters: ResearcherFilter,
-    limit: int = 20,
-) -> FacetResult:
-    """Calcula histograma de anos com unnest."""
-    exclude = frozenset({'year_range'})
-    conditions = build_researcher_conditions(filters, exclude=exclude)
-    r = mv_researcher_search
-
-    subq = select(
-        r.c.researcher_id,
-        func.unnest(r.c.production_years).label('yr'),
-    )
-    if conditions:
-        subq = subq.where(and_(*conditions))
-    subq = subq.subquery()
-
-    stmt = (
-        select(
-            subq.c.yr.label('value'),
-            subq.c.yr.label('label'),
-            func.count(func.distinct(subq.c.researcher_id)).label('count'),
-            func.count().over().label('total'),
-        )
-        .group_by(subq.c.yr)
-        .order_by(literal_column('count').desc(), subq.c.yr.desc())
-        .limit(limit)
-    )
-
-    rows = (await session.execute(stmt)).mappings().all()
-    return _to_facet_result(rows)
-
-
-async def fetch_source_type_facet(
-    session: AsyncSession,
-    filters: ResearcherFilter,
-    limit: int = 20,
-) -> FacetResult:
-    """Calcula facet de tipos de fontes documentais (apenas com q)."""
-    if not filters.q or not filters.q.strip():
-        return FacetResult(total=0, items=[])
-
-    conditions = build_researcher_conditions(filters)
-    clean_q = filters.q.strip()
-    tsq = func.websearch_to_tsquery('pt_unaccent', clean_q)
-
-    r = mv_researcher_search
-    d = mv_search_documents
-
-    matching_r = select(r.c.researcher_id)
-    if conditions:
-        matching_r = matching_r.where(and_(*conditions))
-    matching_subq = matching_r.subquery()
-
-    stmt = (
-        select(
-            d.c.source_type.label('value'),
-            d.c.source_type.label('label'),
-            func.count(func.distinct(d.c.researcher_id)).label('count'),
-            func.count().over().label('total'),
-        )
-        .where(
-            and_(
-                d.c.researcher_id.in_(select(matching_subq.c.researcher_id)),
-                d.c.search_vector.op('@@')(tsq),
-            )
-        )
-        .group_by(d.c.source_type)
-        .order_by(literal_column('count').desc(), d.c.source_type.asc())
-        .limit(limit)
-    )
-
-    rows = (await session.execute(stmt)).mappings().all()
-    return _to_facet_result(rows)
-
-
-FACET_BUILDERS = {
-    'institution': fetch_institution_facet,
-    'graduate_program': fetch_graduate_program_facet,
-    'year': fetch_year_facet,
-    'source_type': fetch_source_type_facet,
-}
-
-
-async def fetch_requested_facets(
-    session: AsyncSession,
-    filters: ResearcherFilter,
-    requested_facets: list[str],
-    limit: int = 20,
-) -> dict[str, FacetResult]:
-    """Calcula todos os facets requisitados respeitando o orçamento."""
-    facets_result: dict[str, FacetResult] = {}
-    for facet_name in requested_facets:
-        builder = FACET_BUILDERS.get(facet_name)
-        if builder:
-            facets_result[facet_name] = await builder(
-                session, filters, limit=limit
-            )
-    return facets_result

@@ -1,11 +1,8 @@
 from typing import Any, Literal, Optional
 
-from fastapi import HTTPException, Query, status
-from fastapi.encoders import jsonable_encoder
 from pydantic import (
     BaseModel,
     Field,
-    ValidationError,
     field_validator,
     model_validator,
 )
@@ -40,17 +37,26 @@ class SortParams(BaseModel):
         return self
 
 
-ALLOWED_FACETS = {'institution', 'graduate_program', 'year', 'source_type'}
+ALLOWED_FACETS = {
+    'institution',
+    'graduate_program',
+    'city',
+    'identity_territory',
+    'graduation',
+    'classification',
+    'year',
+    'source_type',
+}
+FACETS_DESCRIPTION = (
+    f'Lista de facets opt-in ({", ".join(sorted(ALLOWED_FACETS))})'
+)
 ALLOWED_INCLUDES = {'matches'}
 
 
 class SearchOptions(BaseModel):
     facets: list[str] = Field(
         default=[],
-        description=(
-            'Lista de facets opt-in (institution, graduate_program, '
-            'year, source_type)'
-        ),
+        description=FACETS_DESCRIPTION,
     )
     include: list[str] = Field(
         default=[],
@@ -109,46 +115,3 @@ class SearchOptions(BaseModel):
                 f'Permitidos: {sorted(ALLOWED_INCLUDES)}'
             )
         return v
-
-
-def get_search_options(
-    facets: list[str] = Query(
-        default=[],
-        description=(
-            'Lista de facets opt-in (institution, graduate_program, '
-            'year, source_type)'
-        ),
-    ),
-    include: list[str] = Query(
-        default=[],
-        description='Recursos adicionais opt-in (ex.: matches)',
-    ),
-    matches_limit: int = Query(
-        3,
-        ge=1,
-        le=5,
-        description='Número máximo de evidências por pesquisador',
-    ),
-    facet_limit: int = Query(
-        20,
-        ge=1,
-        le=100,
-        description=(
-            'Número máximo de valores por facet. Valores selecionados '
-            'no filtro são sempre incluídos, mesmo além desse limite.'
-        ),
-    ),
-) -> SearchOptions:
-    """Extrai opções de busca de parâmetros de query string."""
-    try:
-        return SearchOptions(
-            facets=facets,
-            include=include,
-            matches_limit=matches_limit,
-            facet_limit=facet_limit,
-        )
-    except ValidationError as err:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=jsonable_encoder(err.errors()),
-        ) from err
