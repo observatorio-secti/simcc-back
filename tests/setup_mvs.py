@@ -172,7 +172,12 @@ SETUP_MVS_STATEMENTS = [
     WITH inst_agg AS (
         SELECT
             researcher_id,
-            array_agg(DISTINCT institution_id) AS institution_ids
+            array_agg(DISTINCT institution_id) AS institution_ids,
+            array_agg(DISTINCT city_id)
+                FILTER (WHERE city_id IS NOT NULL) AS city_ids,
+            array_agg(DISTINCT identity_territory)
+                FILTER (WHERE identity_territory IS NOT NULL)
+                AS identity_territories
         FROM researcher_institution
         GROUP BY researcher_id
     ),
@@ -206,6 +211,8 @@ SETUP_MVS_STATEMENTS = [
         coalesce(rp.software, 0) AS software,
         coalesce(rp.brand, 0) AS brands,
         coalesce(ia.institution_ids, '{}') AS institution_ids,
+        coalesce(ia.city_ids, '{}') AS city_ids,
+        coalesce(ia.identity_territories, '{}') AS identity_territories,
         coalesce(gp.graduate_program_ids, '{}') AS graduate_program_ids,
         coalesce(ya.production_years, '{}') AS production_years,
         (
