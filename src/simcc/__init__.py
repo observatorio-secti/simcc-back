@@ -12,27 +12,10 @@ from fastapi.staticfiles import StaticFiles
 from simcc.core.logging.cleanup import clean_old_logs
 from simcc.core.logging.middleware import LoggingMiddleware
 from simcc.core.settings import Settings
-from simcc.v1.routers import (
-    external,
-    graduate_program,
-    institution,
-    logs,
-    maria,
-    metrics,
-    powerBi,
-    research_group,
-    researcher,
-    routines,
-)
-from simcc.v1.routers.production import (
-    bibliographic,
-    events,
-    experience,
-    intellectual_property,
-    projects_guidance,
-    summaries,
-)
+from simcc.v1 import v1_app
 from simcc.v2 import v2_app
+
+v1_app
 
 settings = Settings()
 
@@ -58,25 +41,12 @@ app.add_middleware(
 app.add_middleware(LoggingMiddleware)
 
 
-app.include_router(external.router)
-app.include_router(bibliographic.router)
-app.include_router(intellectual_property.router)
-app.include_router(events.router)
-app.include_router(projects_guidance.router)
-app.include_router(summaries.router)
-app.include_router(experience.router)
-app.include_router(researcher.router)
-app.include_router(metrics.router)
-app.include_router(institution.router)
-app.include_router(graduate_program.router)
-app.include_router(research_group.router)
-app.include_router(maria.router)
-app.include_router(routines.router)
-app.include_router(powerBi.router)
-app.include_router(logs.router)
-
 v2_app.dependency_overrides = app.dependency_overrides
+
 app.mount('/v2', v2_app)
+
+app.mount('/', v1_app)
+app.mount('/v1', v1_app)
 
 
 STORAGE_INSTITUTIONS_DIR = Path('storage/institutions').resolve()
@@ -86,16 +56,3 @@ app.mount(
     StaticFiles(directory=str(STORAGE_INSTITUTIONS_DIR)),
     name='institutions_storage',
 )
-
-
-@app.get('/', status_code=HTTPStatus.OK)
-def read_root():
-    return {'message': 'Olá Mundo!'}
-
-
-@app.get('/favicon.ico', status_code=HTTPStatus.OK)
-async def favicon():
-    url = 'https://cdn-icons-png.flaticon.com/512/10446/10446694.png'
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(url)
-    return StreamingResponse(iter([resp.content]), media_type='image/png')

@@ -108,7 +108,7 @@ def validate_unknown_researcher_params(request: Request) -> None:
     for param_name in request.query_params:
         if param_name not in KNOWN_RESEARCHER_PARAMS:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"Parâmetro desconhecido: '{param_name}'",
             )
 
@@ -142,7 +142,7 @@ def get_researcher_filter(
         )
     except ValidationError as err:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=jsonable_encoder(err.errors()),
         ) from err
 

@@ -124,6 +124,6 @@ def get_search_options(
         )
     except ValidationError as err:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=jsonable_encoder(err.errors()),
         ) from err
