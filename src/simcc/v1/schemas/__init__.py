@@ -45,6 +45,7 @@ class DefaultFilters(PaginationParams, BaseModel):
     departament: Optional[str] = None
     group: Optional[str] = None
     city: Optional[str] = None
+    identity_territory: Optional[str] = None
     area: Optional[str] = None
     modality: Optional[str] = None
     graduation: Optional[str] = None

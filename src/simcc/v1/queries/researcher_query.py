@@ -512,6 +512,7 @@ class ResearcherSearchQuery(BaseQuery):
         'departament',
         'group',
         'city',
+        'identity_territory',
         'area',
         'modality',
         'graduation',
@@ -557,6 +558,28 @@ class ResearcherSearchQuery(BaseQuery):
         # Keeps LEFT JOIN but adds filter
         self.params['city'] = value.split(';')
         self.filters_sql.append(' AND rp.city = ANY(:city) ')
+
+    def _apply_identity_territory_filter(self, value):
+        territories = [v.strip() for v in str(value).split(';') if v.strip()]
+        if not territories:
+            return
+        self.params['identity_territory'] = territories
+        self.params['identity_territory_lower'] = [
+            t.lower() for t in territories
+        ]
+        self.filters_sql.append(
+            """
+            AND EXISTS (
+                SELECT 1
+                FROM researcher_institution ri
+                WHERE ri.researcher_id = r.id
+                  AND (
+                      ri.identity_territory = ANY(:identity_territory)
+                      OR LOWER(ri.identity_territory) = ANY(:identity_territory_lower)
+                  )
+            )
+            """
+        )
 
     def _apply_area_filter(self, value):
         self.params['area'] = value.replace(' ', '_').split(';')
@@ -906,7 +929,7 @@ class ResearcherFilterQuery(BaseQuery):
                  FROM great_area_expertise gae
                  INNER JOIN researcher_area_expertise r ON gae.id = r.great_area_expertise_id) as area,
                  
-                (SELECT COALESCE(ARRAY_AGG(DISTINCT graduation), '{}') FROM researcher) as graduation,
+                (SELECT COALESCE(ARRAY_AGG(DISTINCT graduation), '{}') FROM researcher WHERE graduation IS NOT NULL) as graduation,
                 
                 (SELECT COALESCE(ARRAY_AGG(DISTINCT city), '{}') FROM researcher_production WHERE city IS NOT NULL) as city,
                 
@@ -920,7 +943,11 @@ class ResearcherFilterQuery(BaseQuery):
                  FROM graduate_program gp
                  INNER JOIN graduate_program_researcher gpr ON gpr.graduate_program_id = gp.graduate_program_id) as graduate_program,
                  
-                ARRAY[]::TEXT[] as departament;
+                ARRAY[]::TEXT[] as departament,
+
+                (SELECT COALESCE(ARRAY_AGG(DISTINCT identity_territory), '{}')
+                 FROM researcher_institution
+                 WHERE identity_territory IS NOT NULL) as identity_territory;
         """
 
 
