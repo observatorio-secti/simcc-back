@@ -3,31 +3,6 @@ from http import HTTPStatus
 
 import pytest
 
-from simcc.core.db.models.production import BibliographicProduction, Software
-
-
-@pytest.fixture
-def production_factory(session, refresh_mvs):
-    async def _create(researcher, title, type_='ARTICLE', year=2022):
-        if type_ == 'SOFTWARE':
-            production = Software(
-                researcher_id=researcher.id, title=title, year=year
-            )
-        else:
-            production = BibliographicProduction(
-                researcher_id=researcher.id,
-                title=title,
-                type=type_,
-                year=str(year),
-                year_=year,
-            )
-        session.add(production)
-        await session.commit()
-        await refresh_mvs()
-        return production
-
-    return _create
-
 
 def _names(response):
     assert response.status_code == HTTPStatus.OK, response.text

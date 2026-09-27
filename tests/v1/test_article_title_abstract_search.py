@@ -1,5 +1,3 @@
-# ruff: noqa: PLR2004
-import uuid
 from functools import partial
 from http import HTTPStatus
 from types import SimpleNamespace
@@ -7,50 +5,9 @@ from types import SimpleNamespace
 import pytest
 from sqlalchemy import text
 
-from simcc.core.db.models.institution import PeriodicalMagazine
-from simcc.core.db.models.openalex import OpenAlexArticle
-from simcc.core.db.models.production import (
-    BibliographicProduction,
-    BibliographicProductionArticle,
-)
 from simcc.v1.queries import external_query, metrics_query
 from simcc.v1.queries.institution_query import InstitutionFrequencyQuery
 from simcc.v1.repositories import tools
-
-
-@pytest.fixture
-def article_factory(session):
-    async def _create(researcher, title, abstract=None, type_='ARTICLE'):
-        production = BibliographicProduction(
-            title=title, type=type_, researcher_id=researcher.id, year='2024'
-        )
-        session.add(production)
-        await session.flush()
-        if type_ == 'ARTICLE':
-            magazine = PeriodicalMagazine(name='Revista Teste')
-            session.add(magazine)
-            await session.flush()
-            session.add(
-                BibliographicProductionArticle(
-                    bibliographic_production_id=production.id,
-                    periodical_magazine_id=magazine.id,
-                    periodical_magazine_name='Revista Teste',
-                    qualis='A1',
-                )
-            )
-        if abstract is not None:
-            session.add(
-                OpenAlexArticle(
-                    id=uuid.uuid4(),
-                    article_id=production.id,
-                    abstract=abstract,
-                )
-            )
-        await session.commit()
-        return production
-
-    return _create
-
 
 ARTICLE_DENGUE = SimpleNamespace(type='ARTICLE', term='dengue')
 
@@ -72,7 +29,10 @@ async def test_researcher_search_matches_openalex_abstract(
     by_title = await researcher_factory(name='Por Titulo')
     by_abstract = await researcher_factory(name='Por Resumo')
     unrelated = await researcher_factory(name='Sem Relacao')
-    await article_factory(by_title, 'Vigilancia da dengue urbana')
+    await article_factory(
+        by_title,
+        'Vigilancia da dengue urbana',
+    )
     await article_factory(
         by_abstract,
         'Estudo epidemiologico regional',

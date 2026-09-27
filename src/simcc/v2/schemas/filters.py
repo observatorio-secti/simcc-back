@@ -1,7 +1,7 @@
 from typing import Literal, Optional
 from uuid import UUID
 
-from fastapi import HTTPException, Request, status
+from fastapi import HTTPException, Query, Request, status
 from pydantic import BaseModel, Field, model_validator
 
 from simcc.v2.schemas.params import PaginationParams, SearchOptions, SortParams

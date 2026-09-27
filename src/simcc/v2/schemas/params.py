@@ -1,5 +1,6 @@
 from typing import Any, Literal, Optional
 
+from fastapi import Query
 from pydantic import (
     BaseModel,
     Field,

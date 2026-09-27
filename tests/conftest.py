@@ -18,6 +18,7 @@ pytest_plugins = [
     'tests.fixtures.graduate_program',
     'tests.fixtures.institution',
     'tests.fixtures.location',
+    'tests.fixtures.production',
     'tests.fixtures.researcher',
     'tests.fixtures.search',
 ]
