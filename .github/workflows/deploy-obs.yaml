@@ -54,7 +54,10 @@ jobs:
             cd /opt/apps/prod/observatorio/observatorio-back
 
             # Atualiza o código
-            git pull origin main --ff-only
+            git fetch origin main
+            git checkout -B main origin/main
+            git reset --hard origin/main
+            git clean -fd
 
             # Volta pra pasta certa
             cd /opt/apps/prod/observatorio
