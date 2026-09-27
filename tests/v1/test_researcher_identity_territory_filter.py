@@ -122,3 +122,55 @@ async def test_researcher_filter_endpoint_returns_territories(
     assert 'identity_territory' in data
     assert 'Sisal' in data['identity_territory']
     assert 'Recôncavo' in data['identity_territory']
+
+
+@pytest.mark.asyncio
+async def test_researcher_filter_dynamic_scoping_by_terms_and_type(
+    client, researcher_factory, researcher_institution_factory, article_factory
+):
+    sisal = await researcher_factory(
+        name='Pesquisador Educacao', graduation='Doutorado'
+    )
+    reconcavo = await researcher_factory(
+        name='Pesquisador Fisica', graduation='Mestrado'
+    )
+
+    await researcher_institution_factory(
+        researcher_id=sisal.id,
+        identity_territory='Sisal',
+    )
+    await researcher_institution_factory(
+        researcher_id=reconcavo.id,
+        identity_territory='Recôncavo',
+    )
+
+    await article_factory(sisal, 'Educacao inclusiva e inovacao')
+    await article_factory(reconcavo, 'Fisica nuclear aplicada')
+
+    # 1. Filtro global sem parâmetros retorna ambos
+    res_global = client.get('/researcher_filter')
+    assert res_global.status_code == HTTPStatus.OK
+    data_global = res_global.json()
+    assert set(data_global['identity_territory']) >= {'Sisal', 'Recôncavo'}
+    assert set(data_global['graduation']) >= {'Doutorado', 'Mestrado'}
+
+    # 2. Filtrando por terms=Educacao&type=ARTICLE
+    res_edu = client.get('/researcher_filter?terms=Educacao&type=ARTICLE')
+    assert res_edu.status_code == HTTPStatus.OK
+    data_edu = res_edu.json()
+    assert data_edu['identity_territory'] == ['Sisal']
+    assert data_edu['graduation'] == ['Doutorado']
+
+    # 3. Filtrando por terms=Fisica&type=ARTICLE
+    res_fis = client.get('/researcher_filter?terms=Fisica&type=ARTICLE')
+    assert res_fis.status_code == HTTPStatus.OK
+    data_fis = res_fis.json()
+    assert data_fis['identity_territory'] == ['Recôncavo']
+    assert data_fis['graduation'] == ['Mestrado']
+
+    # 4. Filtrando por termo inexistente
+    res_none = client.get('/researcher_filter?terms=Inexistente&type=ARTICLE')
+    assert res_none.status_code == HTTPStatus.OK
+    data_none = res_none.json()
+    assert data_none['identity_territory'] == []
+    assert data_none['graduation'] == []

@@ -379,8 +379,10 @@ async def list_institution_data_by_researcher_ids(
     return result.mappings().all()
 
 
-async def get_researcher_filter(session):
-    query = researcher_query.ResearcherFilterQuery(session)
+async def get_researcher_filter(session, filters=None, name=None):
+    query = researcher_query.ResearcherFilterQuery(
+        session, filters=filters, name=name
+    )
     result = await query.execute()
     return result[0] if result else {}
 

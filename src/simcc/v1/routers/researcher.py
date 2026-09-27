@@ -242,5 +242,11 @@ async def get_researcher_image(
 
 
 @router.get('/researcher_filter', response_model=ResearcherFilter)
-async def get_researcher_filter(session: AsyncSession):
-    return await researcher_service.get_researcher_filter(session)
+async def get_researcher_filter(
+    session: AsyncSession,
+    filters: Filters,
+    name: str | None = Query(None),
+):
+    return await researcher_service.get_researcher_filter(
+        session, filters=filters, name=name
+    )

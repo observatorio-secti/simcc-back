@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Any, Optional
 
 from simcc.v1.queries.base import BaseQuery
 from simcc.v1.repositories import tools
@@ -922,32 +922,134 @@ class CoAuthorshipQuery(BaseQuery):
 
 
 class ResearcherFilterQuery(BaseQuery):
+    def __init__(
+        self,
+        session,
+        filters: Any = None,
+        search_type: Optional[str] = None,
+        name: Optional[str] = None,
+    ):
+        super().__init__(session)
+        self.filters = filters
+        self.search_type = search_type
+        self.name = name
+
     def build_sql(self) -> str:
-        return """
-            SELECT 
-                (SELECT COALESCE(ARRAY_AGG(DISTINCT REPLACE(gae.name, '_', ' ')), '{}')
+        search_type = self.search_type
+        filter_type = None
+        if self.filters:
+            if isinstance(self.filters, dict):
+                filter_type = self.filters.get('type')
+            else:
+                filter_type = getattr(self.filters, 'type', None)
+        if filter_type:
+            t = str(filter_type).strip().upper()
+            if t:
+                search_type = t
+        if not search_type:
+            search_type = 'ABSTRACT'
+
+        search_query = ResearcherSearchQuery(
+            self.session, search_type=search_type, name=self.name
+        )
+        if self.filters:
+            search_query.apply_filters(self.filters)
+
+        inner_join, _ = search_query._build_inner_join()
+
+        if self.name:
+            name_filter, name_params = tools.names_filter('r.name', self.name)
+            search_query.filters_sql.append(name_filter)
+            search_query.params.update(name_params)
+
+        self.params = search_query.params
+
+        filters_sql = ' '.join(search_query.filters_sql)
+        joins_sql = ' '.join(search_query.joins.values())
+
+        return f"""
+            WITH matched_researchers AS (
+                SELECT DISTINCT r.id, r.graduation, r.institution_id
+                FROM researcher r
+                    {joins_sql}
+                    {inner_join}
+                WHERE 1 = 1
+                    AND r.status IS True
+                    {filters_sql}
+            )
+            SELECT
+                (SELECT COALESCE(
+                    ARRAY_AGG(DISTINCT REPLACE(gae.name, '_', ' ')), '{{}}'
+                 )
                  FROM great_area_expertise gae
-                 INNER JOIN researcher_area_expertise r ON gae.id = r.great_area_expertise_id) as area,
-                 
-                (SELECT COALESCE(ARRAY_AGG(DISTINCT graduation), '{}') FROM researcher WHERE graduation IS NOT NULL) as graduation,
-                
-                (SELECT COALESCE(ARRAY_AGG(DISTINCT city), '{}') FROM researcher_production WHERE city IS NOT NULL) as city,
-                
-                (SELECT COALESCE(ARRAY_AGG(DISTINCT i.name), '{}') 
-                 FROM institution i 
-                 INNER JOIN researcher r ON r.institution_id = i.id) as institution,
-                 
-                (SELECT COALESCE(ARRAY_AGG(DISTINCT modality_name), '{}') FROM foment) as modality,
-                
-                (SELECT COALESCE(ARRAY_AGG(DISTINCT gp.name), '{}') 
+                 INNER JOIN researcher_area_expertise rae
+                     ON gae.id = rae.great_area_expertise_id
+                 INNER JOIN matched_researchers mr
+                     ON mr.id = rae.researcher_id
+                 WHERE gae.name IS NOT NULL) as area,
+
+                (SELECT COALESCE(
+                    ARRAY_AGG(DISTINCT mr.graduation), '{{}}'
+                 )
+                 FROM matched_researchers mr
+                 WHERE mr.graduation IS NOT NULL) as graduation,
+
+                (SELECT COALESCE(ARRAY_AGG(DISTINCT city_val), '{{}}')
+                 FROM (
+                     SELECT rp.city AS city_val
+                     FROM researcher_production rp
+                     INNER JOIN matched_researchers mr
+                         ON mr.id = rp.researcher_id
+                     WHERE rp.city IS NOT NULL
+                     UNION
+                     SELECT c.name AS city_val
+                     FROM researcher_institution ri
+                     INNER JOIN city c
+                         ON c.id = ri.city_id
+                     INNER JOIN matched_researchers mr
+                         ON mr.id = ri.researcher_id
+                     WHERE c.name IS NOT NULL
+                 ) cities) as city,
+
+                (SELECT COALESCE(ARRAY_AGG(DISTINCT i.name), '{{}}')
+                 FROM institution i
+                 WHERE i.id IN (
+                     SELECT mr.institution_id
+                     FROM matched_researchers mr
+                     WHERE mr.institution_id IS NOT NULL
+                     UNION
+                     SELECT ri.institution_id
+                     FROM researcher_institution ri
+                     INNER JOIN matched_researchers mr
+                         ON mr.id = ri.researcher_id
+                 )) as institution,
+
+                (SELECT COALESCE(
+                    ARRAY_AGG(DISTINCT f.modality_name), '{{}}'
+                 )
+                 FROM foment f
+                 INNER JOIN matched_researchers mr
+                     ON mr.id = f.researcher_id
+                 WHERE f.modality_name IS NOT NULL) as modality,
+
+                (SELECT COALESCE(ARRAY_AGG(DISTINCT gp.name), '{{}}')
                  FROM graduate_program gp
-                 INNER JOIN graduate_program_researcher gpr ON gpr.graduate_program_id = gp.graduate_program_id) as graduate_program,
-                 
+                 INNER JOIN graduate_program_researcher gpr
+                     ON gpr.graduate_program_id = gp.graduate_program_id
+                 INNER JOIN matched_researchers mr
+                     ON mr.id = gpr.researcher_id
+                 WHERE gp.name IS NOT NULL) as graduate_program,
+
                 ARRAY[]::TEXT[] as departament,
 
-                (SELECT COALESCE(ARRAY_AGG(DISTINCT identity_territory), '{}')
-                 FROM researcher_institution
-                 WHERE identity_territory IS NOT NULL) as identity_territory;
+                (SELECT COALESCE(
+                    ARRAY_AGG(DISTINCT ri.identity_territory), '{{}}'
+                 )
+                 FROM researcher_institution ri
+                 INNER JOIN matched_researchers mr
+                     ON mr.id = ri.researcher_id
+                 WHERE
+                     ri.identity_territory IS NOT NULL) as identity_territory;
         """
 
 

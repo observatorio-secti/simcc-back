@@ -367,8 +367,10 @@ async def get_researcher_image_path(session, researcher_id):
     return str(path_image)
 
 
-async def get_researcher_filter(session):
-    return await researcher_repo.get_researcher_filter(session)
+async def get_researcher_filter(session, filters=None, name=None):
+    return await researcher_repo.get_researcher_filter(
+        session, filters=filters, name=name
+    )
 
 
 async def get_outstanding_researchers(
