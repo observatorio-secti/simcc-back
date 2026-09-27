@@ -94,9 +94,43 @@ def validate_unknown_researcher_params(request: Request) -> None:
     for param_name in request.query_params:
         if param_name not in KNOWN_RESEARCHER_PARAMS:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=f"Parâmetro desconhecido: '{param_name}'",
             )
+
+
+def get_researcher_filter(
+    *,
+    q: Optional[str] = Query(None, description='Termo de busca textual'),
+    year_start: Optional[int] = Query(
+        None, description='Ano inicial de produção bibliográfica'
+    ),
+    year_end: Optional[int] = Query(
+        None, description='Ano final de produção bibliográfica'
+    ),
+    institution_id: list[UUID] = Query(
+        default=[],
+        description='IDs das instituições de vínculo',
+    ),
+    graduate_program_id: list[UUID] = Query(
+        default=[],
+        description='IDs dos programas de pós-graduação',
+    ),
+) -> ResearcherFilter:
+    """Extrai filtros de pesquisador dos parâmetros de query string."""
+    try:
+        return ResearcherFilter(
+            q=q,
+            year_start=year_start,
+            year_end=year_end,
+            institution_id=institution_id,
+            graduate_program_id=graduate_program_id,
+        )
+    except ValidationError as err:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=jsonable_encoder(err.errors()),
+        ) from err
 
 
 class ProductionFilter(BaseTemporalFilter):

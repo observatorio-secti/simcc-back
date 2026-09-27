@@ -80,7 +80,7 @@ async def search_researchers(  # noqa: PLR0913
     has_q = bool(resolved_filters.q and resolved_filters.q.strip())
     if resolved_sort.sort_by == 'relevance' and not has_q:
         raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=(
                 "Ordenação 'sort_by=relevance' requer o filtro de busca 'q'."
             ),
@@ -89,14 +89,14 @@ async def search_researchers(  # noqa: PLR0913
     if 'matches' in resolved_options.include:
         if not has_q:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=(
                     "Inclusão 'include=matches' requer o filtro de busca 'q'."
                 ),
             )
         if resolved_pagination.per_page > MAX_MATCHES_PER_PAGE:
             raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
                 detail=(
                     "Inclusão 'include=matches' só é permitida "
                     f"com 'per_page <= {MAX_MATCHES_PER_PAGE}'."

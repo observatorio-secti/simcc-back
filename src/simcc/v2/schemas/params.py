@@ -115,3 +115,36 @@ class SearchOptions(BaseModel):
                 f'Permitidos: {sorted(ALLOWED_INCLUDES)}'
             )
         return v
+
+
+def get_search_options(
+    facets: list[str] = Query(
+        default=[],
+        description=(
+            'Lista de facets opt-in (institution, graduate_program, '
+            'year, source_type)'
+        ),
+    ),
+    include: list[str] = Query(
+        default=[],
+        description='Recursos adicionais opt-in (ex.: matches)',
+    ),
+    matches_limit: int = Query(
+        3,
+        ge=1,
+        le=5,
+        description='Número máximo de evidências por pesquisador',
+    ),
+) -> SearchOptions:
+    """Extrai opções de busca de parâmetros de query string."""
+    try:
+        return SearchOptions(
+            facets=facets,
+            include=include,
+            matches_limit=matches_limit,
+        )
+    except ValidationError as err:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=jsonable_encoder(err.errors()),
+        ) from err
