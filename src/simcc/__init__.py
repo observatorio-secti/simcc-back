@@ -14,6 +14,7 @@ from simcc.core.logging.middleware import LoggingMiddleware
 from simcc.core.settings import Settings
 from simcc.v1 import v1_app
 from simcc.v2 import v2_app
+from simcc.v3 import v3_app
 
 settings = Settings()
 
@@ -41,9 +42,11 @@ app.add_middleware(LoggingMiddleware)
 
 v2_app.dependency_overrides = app.dependency_overrides
 v1_app.dependency_overrides = app.dependency_overrides
+v3_app.dependency_overrides = app.dependency_overrides
 
 app.mount('/v2', v2_app)
 app.mount('/v1', v1_app)
+app.mount('/v3', v3_app)
 app.mount('/', v1_app)
 
 
