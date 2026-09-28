@@ -238,17 +238,25 @@ class GraduateProgramProductionQuery(BaseQuery):
 
         if self.graduate_program_id:
             self.params['graduate_program_id'] = self.graduate_program_id
-            filter_program = (
-                'AND gpr.graduate_program_id = :graduate_program_id'
-            )
+            filter_program = """
+                AND gpr.graduate_program_id = :graduate_program_id
+                AND gpr.graduate_program_id NOT IN (
+                    SELECT gp.graduate_program_id FROM graduate_program gp
+                    JOIN institution i ON gp.institution_id = i.id
+                    WHERE i.acronym = 'EXTERNA'
+                )
+            """
 
             bibliographic_queries = [
                 f"""
                 SELECT COUNT(gpr.graduate_program_id) AS qtd, '{prod}' AS type
                 FROM public.bibliographic_production b
                 JOIN graduate_program_researcher gpr ON b.researcher_id = gpr.researcher_id
+                JOIN researcher r ON r.id = gpr.researcher_id
+                LEFT JOIN institution i ON r.institution_id = i.id
                 WHERE b.type = '{prod}' {filter_program} AND b.year_ >= :year
-                GROUP BY type
+                  AND COALESCE(i.acronym, '') <> 'EXTERNA'
+                GROUP BY b.type
                 """
                 for prod in production_types
             ]
@@ -258,21 +266,29 @@ class GraduateProgramProductionQuery(BaseQuery):
                 FROM patent p
                 JOIN graduate_program_researcher gpr ON gpr.researcher_id = p.researcher_id
                 JOIN researcher r ON r.id = gpr.researcher_id
+                LEFT JOIN institution i ON r.institution_id = i.id
                 WHERE p.development_year::int >= :year {filter_program} AND r.status = TRUE
+                  AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY type
 
                 UNION
                 SELECT COUNT(gpr.graduate_program_id) AS qtd, 'SOFTWARE' AS type
                 FROM software s
                 JOIN graduate_program_researcher gpr ON gpr.researcher_id = s.researcher_id
+                JOIN researcher r ON r.id = gpr.researcher_id
+                LEFT JOIN institution i ON r.institution_id = i.id
                 WHERE s.year >= :year {filter_program}
+                  AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY type
 
                 UNION
                 SELECT COUNT(gpr.graduate_program_id) AS qtd, 'BRAND' AS type
                 FROM brand b
                 JOIN graduate_program_researcher gpr ON gpr.researcher_id = b.researcher_id
+                JOIN researcher r ON r.id = gpr.researcher_id
+                LEFT JOIN institution i ON r.institution_id = i.id
                 WHERE b.year >= :year {filter_program}
+                  AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY type
 
                 UNION {' UNION '.join(bibliographic_queries)}
@@ -280,14 +296,24 @@ class GraduateProgramProductionQuery(BaseQuery):
                 UNION
                 SELECT COUNT(*) AS qtd, r.graduation AS type
                 FROM researcher r
-                RIGHT JOIN graduate_program_researcher gpr ON gpr.researcher_id = r.id
+                JOIN graduate_program_researcher gpr ON gpr.researcher_id = r.id
+                LEFT JOIN institution i ON r.institution_id = i.id
                 WHERE 1=1 {filter_program}
+                  AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY r.graduation
             """
 
             researcher_sql = """
-                SELECT COUNT(*) AS qtd FROM graduate_program_researcher 
-                WHERE graduate_program_id = :graduate_program_id
+                SELECT COUNT(*) AS qtd FROM graduate_program_researcher gpr
+                JOIN researcher r ON gpr.researcher_id = r.id
+                LEFT JOIN institution i ON r.institution_id = i.id
+                WHERE gpr.graduate_program_id = :graduate_program_id
+                  AND COALESCE(i.acronym, '') <> 'EXTERNA'
+                  AND gpr.graduate_program_id NOT IN (
+                      SELECT gp.graduate_program_id FROM graduate_program gp
+                      JOIN institution i ON gp.institution_id = i.id
+                      WHERE i.acronym = 'EXTERNA'
+                  )
             """
         else:
             dep_filter = ''
@@ -299,8 +325,11 @@ class GraduateProgramProductionQuery(BaseQuery):
                 f"""
                 SELECT COUNT(DISTINCT b.title) AS qtd, '{prod}' AS type
                 FROM public.bibliographic_production b
+                JOIN researcher r ON b.researcher_id = r.id
+                LEFT JOIN institution i ON r.institution_id = i.id
                 WHERE b.type = '{prod}' AND b.year_ >= :year {dep_filter}
-                GROUP BY type
+                  AND COALESCE(i.acronym, '') <> 'EXTERNA'
+                GROUP BY b.type
                 """
                 for prod in production_types
             ]
@@ -308,19 +337,28 @@ class GraduateProgramProductionQuery(BaseQuery):
             SCRIPT_SQL = f"""
                 SELECT COUNT(DISTINCT p.title) AS qtd, 'PATENT' AS type
                 FROM patent p
+                JOIN researcher r ON p.researcher_id = r.id
+                LEFT JOIN institution i ON r.institution_id = i.id
                 WHERE p.development_year::int >= :year {dep_filter}
+                  AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY type
 
                 UNION
                 SELECT COUNT(DISTINCT s.title) AS qtd, 'SOFTWARE' AS type
                 FROM software s
+                JOIN researcher r ON s.researcher_id = r.id
+                LEFT JOIN institution i ON r.institution_id = i.id
                 WHERE s.year >= :year {dep_filter}
+                  AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY type
 
                 UNION
                 SELECT COUNT(DISTINCT b.title) AS qtd, 'BRAND' AS type
                 FROM brand b
+                JOIN researcher r ON b.researcher_id = r.id
+                LEFT JOIN institution i ON r.institution_id = i.id
                 WHERE b.year >= :year {dep_filter}
+                  AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY type
 
                 UNION {' UNION '.join(bibliographic_queries)}
@@ -328,12 +366,18 @@ class GraduateProgramProductionQuery(BaseQuery):
                 UNION
                 SELECT COUNT(*) AS qtd, UPPER(r.graduation) AS type
                 FROM researcher r
+                LEFT JOIN institution i ON r.institution_id = i.id
                 WHERE r.status = TRUE 
                 AND r.id NOT IN (SELECT researcher_id FROM graduate_program_student)
+                AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 {researcher_filter}
                 GROUP BY graduation
             """
-            researcher_sql = 'SELECT COUNT(*) AS qtd FROM researcher r'
+            researcher_sql = """
+                SELECT COUNT(*) AS qtd FROM researcher r
+                LEFT JOIN institution i ON r.institution_id = i.id
+                WHERE COALESCE(i.acronym, '') <> 'EXTERNA'
+            """
 
         self._researcher_sql = researcher_sql
         return SCRIPT_SQL
