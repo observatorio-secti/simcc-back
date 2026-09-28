@@ -1,0 +1,207 @@
+/* ==========================================================================
+   SIMCC Design System - Theme Styles for Material MkDocs
+   Derived from docs/DESING.md
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&family=Ubuntu:ital,wght@0,400;0,500;0,700;1,400&display=swap');
+
+:root {
+  /* Color Palette Tokens */
+  --simcc-primary: #07677e;
+  --simcc-primary-container: #559fb8;
+  --simcc-navy-deep: #024a60;
+  --simcc-steel-blue: #719cb8;
+  --simcc-surface: #f8f9fb;
+  --simcc-surface-container: #edeef0;
+  --simcc-on-surface: #191c1e;
+  --simcc-on-surface-variant: #3f484c;
+  --simcc-outline: #6f787d;
+  --simcc-error: #ba1a1a;
+  --simcc-success: #10b981;
+  --simcc-gradient-bahia: linear-gradient(90deg, #1d4ed8 0%, #dc2626 100%);
+
+  /* Material for MkDocs Variable Overrides (Light Mode) */
+  --md-primary-fg-color: #024a60;               /* Deep Navy for header / institutional weight */
+  --md-primary-fg-color--light: #07677e;
+  --md-primary-fg-color--dark: #012e3c;
+  --md-primary-bg-color: #ffffff;
+  --md-primary-bg-color--light: #f8f9fb;
+  
+  --md-accent-fg-color: #559fb8;                /* Interactive Blue */
+  --md-accent-fg-color--transparent: rgba(85, 159, 184, 0.12);
+
+  --md-default-bg-color: #f8f9fb;
+  --md-default-fg-color: #191c1e;
+  --md-default-fg-color--light: #3f484c;
+  --md-default-fg-color--lighter: #6f787d;
+
+  --md-typeset-color: #191c1e;
+  --md-typeset-a-color: #07677e;
+
+  /* Typography */
+  --md-text-font: 'Lexend', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --md-code-font: 'Ubuntu', monospace;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #024a60;
+  --md-primary-fg-color--light: #07677e;
+  --md-accent-fg-color: #88d1eb;
+  --md-typeset-a-color: #88d1eb;
+  --simcc-surface: #1e2327;
+}
+
+/* ==========================================================================
+   Header & Navigation
+   ========================================================================== */
+.md-header {
+  background-color: var(--simcc-navy-deep);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.md-tabs {
+  background-color: #043849;
+}
+
+/* ==========================================================================
+   Typography Overrides
+   ========================================================================== */
+body, .md-typeset {
+  font-family: var(--md-text-font);
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4 {
+  font-family: var(--md-text-font);
+  color: var(--simcc-navy-deep);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+[data-md-color-scheme="slate"] .md-typeset h1,
+[data-md-color-scheme="slate"] .md-typeset h2,
+[data-md-color-scheme="slate"] .md-typeset h3 {
+  color: #e1e2e4;
+}
+
+.md-typeset code,
+.md-typeset pre,
+.md-typeset table {
+  font-family: var(--md-code-font);
+}
+
+/* ==========================================================================
+   SIMCC Custom Components & Utilities
+   ========================================================================== */
+
+/* Gradient text break (Bahia highlights) */
+.bahia-gradient-text,
+.gradient-bahia {
+  background: var(--simcc-gradient-bahia);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+  display: inline-block;
+}
+
+/* Standard Content Cards */
+.simcc-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin: 1rem 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.simcc-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* Researcher Card Component */
+.researcher-card {
+  background: #ffffff;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  border-left: 4px solid var(--simcc-steel-blue);
+  padding: 1.25rem 1.5rem;
+  margin: 1rem 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.2s ease, transform 0.15s ease;
+}
+
+.researcher-card:hover {
+  box-shadow: 0 6px 18px rgba(2, 74, 96, 0.1);
+  transform: translateY(-2px);
+}
+
+/* Interactive Buttons */
+.btn-primary,
+.md-button--primary {
+  background-color: var(--simcc-primary-container) !important;
+  color: #ffffff !important;
+  border-radius: 8px !important;
+  border: none !important;
+  font-family: var(--md-text-font) !important;
+  font-weight: 600 !important;
+  padding: 0.6rem 1.25rem !important;
+  transition: background-color 0.2s ease, transform 0.1s ease !important;
+}
+
+.btn-primary:hover,
+.md-button--primary:hover {
+  background-color: var(--simcc-navy-deep) !important;
+  transform: translateY(-1px);
+}
+
+/* Metadata Chips & Badges */
+.badge-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.2rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin: 0.2rem;
+  background-color: var(--simcc-surface-container);
+  color: var(--simcc-on-surface-variant);
+}
+
+/* Thematic CT&I Badge with red bottom border break */
+.badge-cti {
+  display: inline-flex;
+  align-items: center;
+  background-color: #1d4ed8;
+  color: #ffffff;
+  border-radius: 9999px;
+  border-bottom: 3px solid #dc2626;
+  padding: 0.25rem 0.85rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Numerical Indicator Badge */
+.badge-indicator {
+  display: inline-flex;
+  align-items: center;
+  background-color: rgba(113, 156, 184, 0.2);
+  color: var(--simcc-navy-deep);
+  border-radius: 9999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-family: var(--md-code-font);
+}
+
+/* Admonition / Callout Enhancements */
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}

@@ -1,29 +1,10 @@
-site_name: SIMCC Backend - Observatório da Ciência
-site_description: Documentação técnica e arquitetural da API do SIMCC, motor de busca vetorial e inteligência artificial conversacional MarIA.
-site_author: Equipe SIMCC / Observatório da Ciência
-repo_name: observatorio-secti/simcc-back
-repo_url: https://github.com/observatorio-secti/simcc-back
+site_name: SIMCC
+site_description: Observatório e Inteligência Científica do Estado da Bahia
+site_author: SIMCC
 
 theme:
   name: material
   language: pt-BR
-  palette:
-    # Alternância automática / tema claro
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: indigo
-      accent: deep purple
-      toggle:
-        icon: material/weather-night
-        name: Alternar para modo escuro
-    # Tema escuro
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: indigo
-      accent: deep purple
-      toggle:
-        icon: material/weather-sunny
-        name: Alternar para modo claro
   features:
     - navigation.instant
     - navigation.tracking
@@ -34,35 +15,61 @@ theme:
     - search.suggest
     - search.highlight
     - content.code.copy
-    - content.code.annotate
+  palette:
+    # Modo Claro (Default)
+    - scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-night
+        name: Alternar para modo escuro
+    # Modo Escuro
+    - scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/weather-sunny
+        name: Alternar para modo claro
+  font:
+    text: Lexend
+    code: Ubuntu
+
+extra_css:
+  - stylesheets/extra.css
 
 markdown_extensions:
   - admonition
   - pymdownx.details
-  - pymdownx.superfences:
-      custom_fences:
-        - name: mermaid
-          class: mermaid
-          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.superfences
   - pymdownx.highlight:
       anchor_linenums: true
       line_spans: __span
       pygments_lang_class: true
   - pymdownx.inlinehilite
-  - pymdownx.snippets
   - pymdownx.tabbed:
       alternate_style: true
-  - tables
   - attr_list
   - md_in_html
-  - toc:
-      permalink: true
 
 nav:
   - Início: index.md
-  - Inteligência Artificial (MarIA):
-      - Arquitetura e Pipeline: ai_architecture.md
-      - Cache Distribuído e Telemetria: cache_and_telemetry.md
-      - Contratos de API e Streaming: api_contracts.md
-      - Metodologia de Testes e Golden Dataset: ai_testing_and_dataset.md
-  - Observabilidade e OpenTelemetry: observability.md
+  - Conceitos da V2:
+      - Arquitetura e MVs: conceitos/arquitetura.md
+      - Filtros e Busca Textual: conceitos/filtros-e-busca.md
+      - Facets e Evidências: conceitos/facets-e-evidencias.md
+      - Vínculos Institucionais: conceitos/vinculos-institucionais.md
+      - Lista vs. Perfil: conceitos/lista-e-perfil.md
+      - Cache de Buscas: conceitos/cache.md
+  - Guia de Contribuição:
+      - Visão Geral: guia-contribuicao/index.md
+      - 1. Criação de Rotinas e Serviços: guia-contribuicao/rotinas.md
+      - 2. Criação de Endpoints: guia-contribuicao/endpoints.md
+      - 3. Criação de Testes: guia-contribuicao/testes.md
+  - Recursos em Construção: em-construcao.md
+
+markdown_extensions:
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format

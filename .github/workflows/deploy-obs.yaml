@@ -11,6 +11,9 @@ on:
 env:
   REDIS_ENABLED: 'false'
   OPENAI_API_KEY: 'dummy-key-for-tests'
+  
+  DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/db
+  ADMIN_DATABASE_URL: postgresql+asyncpg://postgres:postgres@simcc-admin-db:5432/db_admin
 
 jobs:
   tests:
@@ -51,7 +54,10 @@ jobs:
             cd /opt/apps/prod/observatorio/observatorio-back
 
             # Atualiza o código
-            git pull origin main --ff-only
+            git fetch origin main
+            git checkout -B main origin/main
+            git reset --hard origin/main
+            git clean -fd
 
             # Volta pra pasta certa
             cd /opt/apps/prod/observatorio

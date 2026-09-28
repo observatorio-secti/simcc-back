@@ -1,4 +1,5 @@
 import re
+from functools import lru_cache
 from pathlib import Path
 
 import httpx
@@ -20,11 +21,13 @@ DEFAULT_AVATAR_PATH = (
 
 LATTES_10_PATTERN = re.compile(r'^[A-Za-z0-9]{10}$')
 
+RESEARCHER_IMAGE_DIR = Path('storage/image_researcher')
+
 
 async def download_researcher_image(
     researcher_id: str, session: AsyncSession | None = None
 ):
-    path = Path(f'storage/image_researcher/{researcher_id}.jpg')
+    path = RESEARCHER_IMAGE_DIR / f'{researcher_id}.jpg'
 
     if path.exists() or not session:
         return
@@ -85,6 +88,8 @@ def get_institution_cover_path(acronym: str | None) -> Path | None:
     return None
 
 
+# Cacheado por processo: arquivos novos exigem reinício do servidor.
+@lru_cache(maxsize=256)
 def get_institution_logo_url(acronym: str | None) -> str | None:
     path = get_institution_logo_path(acronym)
     if path:
@@ -92,6 +97,7 @@ def get_institution_logo_url(acronym: str | None) -> str | None:
     return None
 
 
+@lru_cache(maxsize=256)
 def get_institution_cover_url(acronym: str | None) -> str | None:
     path = get_institution_cover_path(acronym)
     if path:

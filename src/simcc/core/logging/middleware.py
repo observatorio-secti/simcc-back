@@ -16,7 +16,6 @@ from simcc.core.logging.events import (
     request_finished,
     request_received,
 )
-from simcc.core.telemetry.metrics import record_http_duration
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):
@@ -82,17 +81,6 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 error=str(e),
                 user_id=user_id or user_id_ctx.get(),
             )
-
-            try:
-                record_http_duration(
-                    method=request.method,
-                    route=request.url.path,
-                    status_code=500,
-                    duration_ms=duration_ms,
-                )
-            except Exception:
-                pass
-
             raise e
         finally:
             # Reset contextvars to clean up the task execution scope

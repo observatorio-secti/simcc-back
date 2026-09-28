@@ -14,6 +14,7 @@ ROUTINES=(
     "search_terms.py"
     "researcher_classification.py"
     "sync_research_lines.py"
+    "refresh_search_views.py"
 )
 
 total=${#ROUTINES[@]}

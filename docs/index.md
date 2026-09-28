@@ -1,77 +1,56 @@
-# SIMCC Backend & MarIA
+# SIMCC V2 - Documentação e Padrões
 
-Bem-vindo à documentação técnica e arquitetural do **SIMCC Backend** (*Sistema de Informação para a Gestão da Pesquisa e Inovação*).
+Esta documentação aborda algo menos técnico: os conceitos fundamentais, as regras de implementação e os padrões de uso dos recursos do sistema.
 
-O SIMCC é a plataforma que mapeia, conecta e dá visibilidade à produção acadêmica, tecnológica e científica de instituições de ensino superior e institutos de pesquisa no Estado da Bahia.
+Para consultar endpoints, parâmetros e esquemas de resposta:
+* Acesse a rota `/swagger` no ambiente da aplicação.
 
 ---
 
-## 🌟 Visão Geral da Plataforma
+## Bem-vindo ao SIMCC V2
 
-O backend do SIMCC foi concebido para atender tanto a consultas analíticas estruturadas de gestores e pesquisadores quanto a interações conversacionais inteligentes. Por meio da assistente científica **MarIA**, usuários podem realizar perguntas em linguagem natural e obter sínteses ricas, contextualizadas e semanticamente aderentes aos pesquisadores e produções científicas cadastradas.
+A versão 2 (V2) da API do SIMCC foi projetada para atender ao **Observatório e Inteligência Científica do Estado da Bahia** com altíssimo desempenho, escalabilidade e facilidade de manutenção.
 
-```mermaid
-graph TD
-    User["👤 Usuário / Gestor / Pesquisador"] -->|HTTP / SSE| API["⚡ FastAPI (SIMCC Backend)"]
-    API -->|Consultas Relacionais & Vetoriais| PG[("🐘 PostgreSQL 17 + pgvector")]
-    API -->|Cache de Respostas & Streaming| Redis[("🔴 Redis 7 Distributed Cache")]
-    API -->|Planejamento & Síntese Conversacional| LLM["🧠 OpenAI / LLM Provider"]
-    API -->|Observabilidade Contínua| Logs["📊 Structured Logs (JSONL)"]
+Ela foi desenhada para substituir consultas dinâmicas lentas por uma arquitetura moderna baseada em **Visões Materializadas**, permitindo consultas textuais instantâneas sobre centenas de milhares de produções acadêmicas sem sobrecarregar o banco de dados.
+
+---
+
+## Os 4 Pilares da V2
+
+```
+┌─────────────────────────────────┐     ┌─────────────────────────────────┐
+│     1. Orçamento de Queries     │     │   2. Visões Materializadas      │
+│  Número previsível de consultas │     │  Dados consolidados e indexados │
+│  (2 queries na busca básica)    │     │  com índices invertidos GIN     │
+└─────────────────────────────────┘     └─────────────────────────────────┘
+
+┌─────────────────────────────────┐     ┌─────────────────────────────────┐
+│     3. Recursos Opt-in          │     │     4. Validação Defensiva      │
+│  Trabalho pesado (matches e     │     │  Entradas desconhecidas geram   │
+│  facets) roda apenas sob demanda│     │  HTTP 422 imediato              │
+└─────────────────────────────────┘     └─────────────────────────────────┘
 ```
 
----
-
-## 🧭 Pilares Arquiteturais
-
-A evolução recente do sistema consolidou pilares fundamentais de engenharia:
-
-### 1. Inteligência Artificial Humanizada e Responsável (MarIA)
-A MarIA transcende a simples listagem mecânica de itens de banco de dados. Ela sintetiza achados, identifica líderes de pesquisa, agrupa produções multidisciplinares e respeita uma linha de corte semântico para jamais alucinar ou forçar correspondências espúrias.
-
-### 2. Desempenho e Escalabilidade com Cache Distribuído
-Em ambientes de produção com múltiplos workers assíncronos (Uvicorn), o **Redis** opera como camada de aceleração compartilhada. Consultas frequentes — tanto em requisições REST tradicionais quanto em transmissões de streaming Server-Sent Events (SSE) — são respondidas em frações de milissegundos, poupando tokens e processamento vetorial.
-
-### 3. Confiabilidade e Governança
-Todas as decisões arquiteturais seguem a **Constituição do SIMCC**, assegurando:
-- Preservação estrita dos contratos consumidos pelo frontend;
-- Observabilidade estruturada em formato JSONL para cada etapa da pipeline;
-- Arquitetura de testes em camadas (unitários, integração com `testcontainers` e isolamento por savepoints);
-- Código limpo, tipado e validado continuamente pelo Ruff.
+1. **Orçamento Rigoroso de Consultas:** Cada requisição tem um custo fixo e previsível. Nada roda no banco sem ser explicitamente solicitado.
+2. **Visões Materializadas em Duas Camadas:** O banco pré-calcula a relação entre documentos e perfis, viabilizando buscas textuais completas e instantâneas.
+3. **Trabalho Pesado Apenas no que é Exibido:** Geração de snippets destacados e relevâncias avançadas rodam exclusivamente sobre os itens da página atual (máximo 50 itens).
+4. **Validação Defensiva:** Parâmetros desconhecidos ou regras violadas são barrados antes de tocarem o banco de dados.
 
 ---
 
-## 📚 Mapa da Documentação
+## Navegação Rápida
 
-Navegue pelas seções para aprofundar-se nas especificações e guias práticos:
+Explore a documentação através das seções abaixo:
 
-* [**Arquitetura e Pipeline da MarIA**](ai_architecture.md): Descubra o ciclo completo da pipeline de IA — desde o *Query Planner*, busca vetorial no `pgvector`, limiar de corte cosseno, até a geração de variações empáticas de resposta.
-* [**Cache Distribuído e Telemetria**](cache_and_telemetry.md): Entenda como o Redis gerencia namespaces, serialização segura, replay de streams e como a telemetria em JSONL quantifica custos e latências por estágio.
-* [**Contratos de API e Streaming**](api_contracts.md): Especificação detalhada dos payloads JSON para `/ai/chat/ask` e da sequência padronizada de eventos SSE para `/ai/chat/ask/stream`.
-* [**Metodologia de Testes e Golden Dataset**](ai_testing_and_dataset.md): Guia prático da elaboração da base assinada (SHA-256), extração estratificada, reidratação (seeding), execução de testes em camadas e métricas de avaliação de recuperação (Precision@k, Recall@k, MRR).
+### [Conceitos da V2](conceitos/arquitetura.md)
+* [**Arquitetura e Visões Materializadas**](conceitos/arquitetura.md): Como as duas camadas de dados funcionam e por que usamos MVs.
+* [**Filtros Padrões e Mecanismo de Busca**](conceitos/filtros-e-busca.md): Tabela de parâmetros padrão, regras lógicas e fórmula de relevância.
+* [**Facets, Evidências e Orçamento**](conceitos/facets-e-evidencias.md): Faceting disjuntivo, evidências com snippets e limites de consultas.
 
----
+### [Guia de Contribuição](guia-contribuicao/index.md)
+* [**1. Criação de Rotinas e Serviços**](guia-contribuicao/rotinas.md): Como organizar regras de negócio com checklist de qualidade.
+* [**2. Criação de Endpoints**](guia-contribuicao/endpoints.md): Passo a passo para criar rotas FastAPI com checklist de validação.
+* [**3. Criação de Testes**](guia-contribuicao/testes.md): Como garantir isolamento, uso de factories e checklist de testes.
 
-## 🚀 Como Executar Localmente
-
-### Pré-requisitos
-* Python 3.13+ com Poetry
-* Docker e Docker Compose (para PostgreSQL com pgvector e Redis)
-
-### Comandos Rápidos
-
-```bash
-# 1. Subir a infraestrutura de banco e cache
-docker compose up -d postgres redis
-
-# 2. Instalar as dependências do projeto
-poetry install
-
-# 3. Executar as migrações do banco
-poetry run alembic upgrade head
-
-# 4. Iniciar a API em modo desenvolvimento
-poetry run task run
-
-# 5. Executar a documentação localmente
-poetry run mkdocs serve
-```
+### [Recursos em Construção](em-construcao.md)
+* [**Roadmap da V2**](em-construcao.md): Recursos previstos para as próximas iterações (Paginação por Cursor, Exportação em Lote, etc.).

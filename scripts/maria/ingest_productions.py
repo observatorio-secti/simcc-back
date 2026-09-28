@@ -1,10 +1,8 @@
 import argparse
 import asyncio
-import os
 import sys
-from typing import List, Optional
-
 from pathlib import Path
+from typing import List, Optional
 
 # Ajusta o path para importar os módulos internos corretamente
 project_root = Path(__file__).resolve().parent.parent.parent
@@ -14,7 +12,6 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-from simcc.ai.providers.openai_provider import OpenAIProvider
 from simcc.core.db.models.ai import SearchDocumentProduction
 from simcc.core.db.models.institution import Institution
 from simcc.core.db.models.production import (
@@ -28,6 +25,7 @@ from simcc.core.db.models.production import (
 )
 from simcc.core.db.models.researcher import Researcher
 from simcc.core.settings import Settings
+from simcc.v1.ai.providers.openai_provider import OpenAIProvider
 
 
 async def process_type_records(

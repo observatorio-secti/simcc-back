@@ -158,6 +158,18 @@ def main(session=None, csv_path='storage/seed/rating_programs.csv'):
                 total_records=len(valid_ratings),
             )
 
+        routine_step_started('update_null_graduate_program_ratings')
+        query_update_null = text("""
+            UPDATE public.graduate_program
+            SET rating = 'Não informado'
+            WHERE rating IS NULL OR TRIM(rating) = '';
+        """)
+        result_null = session.execute(query_update_null)
+        routine_step_finished(
+            'update_null_graduate_program_ratings',
+            total_records=getattr(result_null, 'rowcount', None),
+        )
+
         session.commit()
     except Exception as e:
         items_failed = items_found - items_succeeded

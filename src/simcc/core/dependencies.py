@@ -13,7 +13,7 @@ from simcc.core.db.database import (
 )
 from simcc.core.security import get_current_user
 from simcc.core.settings import Settings
-from simcc.schemas import DefaultFilters
+from simcc.v1.schemas import DefaultFilters
 
 
 @lru_cache
