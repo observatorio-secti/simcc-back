@@ -3,15 +3,20 @@ from contextlib import asynccontextmanager
 from typing import Any, AsyncIterator, Dict, Optional
 from uuid import uuid4
 
-from opentelemetry.trace import StatusCode
+from opentelemetry import trace
+from opentelemetry.trace import StatusCode, Tracer
 
 from simcc.core.logging import logger
 
 
 class AITracer:
     def __init__(
-        self, request_id: Optional[str] = None, query: Optional[str] = None
+        self,
+        request_id: Optional[str] = None,
+        query: Optional[str] = None,
+        tracer: Optional[Tracer] = None,
     ):
+        self.tracer = tracer or trace.get_tracer('simcc.ai')
         self.request_id = request_id or str(uuid4())
         self.query = query or ''
         self.start_time = time.perf_counter()
@@ -30,6 +35,16 @@ class AITracer:
         self.pipeline_span.set_attribute('ai.model', 'gpt-4o-mini')
         self.pipeline_span.set_attribute('ai.query_length', len(self.query))
         self.pipeline_span.set_attribute('ai.request_id', self.request_id)
+
+    def set_request_context(
+        self, request_id: Optional[str] = None, query: Optional[str] = None
+    ) -> None:
+        if request_id:
+            self.request_id = request_id
+            self.pipeline_span.set_attribute('ai.request_id', self.request_id)
+        if query is not None:
+            self.query = query
+            self.pipeline_span.set_attribute('ai.query_length', len(self.query))
 
     def set_meta(self, key: str, value: Any) -> None:
         self.metadata[key] = value

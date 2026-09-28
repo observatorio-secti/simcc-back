@@ -275,6 +275,7 @@ class MariaService:
         clarification_response: Optional[ClarificationResponse] = None,
     ) -> ChatResponse:
         tracer = self.tracer or AITracer(query=query)
+        tracer.set_request_context(request_id=session_id, query=query)
         cache_key = None
 
         history_handler = (
@@ -510,6 +511,7 @@ class MariaService:
     ) -> AsyncIterator[ChatStreamEvent]:
         msg_id = message_id or f'msg_{uuid4().hex[:12]}'
         tracer = self.tracer or AITracer(request_id=msg_id, query=query)
+        tracer.set_request_context(request_id=msg_id, query=query)
         cache_key = None
 
         session_id = message_id
