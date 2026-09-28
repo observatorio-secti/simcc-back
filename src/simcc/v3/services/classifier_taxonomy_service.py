@@ -19,7 +19,7 @@ from typing import Iterator
 import networkx as nx
 
 from simcc.core.settings import Settings
-from simcc.schemas_classifier.taxonomy import (
+from simcc.v3.schemas.taxonomy import (
     GraphElement,
     EdgeData,
     EdgeElement,
@@ -30,7 +30,7 @@ from simcc.schemas_classifier.taxonomy import (
     TaxonomyItem, 
     TaxonomyListResponse
 )
-from simcc.pipeline.graph_utils import get_areas_with_topics, get_relevant_nodes, load_graph
+from simcc.v3.pipeline.graph_utils import get_areas_with_topics, get_relevant_nodes, load_graph
 
 logger = logging.getLogger(__name__)
 

@@ -23,7 +23,6 @@ from simcc.routers import (
     research_group,
     researcher,
     routines,
-    classifier_router,
 )
 from simcc.routers.production import (
     bibliographic,
@@ -77,7 +76,6 @@ app.include_router(maria.router)
 app.include_router(routines.router)
 app.include_router(powerBi.router)
 app.include_router(logs.router)
-app.include_router(classifier_router.router)
 
 
 STATIC_DIR = Path(__file__).resolve().parent / 'static'

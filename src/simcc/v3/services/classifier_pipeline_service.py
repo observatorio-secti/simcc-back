@@ -17,7 +17,7 @@ from typing import Iterator
 import pandas as pd
 
 from simcc.core.settings import Settings
-from simcc.pipeline import (
+from simcc.v3.pipeline import (
     document_loader, 
     graph_populate,
     graph_topic_integrator,
@@ -26,9 +26,9 @@ from simcc.pipeline import (
     topic_modeling, 
     topic_tracer,
 )
-from simcc.pipeline.taxonomy_config import TaxonomyConfig
-from simcc.repositories.classifier_document_repository import count_pipeline_documents
-from simcc.schemas_classifier.pipeline import PipelineDocumentsSummary
+from simcc.v3.pipeline.taxonomy_config import TaxonomyConfig
+from simcc.v3.repositories.classifier_document_repository import count_pipeline_documents
+from simcc.v3.schemas.pipeline import PipelineDocumentsSummary
 
 logger = logging.getLogger(__name__)
 

@@ -11,7 +11,7 @@ import networkx as nx
 import pandas as pd
 
 from simcc.core.settings import Settings
-from simcc.schemas_classifier.trace import (
+from simcc.v3.schemas.trace import (
     AreaTraceItem,
     AreaTraceResponse,
     TopicTraceItem,
@@ -23,8 +23,8 @@ from simcc.schemas_classifier.trace import (
     ArticleTraceItem,
     ArticleTraceResponse,
 )
-from simcc.pipeline.constants import TAXONOMY_ORIGIN, TOPIC_ORIGIN, SUBTOPIC_ORIGIN
-from simcc.pipeline.graph_utils import get_available_areas, load_graph
+from simcc.v3.pipeline.constants import TAXONOMY_ORIGIN, TOPIC_ORIGIN, SUBTOPIC_ORIGIN
+from simcc.v3.pipeline.graph_utils import get_available_areas, load_graph
 
 logger = logging.getLogger(__name__)
 

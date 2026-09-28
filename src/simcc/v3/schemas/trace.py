@@ -1,5 +1,5 @@
 """
-schemas_classifier/trace.py — Schemas Pydantic para os endpoints de rastreabilidade.
+v3/schemas/trace.py — Schemas Pydantic para os endpoints de rastreabilidade.
 """
 from __future__ import annotations
 

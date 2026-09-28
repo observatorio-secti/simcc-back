@@ -1,5 +1,5 @@
 """
-schemas_classifier/taxonomy_generator.py — Schemas para geração de taxonomia via LLM.
+v3/schemas/taxonomy_generator.py — Schemas para geração de taxonomia via LLM.
 """
 from __future__ import annotations
 

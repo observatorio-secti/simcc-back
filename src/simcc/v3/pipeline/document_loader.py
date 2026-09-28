@@ -20,7 +20,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 
 from .embeddings import DEFAULT_EMBEDDING_MODEL, get_embedding_model
 from .taxonomy_config import TaxonomyConfig
-from simcc.repositories.classifier_document_repository import fetch_documents
+from simcc.v3.repositories.classifier_document_repository import fetch_documents
 
 logger = logging.getLogger(__name__)
 

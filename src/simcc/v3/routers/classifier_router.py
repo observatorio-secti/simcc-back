@@ -12,11 +12,11 @@ from typing import AsyncIterator
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 
-from simcc.ai.dependencies import get_llm_provider
+from simcc.v1.ai.dependencies import get_llm_provider
 from simcc.core.dependencies import get_settings
 from simcc.core.settings import Settings
-from simcc.repositories import classifier_document_repository
-from simcc.services import (
+from simcc.v3.repositories import classifier_document_repository
+from simcc.v3.services import (
     classifier_pipeline_service,
     classifier_taxonomy_service,
     classifier_trace_service,

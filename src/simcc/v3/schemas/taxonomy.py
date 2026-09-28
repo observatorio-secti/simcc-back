@@ -1,5 +1,5 @@
 """
-schemas_classifier/taxonomy.py — Schemas Pydantic para os endpoints de taxonomia.
+v3/schemas/taxonomy.py — Schemas Pydantic para os endpoints de taxonomia.
 """
 from __future__ import annotations
 

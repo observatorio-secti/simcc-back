@@ -1,5 +1,5 @@
 """
-schemas_classifier/pipeline.py — Schemas Pydantic para os endpoints do pipeline.
+v3/schemas/pipeline.py — Schemas Pydantic para os endpoints do pipeline.
 """
 from __future__ import annotations
 
