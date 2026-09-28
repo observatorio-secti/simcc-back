@@ -38,18 +38,21 @@ services:
     env_file:
       - .env
     environment:
-      URL: ${URL}
+      URL: ${URL:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       CORS_ALLOW_ORIGINS: '["*"]'
-      ALTERNATIVE_CNPQ_SERVICE: ${ALTERNATIVE_CNPQ_SERVICE}
+      ALTERNATIVE_CNPQ_SERVICE: ${ALTERNATIVE_CNPQ_SERVICE:-false}
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/${COMPOSE_PROJECT_NAME}
       ADMIN_DATABASE_URL: postgresql+asyncpg://postgres:postgres@simcc-admin-db:5432/${COMPOSE_PROJECT_NAME}_admin
       REDIS_URL: redis://redis:6379/0
+      CLASSIFIER_DATABASE_URL: postgresql://postgres:postgres@db:5432/simcc
       OTEL_ENABLED: "true"
       OTEL_EXPORTER_TYPE: "none"
     volumes:
+      - ./src:/app/src
       - xml:/app/storage/xml
       - logs:/app/logs
+      - ../prototipo-classificador-pesquisadores/data:/app/classifier_seed:ro
     restart: always
     depends_on:
       db:
@@ -77,4 +80,3 @@ volumes:
   xml:
   logs:
   redis_data:
-

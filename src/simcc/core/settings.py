@@ -16,6 +16,29 @@ class Settings(BaseSettings, extra='ignore'):
     ADMIN_URL: str = 'http://localhost:0000/'
     URL: str = 'http://localhost:0000/'
     OPENAI_API_KEY: Optional[str] = None
+    # Banco isolado usado somente pelos endpoints do classificador.  Mantém o
+    # banco principal do SIMCC livre de alterações durante a migração.
+    CLASSIFIER_DATABASE_URL: Optional[str] = None
+    CLASSIFIER_DATA_DIR: str = 'storage'
+    classifier_taxonomies_dir_setting: Optional[str] = None
+    classifier_processed_dir_setting: Optional[str] = None
+    # Mesmos pesos do antigo SentenceTransformer, servidos agora por ONNX (FastEmbed).
+    embedding_model: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    openai_model: str = "gpt-4o-mini"
+
+    @property
+    def taxonomies_dir(self):
+        from pathlib import Path
+        p = Path(self.classifier_taxonomies_dir_setting or "/tmp/taxonomies")
+        p.mkdir(parents=True, exist_ok=True)
+        return p
+
+    @property
+    def processed_dir(self):
+        from pathlib import Path
+        p = Path(self.classifier_processed_dir_setting or "/tmp/processed")
+        p.mkdir(parents=True, exist_ok=True)
+        return p
     FIREBASE_COLLECTION: str = 'termos_busca'
     INTERNAL_API_KEY: Optional[str] = None
     LOG_STREAM_TOKEN: Optional[str] = None
