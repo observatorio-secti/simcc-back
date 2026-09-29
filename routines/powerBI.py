@@ -10,6 +10,33 @@ from simcc.repositories import conn, conn_admin
 PATH = 'storage/powerBI'
 
 
+def get_quadrennial(dt_or_year):
+    if dt_or_year is None or pd.isna(dt_or_year):
+        return None
+    try:
+        if isinstance(dt_or_year, (int, float)):
+            y = int(dt_or_year)
+        else:
+            y = pd.to_datetime(dt_or_year).year
+    except Exception:
+        try:
+            y = int(str(dt_or_year)[:4])
+        except Exception:
+            return None
+
+    if 2009 <= y <= 2012:
+        return '2009-2012'
+    elif 2013 <= y <= 2016:
+        return '2013-2016'
+    elif 2017 <= y <= 2020:
+        return '2017-2020'
+    elif 2021 <= y <= 2024:
+        return '2021-2024'
+    elif 2025 <= y <= 2028:
+        return '2025-2028'
+    return None
+
+
 def dim_titulacao():
     print('Dimensão da Tabela Titulação!')
 
@@ -231,7 +258,7 @@ def cimatec_graduate_program_student():
         """
     students_admin = pd.DataFrame(conn_admin.select(SCRIPT_SQL))
     if students_admin.empty:
-        csv = pd.DataFrame(columns=['researcher_id', 'graduate_program_id', 'year'])
+        csv = pd.DataFrame(columns=['researcher_id', 'graduate_program_id', 'year', 'quadrennial'])
     else:
         researchers_simcc = pd.DataFrame(
             conn.select('SELECT id AS researcher_id, lattes_id FROM researcher')
@@ -241,6 +268,7 @@ def cimatec_graduate_program_student():
         # Expande o array de anos: cada discente-ano vira uma linha separada
         csv = csv.explode('year').dropna(subset=['year'])
         csv['year'] = csv['year'].astype(int)
+        csv['quadrennial'] = csv['year'].apply(get_quadrennial)
 
     csv_path = os.path.join(PATH, 'cimatec_graduate_program_student.csv')
     csv.to_csv(csv_path, index=False)
@@ -254,7 +282,7 @@ def graduate_program_student_year_unnest():
         """
     students_admin = pd.DataFrame(conn_admin.select(SCRIPT_SQL))
     if students_admin.empty:
-        csv = pd.DataFrame(columns=['graduate_program_id', 'researcher_id', 'year'])
+        csv = pd.DataFrame(columns=['graduate_program_id', 'researcher_id', 'year', 'quadrennial'])
     else:
         researchers_simcc = pd.DataFrame(
             conn.select('SELECT id AS researcher_id, lattes_id FROM researcher')
@@ -264,6 +292,7 @@ def graduate_program_student_year_unnest():
         # Expande o array de anos: cada discente-ano vira uma linha separada
         csv = csv.explode('year').dropna(subset=['year'])
         csv['year'] = csv['year'].astype(int)
+        csv['quadrennial'] = csv['year'].apply(get_quadrennial)
 
     csv_path = os.path.join(PATH, 'graduate_program_student_year_unnest.csv')
     csv.to_csv(csv_path, index=False)
@@ -1520,6 +1549,8 @@ def guidance():
     csv['peding_days'] = csv.apply(peding_days, axis=1)
     csv['peding'] = csv.apply(pending, axis=1)
     csv['type'] = csv.apply(type_, axis=1)
+    csv['entry_year'] = pd.to_datetime(csv['start_date']).dt.year
+    csv['entry_quadrennial'] = csv['start_date'].apply(get_quadrennial)
     csv['days_offset'] = csv.apply(
         lambda row: (
             (row['done_date_conclusion'] - row['start_date'])
@@ -1610,6 +1641,7 @@ def guidance_per_year():
     csv['status'] = csv.apply(status, axis=1)
     csv['status_'] = csv.apply(status_, axis=1)
     csv['year'] = csv.apply(year_, axis=1)
+    csv['quadrennial'] = csv['year'].apply(get_quadrennial)
     csv['in_progress'] = csv.apply(graph, axis=1)
     csv = csv.sort_values(by='student_name')
     columns = [
@@ -1624,6 +1656,7 @@ def guidance_per_year():
         'type',
         'status_',
         'year',
+        'quadrennial',
         'in_progress',
     ]
     csv_path = os.path.join(PATH, 'guidance_per_year.csv')
