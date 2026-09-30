@@ -68,7 +68,8 @@ class BibliographicProductionArticle:
         init=False,
     )
     bibliographic_production_id: Mapped[UUID] = mapped_column(
-        ForeignKey('bibliographic_production.id')
+        ForeignKey('bibliographic_production.id'),
+        unique=True,
     )
     periodical_magazine_id: Mapped[UUID] = mapped_column(
         ForeignKey('periodical_magazine.id')
@@ -103,7 +104,8 @@ class BibliographicProductionBook:
         init=False,
     )
     bibliographic_production_id: Mapped[UUID] = mapped_column(
-        ForeignKey('bibliographic_production.id')
+        ForeignKey('bibliographic_production.id'),
+        unique=True,
     )
     isbn: Mapped[Optional[str]] = mapped_column(String, default=None)
     qtt_volume: Mapped[Optional[str]] = mapped_column(String, default=None)
@@ -132,7 +134,8 @@ class BibliographicProductionBookChapter:
         init=False,
     )
     bibliographic_production_id: Mapped[UUID] = mapped_column(
-        ForeignKey('bibliographic_production.id')
+        ForeignKey('bibliographic_production.id'),
+        unique=True,
     )
     book_title: Mapped[Optional[str]] = mapped_column(String, default=None)
     isbn: Mapped[Optional[str]] = mapped_column(String, default=None)
