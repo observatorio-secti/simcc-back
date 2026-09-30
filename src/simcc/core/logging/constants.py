@@ -16,6 +16,7 @@ class LogEvent(str, Enum):
     HTTP_ERROR = 'request.error'
 
     DB_ERROR = 'query.error'
+    DB_SLOW_QUERY = 'query.slow'
 
     ROUTINE_STARTED = 'routine.started'
     ROUTINE_FINISHED = 'routine.finished'
@@ -32,3 +33,7 @@ class LogEvent(str, Enum):
     SCRIPT_STEP_FINISHED = 'script.step.finished'
     SCRIPT_PROGRESS = 'script.progress'
     SCRIPT_ITEM_ERROR = 'script.item_error'
+
+
+# Limiar padrão em milissegundos para classificação de queries lentas
+SLOW_QUERY_THRESHOLD_MS: float = 1000.0

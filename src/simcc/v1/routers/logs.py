@@ -50,7 +50,9 @@ async def stream_logs(websocket: WebSocket):
 
     token = websocket.query_params.get('token')
     expected_token = (
-        getattr(settings, 'LOG_WEBSOCKET_TOKEN', None) or FALLBACK_TOKEN
+        getattr(settings, 'LOG_STREAM_TOKEN', None)
+        or getattr(settings, 'LOG_WEBSOCKET_TOKEN', None)
+        or FALLBACK_TOKEN
     )
     if not token or token != expected_token:
         await websocket.close(code=4003)

@@ -53,17 +53,8 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 route=request.url.path,
                 duration=duration_ms,
                 user_id=user_id or user_id_ctx.get(),
+                status_code=response.status_code,
             )
-
-            try:
-                record_http_duration(
-                    method=request.method,
-                    route=request.url.path,
-                    status_code=response.status_code,
-                    duration_ms=duration_ms,
-                )
-            except Exception:
-                pass
 
             # Inject X-Request-ID to response headers
             response.headers['x-request-id'] = request_id
@@ -80,6 +71,7 @@ class LoggingMiddleware(BaseHTTPMiddleware):
                 duration=duration_ms,
                 error=str(e),
                 user_id=user_id or user_id_ctx.get(),
+                status_code=500,
             )
             raise e
         finally:

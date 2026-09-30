@@ -1944,10 +1944,19 @@ async def fat_logs_http(session):
     for entry in logs:
         if entry.get('category') == 'http':
             data_dict = entry.get('data') or {}
+            raw_status = data_dict.get('status_code')
+            status_code = None
+            if raw_status is not None:
+                try:
+                    status_code = int(raw_status)
+                except (ValueError, TypeError):
+                    status_code = None
+
             rows.append({
                 'log_id': entry.get('log_id'),
                 'route': data_dict.get('route'),
                 'method': data_dict.get('method'),
+                'status_code': status_code,
                 'user_id': data_dict.get('user_id'),
                 'error_message': data_dict.get('error_message'),
             })
@@ -1956,6 +1965,7 @@ async def fat_logs_http(session):
         'log_id': pl.Utf8,
         'route': pl.Utf8,
         'method': pl.Utf8,
+        'status_code': pl.Int64,
         'user_id': pl.Utf8,
         'error_message': pl.Utf8,
     }

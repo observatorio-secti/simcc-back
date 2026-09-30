@@ -120,6 +120,7 @@ def format_schema_processor(logger, method_name, event_dict):
             'route': ctx.get('route'),
             'method': ctx.get('method'),
             'user_id': ctx.get('user_id'),
+            'status_code': None,
             'error_message': None,
         }
     elif category == 'database':
@@ -231,7 +232,8 @@ import time
 
 from sqlalchemy import event
 
-from simcc.core.logging.events import query_error
+from simcc.core.logging.constants import SLOW_QUERY_THRESHOLD_MS
+from simcc.core.logging.events import query_error, query_slow
 
 
 def get_logical_operation_name() -> str:
@@ -274,6 +276,27 @@ def register_db_logging(engine: Any) -> None:
     ):
         if context:
             context._query_start_time = time.perf_counter()
+
+    @event.listens_for(target_engine, 'after_cursor_execute')
+    def after_cursor_execute(
+        conn, cursor, statement, parameters, context, executemany
+    ):
+        if context and hasattr(context, '_query_start_time'):
+            duration = (time.perf_counter() - context._query_start_time) * 1000.0
+            if duration >= SLOW_QUERY_THRESHOLD_MS:
+                engine_obj = conn.engine
+                db_name = (
+                    engine_obj.url.database
+                    if engine_obj and engine_obj.url
+                    else 'unknown'
+                )
+                op_name = get_logical_operation_name()
+                query_slow(
+                    operation_name=op_name,
+                    database_name=db_name or 'unknown',
+                    duration=duration,
+                    sql=statement,
+                )
 
     @event.listens_for(target_engine, 'handle_error')
     def handle_exception(exception_context):

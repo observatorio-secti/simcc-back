@@ -23,10 +23,26 @@ def request_received(
 
 
 def request_finished(
-    method: str, route: str, duration: float, user_id: Any = None, **kwargs
+    method: str,
+    route: str,
+    duration: float,
+    user_id: Any = None,
+    status_code: Optional[int] = None,
+    **kwargs,
 ) -> None:
     message = f'Request finished: {method} {route}'
-    logger.info(
+    if status_code is not None:
+        message += f' [{status_code}]'
+
+    # Se status for 4xx tratamos como warning, 5xx como error, demais como info
+    if status_code and status_code >= 500:
+        log_func = logger.error
+    elif status_code and status_code >= 400:
+        log_func = logger.warning
+    else:
+        log_func = logger.info
+
+    log_func(
         LogEvent.HTTP_FINISHED,
         message=message,
         category=LogCategory.HTTP,
@@ -34,6 +50,7 @@ def request_finished(
         route=route,
         duration=duration,
         user_id=user_id,
+        status_code=status_code,
         **kwargs,
     )
 
@@ -44,9 +61,13 @@ def request_error(
     duration: float,
     error: str,
     user_id: Any = None,
+    status_code: Optional[int] = 500,
     **kwargs,
 ) -> None:
     message = f'Request error: {method} {route} - {error}'
+    if status_code is not None:
+        message += f' [{status_code}]'
+
     logger.error(
         LogEvent.HTTP_ERROR,
         message=message,
@@ -56,6 +77,7 @@ def request_error(
         duration=duration,
         error_message=error,
         user_id=user_id,
+        status_code=status_code,
         **kwargs,
     )
 
@@ -282,6 +304,39 @@ def query_error(
 
     logger.error(
         LogEvent.DB_ERROR,
+        message=message,
+        category=LogCategory.DATABASE,
+        duration=duration,
+        data=log_data,
+        **kwargs,
+    )
+
+
+def query_slow(
+    operation_name: str,
+    database_name: str,
+    duration: float,
+    sql: Optional[str] = None,
+    **kwargs,
+) -> None:
+    message = (
+        f'Database slow query in operation: {operation_name} '
+        f'on db: {database_name} ({duration:.2f}ms)'
+    )
+
+    from simcc.core.logging.config import get_configured_log_level
+
+    log_data = {
+        'operation_name': operation_name,
+        'database_name': database_name,
+        'duration': duration,
+    }
+
+    if get_configured_log_level() <= logging.DEBUG and sql:
+        log_data['sql'] = sql
+
+    logger.warning(
+        LogEvent.DB_SLOW_QUERY,
         message=message,
         category=LogCategory.DATABASE,
         duration=duration,
