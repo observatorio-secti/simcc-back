@@ -1,8 +1,15 @@
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 from uuid import UUID
 
 from fastapi import HTTPException, Query, Request, status
-from pydantic import BaseModel, Field, model_validator
+from fastapi.encoders import jsonable_encoder
+from pydantic import (
+    BaseModel,
+    Field,
+    ValidationError,
+    field_validator,
+    model_validator,
+)
 
 from simcc.v2.schemas.params import PaginationParams, SearchOptions, SortParams
 
@@ -20,7 +27,17 @@ class BaseTemporalFilter(BaseFilter):
     )
 
 
-SourceType = Literal['ARTICLE', 'BOOK', 'BOOK_CHAPTER', 'PATENT', 'SOFTWARE']
+SourceType = Literal[
+    'ARTICLE',
+    'BOOK',
+    'BOOK_CHAPTER',
+    'PATENT',
+    'SOFTWARE',
+    'PARTICIPATION_EVENT',
+    'AREA_SPECIALTY',
+    'EVENT',
+    'AREA',
+]
 Classification = Literal['A+', 'A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'E+', 'E']
 
 
@@ -67,6 +84,19 @@ class ResearcherFilter(BaseTemporalFilter):
             'desses tipos'
         ),
     )
+
+    @field_validator('source_type', mode='before')
+    @classmethod
+    def _normalize_source_type(cls, v: Any) -> Any:
+        aliases = {
+            'EVENT': 'PARTICIPATION_EVENT',
+            'AREA': 'AREA_SPECIALTY',
+        }
+        if isinstance(v, (list, tuple, set)):
+            return [aliases.get(item, item) for item in v if item]
+        if isinstance(v, str):
+            return [aliases.get(v, v)]
+        return v
 
     @model_validator(mode='after')
     def validate_year_range(self) -> 'ResearcherFilter':

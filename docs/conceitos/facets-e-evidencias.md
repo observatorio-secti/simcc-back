@@ -49,7 +49,7 @@ Cada facet é calculado com todos os filtros da requisição, **exceto o do pró
 | `identity_territory` | `identity_territory` | texto | Território de identidade de cada vínculo. |
 | `graduation` | `graduation` | texto | Maior titulação. |
 | `classification` | `classification` | `A+` … `E` | |
-| `source_type` | `source_type` | `ARTICLE`, `BOOK`, `BOOK_CHAPTER`, `PATENT`, `SOFTWARE` | Pesquisadores por tipo de obra que conta para a busca (casa com `q` e está no intervalo de anos). Funciona com ou sem `q`. |
+| `source_type` | `source_type` | `ARTICLE`, `BOOK`, `BOOK_CHAPTER`, `PATENT`, `SOFTWARE`, `PARTICIPATION_EVENT`, `AREA_SPECIALTY` | Pesquisadores por tipo de obra que conta para a busca (casa com `q` e está no intervalo de anos). Funciona com ou sem `q`. |
 | `year` | `year_start` / `year_end` | ano | Com `q` ou `source_type`, conta os anos das obras que contam para a busca; sem eles, os anos de qualquer produção. Não tem `selected` (é um intervalo). |
 
 ### Formato da resposta

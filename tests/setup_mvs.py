@@ -138,6 +138,60 @@ SETUP_MVS_STATEMENTS = [
         'ON mv_search_software USING GIN (search_vector);'
     ),
     """
+    CREATE MATERIALIZED VIEW IF NOT EXISTS mv_search_events AS
+    SELECT
+        pe.researcher_id,
+        pe.id AS source_id,
+        'PARTICIPATION_EVENT'::text AS source_type,
+        coalesce(pe.event_name, pe.title, '') AS title,
+        pe.year AS year_,
+        NULL::text AS abstract,
+        (
+            setweight(to_tsvector('pt_unaccent', coalesce(pe.event_name, '')), 'B')
+            || setweight(to_tsvector('pt_unaccent', coalesce(pe.title, '')), 'C')
+        ) AS search_vector
+    FROM participation_events pe;
+    """,
+    (
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_search_events_pk '
+        'ON mv_search_events (source_id);'
+    ),
+    (
+        'CREATE INDEX IF NOT EXISTS idx_mv_search_events_researcher '
+        'ON mv_search_events (researcher_id);'
+    ),
+    (
+        'CREATE INDEX IF NOT EXISTS idx_mv_search_events_vector '
+        'ON mv_search_events USING GIN (search_vector);'
+    ),
+    """
+    CREATE MATERIALIZED VIEW IF NOT EXISTS mv_search_areas AS
+    SELECT
+        rae.researcher_id,
+        rae.id AS source_id,
+        'AREA_SPECIALTY'::text AS source_type,
+        replace(coalesce(asp.name, ''), '_', ' ') AS title,
+        NULL::integer AS year_,
+        NULL::text AS abstract,
+        setweight(
+            to_tsvector('pt_unaccent', replace(coalesce(asp.name, ''), '_', ' ')), 'A'
+        ) AS search_vector
+    FROM researcher_area_expertise rae
+    JOIN area_specialty asp ON asp.id = rae.area_specialty_id;
+    """,
+    (
+        'CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_search_areas_pk '
+        'ON mv_search_areas (source_id);'
+    ),
+    (
+        'CREATE INDEX IF NOT EXISTS idx_mv_search_areas_researcher '
+        'ON mv_search_areas (researcher_id);'
+    ),
+    (
+        'CREATE INDEX IF NOT EXISTS idx_mv_search_areas_vector '
+        'ON mv_search_areas USING GIN (search_vector);'
+    ),
+    """
     CREATE MATERIALIZED VIEW IF NOT EXISTS mv_search_documents AS
     SELECT researcher_id, source_id, source_type, title, year_, search_vector
     FROM mv_search_articles
@@ -149,7 +203,13 @@ SETUP_MVS_STATEMENTS = [
     FROM mv_search_patents
     UNION ALL
     SELECT researcher_id, source_id, source_type, title, year_, search_vector
-    FROM mv_search_software;
+    FROM mv_search_software
+    UNION ALL
+    SELECT researcher_id, source_id, source_type, title, year_, search_vector
+    FROM mv_search_events
+    UNION ALL
+    SELECT researcher_id, source_id, source_type, title, year_, search_vector
+    FROM mv_search_areas;
     """,
     (
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_search_docs_pk '
@@ -264,6 +324,8 @@ TEARDOWN_MVS_STATEMENTS = [
     'DROP TABLE IF EXISTS mv_refresh_metadata CASCADE;',
     'DROP MATERIALIZED VIEW IF EXISTS mv_researcher_search CASCADE;',
     'DROP MATERIALIZED VIEW IF EXISTS mv_search_documents CASCADE;',
+    'DROP MATERIALIZED VIEW IF EXISTS mv_search_areas CASCADE;',
+    'DROP MATERIALIZED VIEW IF EXISTS mv_search_events CASCADE;',
     'DROP MATERIALIZED VIEW IF EXISTS mv_search_software CASCADE;',
     'DROP MATERIALIZED VIEW IF EXISTS mv_search_patents CASCADE;',
     'DROP MATERIALIZED VIEW IF EXISTS mv_search_books CASCADE;',

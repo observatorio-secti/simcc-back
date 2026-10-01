@@ -3,24 +3,39 @@ import uuid
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from simcc.core.db.models.expertise import (
+    AreaExpertise,
+    AreaSpecialty,
+    SubAreaExpertise,
+)
 from simcc.core.db.models.institution import PeriodicalMagazine
 from simcc.core.db.models.openalex import OpenAlexArticle
 from simcc.core.db.models.production import (
     BibliographicProduction,
     BibliographicProductionArticle,
+    ParticipationEvents,
     Software,
 )
+from simcc.core.db.models.researcher import ResearcherAreaExpertise
 
 
 @pytest_asyncio.fixture
 def production_factory(session: AsyncSession, refresh_mvs):
-    """Cria uma produção genérica (ex: livro, software, artigo) e
+    """Cria uma produção genérica (ex: livro, software, artigo, evento) e
     atualiza as MVs."""
 
     async def _create(researcher, title, type_='ARTICLE', year=2022, **kwargs):
         if type_ == 'SOFTWARE':
             production = Software(
                 researcher_id=researcher.id, title=title, year=year, **kwargs
+            )
+        elif type_ in ('PARTICIPATION_EVENT', 'EVENT'):
+            production = ParticipationEvents(
+                researcher_id=researcher.id,
+                event_name=title,
+                title=kwargs.pop('event_title', None),
+                year=year,
+                **kwargs,
             )
         else:
             production = BibliographicProduction(
@@ -35,6 +50,40 @@ def production_factory(session: AsyncSession, refresh_mvs):
         await session.commit()
         await refresh_mvs()
         return production
+
+    return _create
+
+
+@pytest_asyncio.fixture
+def area_specialty_factory(session: AsyncSession, refresh_mvs):
+    """Cria uma especialidade de área vinculada ao pesquisador."""
+
+    async def _create(researcher, name='Inteligência Artificial'):
+        area_exp = AreaExpertise(name='Ciência da Computação')
+        session.add(area_exp)
+        await session.flush()
+
+        sub = SubAreaExpertise(
+            name='Metodologia e Técnicas da Computação',
+            area_expertise_id=area_exp.id,
+        )
+        session.add(sub)
+        await session.flush()
+
+        area = AreaSpecialty(name=name, sub_area_expertise_id=sub.id)
+        session.add(area)
+        await session.flush()
+
+        link = ResearcherAreaExpertise(
+            researcher_id=researcher.id,
+            sub_area_expertise_id=sub.id,
+            area_specialty_id=area.id,
+            area_expertise_id=area_exp.id,
+        )
+        session.add(link)
+        await session.commit()
+        await refresh_mvs()
+        return area
 
     return _create
 

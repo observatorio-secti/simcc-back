@@ -202,6 +202,73 @@ async def test_source_type_invalid_value_is_rejected(client):
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
+@pytest.mark.asyncio
+async def test_source_type_participation_event(
+    client, researcher_factory, production_factory
+):
+    event_author = await researcher_factory(name='Palestrante Evento')
+    other_author = await researcher_factory(name='Outro Autor')
+    await production_factory(
+        event_author,
+        'Congresso Brasileiro de Inteligência Artificial',
+        type_='PARTICIPATION_EVENT',
+        year=2023,
+    )
+    await production_factory(
+        other_author,
+        'Artigo sobre Redes',
+        type_='ARTICLE',
+        year=2023,
+    )
+
+    # 1. Filtro sem busca textual
+    resp_type = client.get('/v2/researcher?source_type=PARTICIPATION_EVENT')
+    assert _names(resp_type) == {'Palestrante Evento'}
+
+    # 2. Busca textual com matches e facet
+    resp_q = client.get(
+        '/v2/researcher?q=Inteligencia&source_type=PARTICIPATION_EVENT'
+        '&facets=source_type&include=matches'
+    )
+    assert _names(resp_q) == {'Palestrante Evento'}
+    matches = resp_q.json()['data'][0]['matches']
+    assert matches['by_type'] == {'PARTICIPATION_EVENT': 1}
+    assert matches['items'][0]['source_type'] == 'PARTICIPATION_EVENT'
+    assert 'Congresso' in matches['items'][0]['title']
+
+    # 3. Alias EVENT funciona igualmente
+    resp_alias = client.get('/v2/researcher?source_type=EVENT')
+    assert _names(resp_alias) == {'Palestrante Evento'}
+
+
+@pytest.mark.asyncio
+async def test_source_type_area_specialty(
+    client, researcher_factory, area_specialty_factory
+):
+    area_author = await researcher_factory(name='Especialista IA')
+    await researcher_factory(name='Outro Pesquisador')
+    await area_specialty_factory(area_author, name='Inteligencia Artificial')
+
+    # 1. Filtro sem busca textual
+    resp_type = client.get('/v2/researcher?source_type=AREA_SPECIALTY')
+    assert _names(resp_type) == {'Especialista IA'}
+
+    # 2. Busca textual com matches e facet
+    resp_q = client.get(
+        '/v2/researcher?q=Artificial&source_type=AREA_SPECIALTY'
+        '&facets=source_type&include=matches'
+    )
+    assert _names(resp_q) == {'Especialista IA'}
+    matches = resp_q.json()['data'][0]['matches']
+    assert matches['by_type'] == {'AREA_SPECIALTY': 1}
+    assert matches['items'][0]['source_type'] == 'AREA_SPECIALTY'
+    assert 'Artificial' in matches['items'][0]['title']
+
+    # 3. Alias AREA funciona igualmente
+    resp_alias = client.get('/v2/researcher?source_type=AREA')
+    assert _names(resp_alias) == {'Especialista IA'}
+
+
 # --- correções de consistência --------------------------------------------
 
 

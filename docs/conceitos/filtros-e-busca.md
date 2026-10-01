@@ -17,7 +17,7 @@ Todos os endpoints de busca de pesquisadores e catálogos seguem a mesma conven�
 | `identity_territory` | Lista de textos | `?identity_territory=Sisal` | Território de identidade de algum vínculo do pesquisador. |
 | `graduation` | Lista de textos | `?graduation=Doutorado&graduation=Mestrado` | Maior titulação. |
 | `classification` | Lista (`A+`, `A`, `B+`, `B`, `C+`, `C`, `D+`, `D`, `E+`, `E`) | `?classification=A%2B` | Classificação do pesquisador. Valores fora da lista retornam 422. Na URL, `+` deve ser codificado como `%2B`. |
-| `source_type` | Lista (`ARTICLE`, `BOOK`, `BOOK_CHAPTER`, `PATENT`, `SOFTWARE`) | `?source_type=ARTICLE` | Tipos de obra considerados. Veja [Tipos de obra](#tipos-de-obra-source_type). |
+| `source_type` | Lista (`ARTICLE`, `BOOK`, `BOOK_CHAPTER`, `PATENT`, `SOFTWARE`, `PARTICIPATION_EVENT`, `AREA_SPECIALTY`) | `?source_type=ARTICLE` | Tipos de obra considerados. Veja [Tipos de obra](#tipos-de-obra-source_type). |
 | `year_start` | Número inteiro | `?year_start=2018` | Ano inicial do intervalo de produção. |
 | `year_end` | Número inteiro | `?year_end=2024` | Ano final do intervalo de produção. Deve ser maior ou igual a `year_start`. |
 | `page` | Número inteiro | `?page=1` | Número da página solicitada (mínimo 1, padrão 1). |

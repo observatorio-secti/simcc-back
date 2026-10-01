@@ -18,6 +18,8 @@ SEARCH_MATERIALIZED_VIEWS = [
     'mv_search_books',
     'mv_search_patents',
     'mv_search_software',
+    'mv_search_events',
+    'mv_search_areas',
     # Camada 1 consolidada: UNION ALL das visões por fonte
     'mv_search_documents',
     # Camada 2: Visão agregada consolidada

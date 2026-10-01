@@ -12,6 +12,8 @@ SEARCH_MATERIALIZED_VIEWS = [
     'mv_search_books',
     'mv_search_patents',
     'mv_search_software',
+    'mv_search_events',
+    'mv_search_areas',
     'mv_search_documents',
     'mv_researcher_search',
 ]

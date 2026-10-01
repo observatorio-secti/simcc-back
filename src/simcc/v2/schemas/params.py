@@ -1,9 +1,11 @@
 from typing import Any, Literal, Optional
 
-from fastapi import Query
+from fastapi import HTTPException, Query, status
+from fastapi.encoders import jsonable_encoder
 from pydantic import (
     BaseModel,
     Field,
+    ValidationError,
     field_validator,
     model_validator,
 )
