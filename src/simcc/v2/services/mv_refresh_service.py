@@ -17,6 +17,11 @@ SEARCH_MATERIALIZED_VIEWS = [
     'mv_search_documents',
     'mv_researcher_search',
     'mv_canonical_articles',
+    'mv_canonical_books',
+    'mv_canonical_book_chapters',
+    'mv_canonical_software',
+    'mv_canonical_patents',
+    'mv_canonical_events',
 ]
 
 

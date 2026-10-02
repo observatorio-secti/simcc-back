@@ -9,7 +9,16 @@ from simcc.core.dependencies import get_settings
 from simcc.core.settings import Settings
 from simcc.v2.schemas.filters import ResearcherFilter
 from simcc.v2.schemas.params import PaginationParams, SearchOptions, SortParams
-from simcc.v2.schemas.production import ArticleFilter, ArticleSort
+from simcc.v2.schemas.production import (
+    ArticleFilter,
+    ArticleSort,
+    BookChapterFilter,
+    BookFilter,
+    EventFilter,
+    PatentFilter,
+    ProductionSort,
+    SoftwareFilter,
+)
 from simcc.v2.schemas.query import as_query
 from simcc.v2.services.search_cache import SearchCache
 
@@ -38,3 +47,16 @@ SortDep = Annotated[SortParams, Depends(as_query(SortParams))]
 SearchOptionsDep = Annotated[SearchOptions, Depends(as_query(SearchOptions))]
 ArticleFilterDep = Annotated[ArticleFilter, Depends(as_query(ArticleFilter))]
 ArticleSortDep = Annotated[ArticleSort, Depends(as_query(ArticleSort))]
+
+BookFilterDep = Annotated[BookFilter, Depends(as_query(BookFilter))]
+BookChapterFilterDep = Annotated[
+    BookChapterFilter, Depends(as_query(BookChapterFilter))
+]
+SoftwareFilterDep = Annotated[
+    SoftwareFilter, Depends(as_query(SoftwareFilter))
+]
+PatentFilterDep = Annotated[PatentFilter, Depends(as_query(PatentFilter))]
+EventFilterDep = Annotated[EventFilter, Depends(as_query(EventFilter))]
+ProductionSortDep = Annotated[
+    ProductionSort, Depends(as_query(ProductionSort))
+]

@@ -1,5 +1,6 @@
-"""Schemas V2 para produções científicas (Artigos e demais produções)."""
+"""Schemas V2 para produções científicas (Artigos, Livros, etc.)."""
 
+from datetime import datetime
 from typing import Literal, Optional
 from uuid import UUID
 
@@ -7,6 +8,9 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from simcc.v2.schemas.params import Pagination
 from simcc.v2.schemas.researcher import Meta
+
+MIN_VALID_YEAR = 1900
+MAX_VALID_YEAR = 2100
 
 
 class ResearcherRef(BaseModel):
@@ -33,10 +37,6 @@ class ArticleRef(BaseModel):
     title: str = Field(description='Título do artigo')
     year: Optional[int] = Field(None, description='Ano de publicação')
     doi: Optional[str] = Field(None, description='DOI do artigo')
-
-
-MIN_VALID_YEAR = 1900
-MAX_VALID_YEAR = 2100
 
 
 class ArticleMatch(BaseModel):
@@ -96,19 +96,15 @@ class ArticleDetail(ArticleSummary):
     )
 
 
-class ArticleFilter(BaseModel):
-    """Filtros para busca e listagem de artigos."""
+class ProductionBaseFilter(BaseModel):
+    """Filtros base compartilhados entre produções."""
 
     q: Optional[str] = Field(None, description='Termo para busca textual')
     year_start: Optional[int] = Field(
-        None, description='Ano inicial de publicação'
+        None, description='Ano inicial'
     )
     year_end: Optional[int] = Field(
-        None, description='Ano final de publicação'
-    )
-    qualis: list[str] = Field(
-        default_factory=list,
-        description='Classificação Qualis (ex: A1, A2, B1)',
+        None, description='Ano final'
     )
     researcher_id: list[UUID] = Field(
         default_factory=list,
@@ -122,9 +118,6 @@ class ArticleFilter(BaseModel):
         default_factory=list,
         description='Filtrar por IDs de programas de pós-graduação',
     )
-    has_open_access: Optional[bool] = Field(
-        None, description='Filtrar apenas artigos com PDF em acesso aberto'
-    )
 
     @field_validator('year_start', 'year_end')
     @classmethod
@@ -134,7 +127,7 @@ class ArticleFilter(BaseModel):
         return v
 
     @model_validator(mode='after')
-    def _validate_year_range(self) -> 'ArticleFilter':
+    def _validate_year_range(self) -> 'ProductionBaseFilter':
         if (
             self.year_start is not None
             and self.year_end is not None
@@ -144,10 +137,33 @@ class ArticleFilter(BaseModel):
         return self
 
 
+class ArticleFilter(ProductionBaseFilter):
+    """Filtros para busca e listagem de artigos."""
+
+    qualis: list[str] = Field(
+        default_factory=list,
+        description='Classificação Qualis (ex: A1, A2, B1)',
+    )
+    has_open_access: Optional[bool] = Field(
+        None, description='Filtrar apenas artigos com PDF em acesso aberto'
+    )
+
+
 class ArticleSort(BaseModel):
     """Critério e direção de ordenação para artigos."""
 
     by: Literal['relevance', 'year', 'citations', 'title'] = Field(
+        'relevance', description='Critério de ordenação'
+    )
+    order: Literal['asc', 'desc'] = Field(
+        'desc', description='Direção da ordenação'
+    )
+
+
+class ProductionSort(BaseModel):
+    """Critério e direção de ordenação padrão para produções."""
+
+    by: Literal['relevance', 'year', 'title'] = Field(
         'relevance', description='Critério de ordenação'
     )
     order: Literal['asc', 'desc'] = Field(
@@ -165,3 +181,211 @@ class ArticleSearchResponse(BaseModel):
     )
     sort: ArticleSort = Field(description='Critério e direção de ordenação')
     meta: Meta = Field(description='Metadados de performance e cache')
+
+
+# =========================================================================
+# 1. LIVROS
+# =========================================================================
+
+class BookSummary(BaseModel):
+    """Card resumido de livro."""
+
+    id: UUID = Field(description='ID canônico do livro')
+    title: str = Field(description='Título do livro')
+    year: Optional[int] = Field(None, description='Ano de publicação')
+    isbn: Optional[str] = Field(None, description='ISBN')
+    publishing_company: Optional[str] = Field(None, description='Editora')
+    platform_authors: list[ResearcherRef] = Field(
+        default_factory=list, description='Autores da plataforma'
+    )
+    matches: Optional[list[ArticleMatch]] = Field(None, description='Matches')
+
+
+class BookDetail(BookSummary):
+    """Dossiê detalhado de livro."""
+
+    doi: Optional[str] = Field(None, description='DOI')
+    publishing_company_city: Optional[str] = Field(None, description='Cidade')
+    all_authors_raw: Optional[str] = Field(None, description='Autores brutos')
+
+
+class BookFilter(ProductionBaseFilter):
+    """Filtros para busca de livros."""
+
+
+class BookSearchResponse(BaseModel):
+    """Resposta paginada da busca de livros."""
+
+    data: list[BookSummary]
+    pagination: Pagination
+    filters_applied: BookFilter
+    sort: ProductionSort
+    meta: Meta
+
+
+# =========================================================================
+# 2. CAPÍTULOS DE LIVROS
+# =========================================================================
+
+class BookChapterSummary(BaseModel):
+    """Card resumido de capítulo de livro."""
+
+    id: UUID = Field(description='ID canônico do capítulo')
+    title: str = Field(description='Título do capítulo')
+    book_title: Optional[str] = Field(None, description='Título do livro')
+    year: Optional[int] = Field(None, description='Ano de publicação')
+    isbn: Optional[str] = Field(None, description='ISBN')
+    publishing_company: Optional[str] = Field(None, description='Editora')
+    platform_authors: list[ResearcherRef] = Field(
+        default_factory=list, description='Autores da plataforma'
+    )
+    matches: Optional[list[ArticleMatch]] = Field(None, description='Matches')
+
+
+class BookChapterDetail(BookChapterSummary):
+    """Dossiê detalhado de capítulo de livro."""
+
+    doi: Optional[str] = Field(None, description='DOI')
+    organizers: Optional[str] = Field(None, description='Organizadores')
+    start_page: Optional[str] = Field(None, description='Página inicial')
+    end_page: Optional[str] = Field(None, description='Página final')
+    all_authors_raw: Optional[str] = Field(None, description='Autores brutos')
+
+
+class BookChapterFilter(ProductionBaseFilter):
+    """Filtros para busca de capítulos de livros."""
+
+
+class BookChapterSearchResponse(BaseModel):
+    """Resposta paginada da busca de capítulos."""
+
+    data: list[BookChapterSummary]
+    pagination: Pagination
+    filters_applied: BookChapterFilter
+    sort: ProductionSort
+    meta: Meta
+
+
+# =========================================================================
+# 3. SOFTWARES
+# =========================================================================
+
+class SoftwareSummary(BaseModel):
+    """Card resumido de software."""
+
+    id: UUID = Field(description='ID canônico do software')
+    title: str = Field(description='Título do software')
+    year: Optional[int] = Field(None, description='Ano de desenvolvimento')
+    platform: Optional[str] = Field(None, description='Plataforma')
+    environment: Optional[str] = Field(None, description='Ambiente')
+    code: Optional[str] = Field(None, description='Código do registro')
+    platform_authors: list[ResearcherRef] = Field(
+        default_factory=list, description='Desenvolvedores da plataforma'
+    )
+    matches: Optional[list[ArticleMatch]] = Field(None, description='Matches')
+
+
+class SoftwareDetail(SoftwareSummary):
+    """Dossiê detalhado de software."""
+
+    availability: Optional[str] = Field(None, description='Disponibilidade')
+    financing: Optional[str] = Field(None, description='Financiamento')
+
+
+class SoftwareFilter(ProductionBaseFilter):
+    """Filtros para busca de softwares."""
+
+
+class SoftwareSearchResponse(BaseModel):
+    """Resposta paginada da busca de softwares."""
+
+    data: list[SoftwareSummary]
+    pagination: Pagination
+    filters_applied: SoftwareFilter
+    sort: ProductionSort
+    meta: Meta
+
+
+# =========================================================================
+# 4. PATENTES
+# =========================================================================
+
+class PatentSummary(BaseModel):
+    """Card resumido de patente."""
+
+    id: UUID = Field(description='ID canônico da patente')
+    title: str = Field(description='Título da patente')
+    year: Optional[int] = Field(None, description='Ano')
+    category: Optional[str] = Field(None, description='Categoria')
+    code: Optional[str] = Field(
+        None, description='Número do registro/depósito'
+    )
+    platform_authors: list[ResearcherRef] = Field(
+        default_factory=list, description='Inventores da plataforma'
+    )
+    matches: Optional[list[ArticleMatch]] = Field(None, description='Matches')
+
+
+class PatentDetail(PatentSummary):
+    """Dossiê detalhado de patente."""
+
+    grant_date: Optional[datetime] = Field(None, description='Data concessão')
+    deposit_date: Optional[str] = Field(None, description='Data depósito')
+    details: Optional[str] = Field(None, description='Detalhes')
+
+
+class PatentFilter(ProductionBaseFilter):
+    """Filtros para busca de patentes."""
+
+
+class PatentSearchResponse(BaseModel):
+    """Resposta paginada da busca de patentes."""
+
+    data: list[PatentSummary]
+    pagination: Pagination
+    filters_applied: PatentFilter
+    sort: ProductionSort
+    meta: Meta
+
+
+# =========================================================================
+# 5. PARTICIPAÇÃO EM EVENTOS
+# =========================================================================
+
+class EventSummary(BaseModel):
+    """Card resumido de participação em evento."""
+
+    id: UUID = Field(description='ID canônico da participação')
+    title: str = Field(description='Título do trabalho ou apresentação')
+    event_name: Optional[str] = Field(None, description='Nome do evento')
+    year: Optional[int] = Field(None, description='Ano do evento')
+    nature: Optional[str] = Field(None, description='Natureza do evento')
+    type_participation: Optional[str] = Field(
+        None, description='Tipo de participação'
+    )
+    platform_authors: list[ResearcherRef] = Field(
+        default_factory=list, description='Participantes da plataforma'
+    )
+    matches: Optional[list[ArticleMatch]] = Field(None, description='Matches')
+
+
+class EventDetail(EventSummary):
+    """Dossiê detalhado de participação em evento."""
+
+    form_participation: Optional[str] = Field(
+        None, description='Forma de participação'
+    )
+
+
+class EventFilter(ProductionBaseFilter):
+    """Filtros para busca de participação em eventos."""
+
+
+class EventSearchResponse(BaseModel):
+    """Resposta paginada da busca de eventos."""
+
+    data: list[EventSummary]
+    pagination: Pagination
+    filters_applied: EventFilter
+    sort: ProductionSort
+    meta: Meta
