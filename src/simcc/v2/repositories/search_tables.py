@@ -1,7 +1,16 @@
 """Definições de tabelas e visões materializadas para busca textual v2."""
 
-from sqlalchemy import Column, DateTime, Integer, MetaData, String, Table
-from sqlalchemy.dialects.postgresql import ARRAY, TSVECTOR
+from sqlalchemy import (
+    Boolean,
+    Column,
+    DateTime,
+    Integer,
+    MetaData,
+    String,
+    Table,
+    Text,
+)
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TSVECTOR
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 search_metadata = MetaData()
@@ -38,5 +47,35 @@ mv_search_documents = Table(
     Column('source_type', String, primary_key=True),
     Column('title', String, nullable=True),
     Column('year_', Integer, nullable=True),
+    Column('search_vector', TSVECTOR, nullable=True),
+)
+
+mv_canonical_articles = Table(
+    'mv_canonical_articles',
+    search_metadata,
+    Column('canonical_id', PG_UUID(as_uuid=True), primary_key=True),
+    Column('production_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=False),
+    Column('researcher_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=False),
+    Column('institution_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=True),
+    Column(
+        'graduate_program_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=True
+    ),
+    Column('platform_authors', JSONB, nullable=True),
+    Column('title', String, nullable=False),
+    Column('year', Integer, nullable=True),
+    Column('doi', String, nullable=True),
+    Column('qualis', String, nullable=True),
+    Column('jcr', String, nullable=True),
+    Column('magazine_name', String, nullable=True),
+    Column('issn', String, nullable=True),
+    Column('abstract', Text, nullable=True),
+    Column('citations_count', Integer, nullable=False, default=0),
+    Column('landing_page_url', Text, nullable=True),
+    Column('pdf_url', Text, nullable=True),
+    Column('keywords', Text, nullable=True),
+    Column('all_authors_raw', Text, nullable=True),
+    Column('language', String, nullable=True),
+    Column('has_abstract', Boolean, nullable=False),
+    Column('has_open_access_pdf', Boolean, nullable=False),
     Column('search_vector', TSVECTOR, nullable=True),
 )
