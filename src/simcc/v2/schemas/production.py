@@ -1,13 +1,13 @@
 """Schemas V2 para produções científicas (Artigos, Livros, etc.)."""
 
 from datetime import datetime
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from simcc.v2.schemas.params import Pagination
-from simcc.v2.schemas.researcher import Meta
+from simcc.v2.schemas.researcher import FacetResult, Meta
 
 MIN_VALID_YEAR = 1900
 MAX_VALID_YEAR = 2100
@@ -118,6 +118,20 @@ class ProductionBaseFilter(BaseModel):
         default_factory=list,
         description='Filtrar por IDs de programas de pós-graduação',
     )
+    city_id: list[UUID] = Field(
+        default_factory=list,
+        description='IDs das cidades de vínculo dos autores da plataforma',
+    )
+    identity_territory: list[str] = Field(
+        default_factory=list,
+        description=(
+            'Territórios de identidade dos vínculos dos autores da plataforma'
+        ),
+    )
+    area: list[str] = Field(
+        default_factory=list,
+        description='Grande Área do Conhecimento dos autores da plataforma',
+    )
 
     @field_validator('year_start', 'year_end')
     @classmethod
@@ -147,6 +161,14 @@ class ArticleFilter(ProductionBaseFilter):
     has_open_access: Optional[bool] = Field(
         None, description='Filtrar apenas artigos com PDF em acesso aberto'
     )
+    magazine_name: list[str] = Field(
+        default_factory=list,
+        description='Nome da revista/periódico',
+    )
+    issn: list[str] = Field(
+        default_factory=list,
+        description='ISSN do periódico',
+    )
 
 
 class ArticleSort(BaseModel):
@@ -171,6 +193,55 @@ class ProductionSort(BaseModel):
     )
 
 
+COMMON_PRODUCTION_FACETS = (
+    'institution',
+    'graduate_program',
+    'city',
+    'identity_territory',
+    'year',
+    'area',
+)
+
+
+class ProductionOptions(BaseModel):
+    """Opções opt-in das listagens de produção.
+
+    Os facets aceitos variam por tipo de produção (ver
+    `repositories/production_facets_repo.py`); a validação é feita no
+    serviço, que conhece o endpoint.
+    """
+
+    facets: list[str] = Field(
+        default=[],
+        description=(
+            'Lista de facets opt-in. Comuns: '
+            f'{", ".join(COMMON_PRODUCTION_FACETS)}. Cada tipo de produção '
+            'aceita também os facets dos seus filtros próprios'
+        ),
+    )
+    facet_limit: int = Field(
+        20,
+        ge=1,
+        le=100,
+        description='Número máximo de valores por facet',
+    )
+
+    @field_validator('facets', mode='before')
+    @classmethod
+    def _split_comma_separated(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            v = [v]
+        if not isinstance(v, (list, tuple, set)):
+            return []
+        return [
+            part.strip()
+            for item in v
+            if isinstance(item, str)
+            for part in item.split(',')
+            if part.strip()
+        ]
+
+
 class ArticleSearchResponse(BaseModel):
     """Resposta paginada da busca de artigos científicos."""
 
@@ -181,6 +252,9 @@ class ArticleSearchResponse(BaseModel):
     )
     sort: ArticleSort = Field(description='Critério e direção de ordenação')
     meta: Meta = Field(description='Metadados de performance e cache')
+    facets: Optional[dict[str, FacetResult]] = Field(
+        None, description='Facets solicitados em `facets`'
+    )
 
 
 # =========================================================================
@@ -221,6 +295,7 @@ class BookSearchResponse(BaseModel):
     filters_applied: BookFilter
     sort: ProductionSort
     meta: Meta
+    facets: Optional[dict[str, FacetResult]] = None
 
 
 # =========================================================================
@@ -264,6 +339,7 @@ class BookChapterSearchResponse(BaseModel):
     filters_applied: BookChapterFilter
     sort: ProductionSort
     meta: Meta
+    facets: Optional[dict[str, FacetResult]] = None
 
 
 # =========================================================================
@@ -304,6 +380,7 @@ class SoftwareSearchResponse(BaseModel):
     filters_applied: SoftwareFilter
     sort: ProductionSort
     meta: Meta
+    facets: Optional[dict[str, FacetResult]] = None
 
 
 # =========================================================================
@@ -337,6 +414,18 @@ class PatentDetail(PatentSummary):
 class PatentFilter(ProductionBaseFilter):
     """Filtros para busca de patentes."""
 
+    category: list[str] = Field(
+        default_factory=list,
+        description='Categoria da patente (ex.: Produto, Processo)',
+    )
+    granted: Optional[bool] = Field(
+        None,
+        description=(
+            'Apenas patentes concedidas (true) ou ainda não concedidas '
+            '(false)'
+        ),
+    )
+
 
 class PatentSearchResponse(BaseModel):
     """Resposta paginada da busca de patentes."""
@@ -346,6 +435,7 @@ class PatentSearchResponse(BaseModel):
     filters_applied: PatentFilter
     sort: ProductionSort
     meta: Meta
+    facets: Optional[dict[str, FacetResult]] = None
 
 
 # =========================================================================
@@ -356,7 +446,13 @@ class EventSummary(BaseModel):
     """Card resumido de participação em evento."""
 
     id: UUID = Field(description='ID canônico da participação')
-    title: str = Field(description='Título do trabalho ou apresentação')
+    title: Optional[str] = Field(
+        None,
+        description=(
+            'Título do trabalho ou apresentação (ausente quando a '
+            'participação não teve trabalho apresentado)'
+        ),
+    )
     event_name: Optional[str] = Field(None, description='Nome do evento')
     year: Optional[int] = Field(None, description='Ano do evento')
     nature: Optional[str] = Field(None, description='Natureza do evento')
@@ -380,6 +476,19 @@ class EventDetail(EventSummary):
 class EventFilter(ProductionBaseFilter):
     """Filtros para busca de participação em eventos."""
 
+    nature: list[str] = Field(
+        default_factory=list,
+        description='Natureza do evento (ex.: Congresso, Seminário)',
+    )
+    type_participation: list[str] = Field(
+        default_factory=list,
+        description='Tipo de participação (ex.: Apresentação Oral)',
+    )
+    form_participation: list[str] = Field(
+        default_factory=list,
+        description='Forma de participação (ex.: Convidado, Ouvinte)',
+    )
+
 
 class EventSearchResponse(BaseModel):
     """Resposta paginada da busca de eventos."""
@@ -389,3 +498,4 @@ class EventSearchResponse(BaseModel):
     filters_applied: EventFilter
     sort: ProductionSort
     meta: Meta
+    facets: Optional[dict[str, FacetResult]] = None

@@ -218,3 +218,79 @@ Consulta detalhada de uma participação em evento.
 | `/v2/production/patent/{id}` | `GET` | Detalhe completo de patente | UUID ou Código |
 | `/v2/production/event` | `GET` | Listagem e busca FTS de participações em eventos | - |
 | `/v2/production/event/{id}` | `GET` | Detalhe completo de participação em evento | UUID |
+
+---
+
+## 5. Sugestão de Termos
+
+### `GET /v2/suggestion`
+Autocomplete de termos de busca. Substitui `/secondWord` e `/originals_words` da V1.
+
+* **Como funciona:**
+  * Lê a tabela `research_dictionary` (gerada pela rotina `research_dictionaries.py`) e devolve os termos que **começam** com `q`, do mais para o menos frequente.
+  * A comparação ignora acentuação e maiúsculas/minúsculas; o termo é devolvido como está no dicionário.
+  * A busca por prefixo usa o índice `idx_research_dictionary_term_prefix` e a resposta é guardada no cache de busca da V2, invalidado junto com as demais buscas.
+* **Parâmetros:**
+  * `q` (string, obrigatório): Início do termo, de 1 a 100 caracteres.
+  * `source_type` (list[string]): Dicionários considerados (`ARTICLE`, `BOOK`, `BOOK_CHAPTER`, `PATENT`, `SPEAKER`, `ABSTRACT`). Sem valor, considera todos e soma as frequências do termo.
+  * `limit` (int): Quantidade máxima de sugestões (padrão: `10`, intervalo: `1` a `50`).
+* **Resposta:** `data` (lista de `term` e `frequency`) e `meta`.
+
+---
+
+## 6. Filtros, Facets e Cache nas Listagens de Produção
+
+Vale para `GET /v2/production/{article,book,book-chapter,software,patent,event}`.
+
+* **Novos filtros comuns:**
+  * `city_id` (list[UUID]) e `identity_territory` (list[string]): produções com ao menos um autor da plataforma vinculado à cidade ou ao território. Usam os vínculos de `researcher_institution`, a mesma fonte de `GET /v2/researcher`.
+* **Novos filtros por tipo:**
+  * `patent`: `category` (list[string]) e `granted` (bool, patente concedida ou não).
+  * `event`: `nature`, `type_participation` e `form_participation` (list[string]).
+* **Facets (`facets`, `facet_limit`):** mesmo contrato disjuntivo da busca de pesquisadores, contando produções. Comuns a todos: `institution`, `graduate_program`, `city`, `identity_territory`, `year`. Por tipo: `qualis` (artigos), `category` (patentes), `nature`, `type_participation`, `form_participation` (eventos).
+* **Cache:** a resposta é guardada no Redis e invalidada no refresh das MVs; `meta.cached` e `meta.data_as_of` passam a ser preenchidos.
+* **Validação:** parâmetros de query desconhecidos e facets que o tipo não possui retornam **HTTP 422**.
+* **Correção:** `title` de participação em evento passa a ser opcional. Participações sem trabalho apresentado têm título nulo e faziam a listagem falhar.
+
+---
+
+## 7. Expansão de Filtros V2: Grande Área, Bolsas de Fomento e Periódicos
+
+Esta atualização expande as capacidades analíticas dos endpoints da V2, trazendo dimensões acadêmicas essenciais (Grande Área do Conhecimento e Bolsas/Fomento) e filtros dedicados por periódico para artigos, mantendo o padrão rigoroso de tipagem e facets disjuntivos.
+
+### 7.1 Esclarecimento Arquitetural: ISSN e Revista (Magazine) na V2
+* **Busca Textual (`q`):** Em `mv_canonical_articles`, o título da revista (`magazine_name`) e o `issn` já estão indexados no vetor ponderado de busca (`search_vector`, peso D). Dessa forma, pesquisas por termos como `?q=Nature` ou `?q=0028-0836` já funcionam nativamente.
+* **Filtros de Campo Estrito:** Agora, o endpoint `GET /v2/production/article` ganha parâmetros de consulta dedicados (`magazine_name` e `issn`), permitindo seleção exata e geração de painéis de facetas (`facets=magazine_name,issn`).
+
+### 7.2 Endpoints Modificados e Novos Parâmetros
+
+#### 1. `GET /v2/researcher`
+* **Novos Filtros:**
+  * `area` (`list[string]`): Filtra pesquisadores vinculados a Grandes Áreas do Conhecimento (ex.: `CIENCIAS_EXATAS_E_DA_TERRA`, `CIENCIAS_BIOLOGICAS`). Aceita tanto o identificador canônico quanto a representação com espaços (`CIENCIAS EXATAS E DA TERRA`).
+  * `modality` (`list[string]`): Filtra pesquisadores por modalidade de bolsa de produtividade ou fomento cadastrada (ex.: `Produtividade em Pesquisa - 1A`, `Produtividade em Pesquisa - 2`).
+* **Novos Facets Opt-in (`facets`):**
+  * `area`: Histograma e ranking de pesquisadores por Grande Área do Conhecimento com contagem disjuntiva.
+  * `modality`: Histograma e ranking de pesquisadores por modalidade de bolsa.
+
+#### 2. `GET /v2/production/article`
+* **Novos Filtros:**
+  * `magazine_name` (`list[string]`): Filtra artigos publicados em periódicos com os nomes especificados (ex.: `?magazine_name=Nature Journal`).
+  * `issn` (`list[string]`): Filtra artigos por código ISSN exato (ex.: `?issn=0028-0836`).
+* **Novos Facets Opt-in:**
+  * Suporta `facets=magazine_name` e `facets=issn` para agregação de periódicos com artigos encontrados.
+
+#### 3. Todas as Listagens de Produção (`GET /v2/production/{article,book,book-chapter,software,patent,event}`)
+* **Novo Filtro Comum:**
+  * `area` (`list[string]`): Filtra produções que possuam ao menos um autor da plataforma vinculado à Grande Área de Conhecimento informada.
+* **Novo Facet Comum Opt-in:**
+  * `area`: Contagem e distribuição de produções científicas por Grande Área do Conhecimento dos autores da casa.
+
+### 7.3 Filtros Legados da V1 Não Incorporados à V2 (Descontinuados)
+Conforme deliberação técnica, os seguintes parâmetros obsoletos da V1 foram formalmente excluídos da V2:
+* `group_id` / `group`: Grupos de pesquisa CNPq descontinuados dos filtros gerais de catálogo.
+* `dep_id` / `departament`: Stubs inoperantes legados.
+* `collection_id`: Não aderente ao padrão RESTful de catálogos públicos.
+* `distinct`: Desnecessário na V2 devido à deduplicação canônica em `mv_canonical_*`.
+* `star`: Favoritos de usuário desacoplados dos catálogos de busca stateless.
+* `has_image` / `relevance (booleana)`: Flags depreciadas substituídas por ordenação ponderada `sort_by=relevance`.
+

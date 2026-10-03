@@ -19,6 +19,9 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from simcc.core.db.models.expertise import GreatAreaExpertise
+from simcc.core.db.models.researcher import ResearcherAreaExpertise
+from simcc.v2.repositories.search_tables import mv_researcher_search
 from simcc.v2.schemas.params import PaginationParams
 from simcc.v2.schemas.production import (
     ArticleMatch,
@@ -36,11 +39,60 @@ def search_tsquery(
     return func.websearch_to_tsquery('pt_unaccent', filters.q.strip())
 
 
-def build_production_conditions(
+# Filtros de lista cujo nome é o da coluna na MV do tipo de produção
+COLUMN_FILTERS = (
+    'qualis',
+    'category',
+    'nature',
+    'type_participation',
+    'form_participation',
+    'magazine_name',
+    'issn',
+)
+
+
+def without_fields(
+    filters: ProductionBaseFilter, fields: frozenset[str]
+) -> ProductionBaseFilter:
+    """Cópia do filtro com os campos indicados de volta ao valor padrão."""
+    if not fields:
+        return filters
+    model_fields = type(filters).model_fields
+    return filters.model_copy(
+        update={
+            field: model_fields[field].get_default(call_default_factory=True)
+            for field in fields
+        }
+    )
+
+
+def _uuid_array(values: list[UUID]) -> ColumnElement:
+    return cast(values, ARRAY(PG_UUID(as_uuid=True)))
+
+
+def _researchers_where(condition: ColumnElement[bool]) -> ColumnElement:
+    """Array com os pesquisadores de `mv_researcher_search` que atendem a
+    `condition`. Avaliado uma vez por consulta, mantém o uso do índice GIN
+    de `researcher_ids`."""
+    return (
+        select(func.array_agg(mv_researcher_search.c.researcher_id))
+        .where(condition)
+        .scalar_subquery()
+    )
+
+
+def build_production_conditions(  # noqa: PLR0912
     table: Table,
     filters: ProductionBaseFilter,
+    exclude: frozenset[str] = frozenset(),
 ) -> list[ColumnElement[bool]]:
-    """Gera a lista de condições SQL para filtrar produções sobre a MV."""
+    """Gera a lista de condições SQL para filtrar produções sobre a MV.
+
+    `exclude` recebe nomes de campos do filtro a ignorar (faceting
+    disjuntivo). Cidade e território vêm dos vínculos dos autores da
+    plataforma, pela mesma fonte da busca de pesquisadores.
+    """
+    filters = without_fields(filters, exclude)
     conds: list[ColumnElement[bool]] = []
 
     tsq = search_tsquery(filters)
@@ -53,26 +105,72 @@ def build_production_conditions(
     if filters.year_end is not None:
         conds.append(table.c.year <= filters.year_end)
 
-    if filters.researcher_id:
+    for values, column in (
+        (filters.researcher_id, table.c.researcher_ids),
+        (filters.institution_id, table.c.institution_ids),
+        (filters.graduate_program_id, table.c.graduate_program_ids),
+    ):
+        if values:
+            conds.append(column.op('&&')(_uuid_array(values)))
+
+    if filters.city_id:
         conds.append(
             table.c.researcher_ids.op('&&')(
-                cast(filters.researcher_id, ARRAY(PG_UUID(as_uuid=True)))
+                _researchers_where(
+                    mv_researcher_search.c.city_ids.overlap(filters.city_id)
+                )
             )
         )
 
-    if filters.institution_id:
+    if filters.identity_territory:
         conds.append(
-            table.c.institution_ids.op('&&')(
-                cast(filters.institution_id, ARRAY(PG_UUID(as_uuid=True)))
+            table.c.researcher_ids.op('&&')(
+                _researchers_where(
+                    mv_researcher_search.c.identity_territories.overlap(
+                        filters.identity_territory
+                    )
+                )
             )
         )
 
-    if filters.graduate_program_id:
+    if getattr(filters, 'area', None):
+        rae = ResearcherAreaExpertise.__table__
+        gae = GreatAreaExpertise.__table__
+        normalized_areas = [a.replace(' ', '_').upper() for a in filters.area]
+        area_cond = or_(
+            gae.c.name.in_(filters.area),
+            func.upper(gae.c.name).in_(normalized_areas),
+        )
         conds.append(
-            table.c.graduate_program_ids.op('&&')(
-                cast(filters.graduate_program_id, ARRAY(PG_UUID(as_uuid=True)))
+            table.c.researcher_ids.op('&&')(
+                _researchers_where(
+                    mv_researcher_search.c.researcher_id.in_(
+                        select(rae.c.researcher_id)
+                        .select_from(
+                            rae.join(
+                                gae, gae.c.id == rae.c.great_area_expertise_id
+                            )
+                        )
+                        .where(area_cond)
+                    )
+                )
             )
         )
+
+    for field in COLUMN_FILTERS:
+        values = getattr(filters, field, None)
+        if values:
+            conds.append(table.c[field].in_(values))
+
+    has_open_access = getattr(filters, 'has_open_access', None)
+    if has_open_access is not None:
+        conds.append(table.c.has_open_access_pdf.is_(has_open_access))
+
+    granted = getattr(filters, 'granted', None)
+    if granted is True:
+        conds.append(table.c.grant_date.isnot(None))
+    elif granted is False:
+        conds.append(table.c.grant_date.is_(None))
 
     return conds
 

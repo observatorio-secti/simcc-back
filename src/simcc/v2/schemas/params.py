@@ -49,6 +49,8 @@ ALLOWED_FACETS = {
     'classification',
     'year',
     'source_type',
+    'area',
+    'modality',
 }
 FACETS_DESCRIPTION = (
     f'Lista de facets opt-in ({", ".join(sorted(ALLOWED_FACETS))})'

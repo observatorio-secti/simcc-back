@@ -16,11 +16,8 @@ class Settings(BaseSettings, extra='ignore'):
     ADMIN_URL: str = 'http://localhost:0000/'
     URL: str = 'http://localhost:0000/'
     OPENAI_API_KEY: Optional[str] = None
-    FIREBASE_COLLECTION: str = 'termos_busca'
     INTERNAL_API_KEY: Optional[str] = None
     LOG_STREAM_TOKEN: Optional[str] = None
-
-    FIREBASE_CERT_PATH: str = 'cert.json'
 
     XML_PATH: str = 'storage/xml'
     CURRENT_XML_PATH: str = 'storage/xml/current'

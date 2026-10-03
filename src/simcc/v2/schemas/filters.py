@@ -76,6 +76,19 @@ class ResearcherFilter(BaseTemporalFilter):
     classification: list[Classification] = Field(
         default_factory=list, description='Classificação do pesquisador'
     )
+    area: list[str] = Field(
+        default_factory=list,
+        description=(
+            'Grandes áreas do conhecimento (ex.: CIENCIAS_EXATAS_E_DA_TERRA)'
+        ),
+    )
+    modality: list[str] = Field(
+        default_factory=list,
+        description=(
+            'Modalidades de bolsa de fomento (ex.: Produtividade em '
+            'Pesquisa - 1A)'
+        ),
+    )
     source_type: list[SourceType] = Field(
         default_factory=list,
         description=(

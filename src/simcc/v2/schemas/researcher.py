@@ -110,7 +110,7 @@ class ResearcherDetail(ResearcherBase):
 class FacetItem(BaseModel):
     value: str = Field(description='Valor a enviar no filtro correspondente')
     label: str = Field(description='Texto de exibição')
-    count: int = Field(description='Pesquisadores com esse valor')
+    count: int = Field(description='Itens do resultado com esse valor')
     acronym: Optional[str] = Field(
         None, description='Sigla, quando o valor for uma entidade'
     )

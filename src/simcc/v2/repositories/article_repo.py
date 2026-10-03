@@ -18,6 +18,9 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from simcc.v2.repositories.production_repo import (
+    build_production_conditions,
+)
 from simcc.v2.repositories.search_tables import mv_canonical_articles
 from simcc.v2.schemas.params import PaginationParams
 from simcc.v2.schemas.production import (
@@ -38,50 +41,10 @@ def search_tsquery(filters: ArticleFilter) -> Optional[ColumnElement]:
 
 def build_article_conditions(
     filters: ArticleFilter,
+    exclude: frozenset[str] = frozenset(),
 ) -> list[ColumnElement[bool]]:
     """Gera a lista de condições SQL para filtrar artigos sobre a MV."""
-    conds: list[ColumnElement[bool]] = []
-
-    tsq = search_tsquery(filters)
-    if tsq is not None:
-        conds.append(a.c.search_vector.op('@@')(tsq))
-
-    if filters.year_start is not None:
-        conds.append(a.c.year >= filters.year_start)
-
-    if filters.year_end is not None:
-        conds.append(a.c.year <= filters.year_end)
-
-    if filters.qualis:
-        conds.append(a.c.qualis.in_(filters.qualis))
-
-    if filters.researcher_id:
-        conds.append(
-            a.c.researcher_ids.op('&&')(
-                cast(filters.researcher_id, ARRAY(PG_UUID(as_uuid=True)))
-            )
-        )
-
-    if filters.institution_id:
-        conds.append(
-            a.c.institution_ids.op('&&')(
-                cast(filters.institution_id, ARRAY(PG_UUID(as_uuid=True)))
-            )
-        )
-
-    if filters.graduate_program_id:
-        conds.append(
-            a.c.graduate_program_ids.op('&&')(
-                cast(filters.graduate_program_id, ARRAY(PG_UUID(as_uuid=True)))
-            )
-        )
-
-    if filters.has_open_access is True:
-        conds.append(a.c.has_open_access_pdf.is_(True))
-    elif filters.has_open_access is False:
-        conds.append(a.c.has_open_access_pdf.is_(False))
-
-    return conds
+    return build_production_conditions(a, filters, exclude)
 
 
 def _order_clauses(

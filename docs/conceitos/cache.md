@@ -1,6 +1,6 @@
 # Cache de Buscas
 
-`GET /v2/researcher` guarda a resposta completa (pesquisadores, paginação, facets e evidências) no Redis. Uma busca repetida é servida **sem nenhuma consulta ao banco**.
+`GET /v2/researcher` guarda a resposta completa (pesquisadores, paginação, facets e evidências) no Redis. As listagens `GET /v2/production/*` e `GET /v2/suggestion` usam o mesmo mecanismo, cada uma com o seu contexto de chave. Uma busca repetida é servida **sem nenhuma consulta ao banco**.
 
 ---
 

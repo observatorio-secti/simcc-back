@@ -1,6 +1,6 @@
 """Roteador para produções científicas v2."""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 
 from simcc.core.dependencies import AsyncSession
 from simcc.v2.dependencies import (
@@ -11,26 +11,60 @@ from simcc.v2.dependencies import (
     EventFilterDep,
     PaginationDep,
     PatentFilterDep,
+    ProductionOptionsDep,
     ProductionSortDep,
+    SearchCacheDep,
     SoftwareFilterDep,
 )
+from simcc.v2.repositories.search_tables import (
+    mv_canonical_articles,
+    mv_canonical_book_chapters,
+    mv_canonical_books,
+    mv_canonical_events,
+    mv_canonical_patents,
+    mv_canonical_software,
+)
+from simcc.v2.schemas.params import PaginationParams
 from simcc.v2.schemas.production import (
     ArticleDetail,
+    ArticleFilter,
     ArticleSearchResponse,
+    ArticleSort,
     BookChapterDetail,
+    BookChapterFilter,
     BookChapterSearchResponse,
     BookDetail,
+    BookFilter,
     BookSearchResponse,
     EventDetail,
+    EventFilter,
     EventSearchResponse,
     PatentDetail,
+    PatentFilter,
     PatentSearchResponse,
+    ProductionOptions,
+    ProductionSort,
     SoftwareDetail,
+    SoftwareFilter,
     SoftwareSearchResponse,
 )
-from simcc.v2.services import article_service, production_service
+from simcc.v2.schemas.query import forbid_unknown_params
+from simcc.v2.services import (
+    article_service,
+    production_search_service,
+    production_service,
+)
 
 router = APIRouter(tags=['Produções v2'])
+
+
+def _known_params(filters: type, sort: type):
+    """Rejeita (422) parâmetros de query que a listagem não declara."""
+    return Depends(
+        forbid_unknown_params(
+            filters, sort, PaginationParams, ProductionOptions
+        )
+    )
 
 
 # =========================================================================
@@ -40,20 +74,28 @@ router = APIRouter(tags=['Produções v2'])
 @router.get(
     '/production/article',
     response_model=ArticleSearchResponse,
+    dependencies=[_known_params(ArticleFilter, ArticleSort)],
     summary='Busca e listagem paginada de artigos científicos',
 )
-async def list_articles(
+async def list_articles(  # noqa: PLR0913, PLR0917
     session: AsyncSession,
+    cache: SearchCacheDep,
     filters: ArticleFilterDep,
     pagination: PaginationDep,
     sort: ArticleSortDep,
+    options: ProductionOptionsDep,
 ) -> ArticleSearchResponse:
     """Retorna lista paginada de artigos com busca textual ponderada."""
-    return await article_service.search_articles(
+    return await production_search_service.search_production(
+        article_service.search_articles,
+        ArticleSearchResponse,
+        mv_canonical_articles,
         session=session,
         filters=filters,
         pagination=pagination,
         sort=sort,
+        options=options,
+        cache=cache,
     )
 
 
@@ -80,20 +122,28 @@ async def get_article(
 @router.get(
     '/production/book',
     response_model=BookSearchResponse,
+    dependencies=[_known_params(BookFilter, ProductionSort)],
     summary='Busca e listagem paginada de livros',
 )
-async def list_books(
+async def list_books(  # noqa: PLR0913, PLR0917
     session: AsyncSession,
+    cache: SearchCacheDep,
     filters: BookFilterDep,
     pagination: PaginationDep,
     sort: ProductionSortDep,
+    options: ProductionOptionsDep,
 ) -> BookSearchResponse:
     """Retorna lista paginada de livros com busca textual e filtros."""
-    return await production_service.search_books(
+    return await production_search_service.search_production(
+        production_service.search_books,
+        BookSearchResponse,
+        mv_canonical_books,
         session=session,
         filters=filters,
         pagination=pagination,
         sort=sort,
+        options=options,
+        cache=cache,
     )
 
 
@@ -120,20 +170,28 @@ async def get_book(
 @router.get(
     '/production/book-chapter',
     response_model=BookChapterSearchResponse,
+    dependencies=[_known_params(BookChapterFilter, ProductionSort)],
     summary='Busca e listagem paginada de capítulos de livros',
 )
-async def list_book_chapters(
+async def list_book_chapters(  # noqa: PLR0913, PLR0917
     session: AsyncSession,
+    cache: SearchCacheDep,
     filters: BookChapterFilterDep,
     pagination: PaginationDep,
     sort: ProductionSortDep,
+    options: ProductionOptionsDep,
 ) -> BookChapterSearchResponse:
     """Retorna lista paginada de capítulos de livros com filtros."""
-    return await production_service.search_book_chapters(
+    return await production_search_service.search_production(
+        production_service.search_book_chapters,
+        BookChapterSearchResponse,
+        mv_canonical_book_chapters,
         session=session,
         filters=filters,
         pagination=pagination,
         sort=sort,
+        options=options,
+        cache=cache,
     )
 
 
@@ -160,20 +218,28 @@ async def get_book_chapter(
 @router.get(
     '/production/software',
     response_model=SoftwareSearchResponse,
+    dependencies=[_known_params(SoftwareFilter, ProductionSort)],
     summary='Busca e listagem paginada de softwares',
 )
-async def list_software(
+async def list_software(  # noqa: PLR0913, PLR0917
     session: AsyncSession,
+    cache: SearchCacheDep,
     filters: SoftwareFilterDep,
     pagination: PaginationDep,
     sort: ProductionSortDep,
+    options: ProductionOptionsDep,
 ) -> SoftwareSearchResponse:
     """Retorna lista paginada de softwares com filtros."""
-    return await production_service.search_software(
+    return await production_search_service.search_production(
+        production_service.search_software,
+        SoftwareSearchResponse,
+        mv_canonical_software,
         session=session,
         filters=filters,
         pagination=pagination,
         sort=sort,
+        options=options,
+        cache=cache,
     )
 
 
@@ -200,20 +266,28 @@ async def get_software(
 @router.get(
     '/production/patent',
     response_model=PatentSearchResponse,
+    dependencies=[_known_params(PatentFilter, ProductionSort)],
     summary='Busca e listagem paginada de patentes',
 )
-async def list_patents(
+async def list_patents(  # noqa: PLR0913, PLR0917
     session: AsyncSession,
+    cache: SearchCacheDep,
     filters: PatentFilterDep,
     pagination: PaginationDep,
     sort: ProductionSortDep,
+    options: ProductionOptionsDep,
 ) -> PatentSearchResponse:
     """Retorna lista paginada de patentes com filtros."""
-    return await production_service.search_patents(
+    return await production_search_service.search_production(
+        production_service.search_patents,
+        PatentSearchResponse,
+        mv_canonical_patents,
         session=session,
         filters=filters,
         pagination=pagination,
         sort=sort,
+        options=options,
+        cache=cache,
     )
 
 
@@ -240,20 +314,28 @@ async def get_patent(
 @router.get(
     '/production/event',
     response_model=EventSearchResponse,
+    dependencies=[_known_params(EventFilter, ProductionSort)],
     summary='Busca e listagem paginada de participação em eventos',
 )
-async def list_events(
+async def list_events(  # noqa: PLR0913, PLR0917
     session: AsyncSession,
+    cache: SearchCacheDep,
     filters: EventFilterDep,
     pagination: PaginationDep,
     sort: ProductionSortDep,
+    options: ProductionOptionsDep,
 ) -> EventSearchResponse:
     """Retorna lista paginada de eventos com filtros."""
-    return await production_service.search_events(
+    return await production_search_service.search_production(
+        production_service.search_events,
+        EventSearchResponse,
+        mv_canonical_events,
         session=session,
         filters=filters,
         pagination=pagination,
         sort=sort,
+        options=options,
+        cache=cache,
     )
 
 

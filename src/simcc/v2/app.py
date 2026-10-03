@@ -5,6 +5,7 @@ from simcc.v2.routers import (
     institution,
     production,
     researcher,
+    suggestion,
 )
 
 v2_app = FastAPI()
@@ -13,3 +14,4 @@ v2_app.include_router(researcher.router)
 v2_app.include_router(institution.router)
 v2_app.include_router(graduate_program.router)
 v2_app.include_router(production.router)
+v2_app.include_router(suggestion.router)

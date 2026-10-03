@@ -8,6 +8,21 @@ SETUP_MVS_STATEMENTS = [
     'CREATE EXTENSION IF NOT EXISTS unaccent;',
     'CREATE EXTENSION IF NOT EXISTS pg_trgm;',
     """
+    CREATE OR REPLACE FUNCTION public.f_unaccent(text)
+    RETURNS text
+    LANGUAGE sql
+    IMMUTABLE
+    PARALLEL SAFE
+    STRICT
+    AS $$
+        SELECT public.unaccent('public.unaccent', $1);
+    $$;
+    """,
+    """
+    CREATE INDEX IF NOT EXISTS idx_research_dictionary_term_prefix
+    ON research_dictionary (public.f_unaccent(lower(term)) text_pattern_ops);
+    """,
+    """
     DO $$
     BEGIN
       IF NOT EXISTS (

@@ -54,25 +54,31 @@ SORTABLE = {
 }
 
 
-def _relevance_score(filters: ResearcherFilter, tsq) -> ColumnElement:
-    """Perfil × 1.5 + melhor obra + ln(obras que contam + 1)."""
-    doc_relevance = (
+def _relevance_score(
+    stmt: Select, filters: ResearcherFilter, tsq
+) -> tuple[Select, ColumnElement]:
+    """Perfil × 1.5 + melhor obra + ln(obras que contam + 1).
+
+    As obras são agregadas uma única vez e juntadas ao pesquisador. Um
+    subselect correlacionado repetiria a varredura do índice GIN para cada
+    pesquisador, o que custa dezenas de segundos em termos amplos."""
+    docs = (
         select(
-            func.coalesce(func.max(func.ts_rank(d.c.search_vector, tsq)), 0.0)
-            + func.ln(
-                func.coalesce(cast(func.count(d.c.source_id), Float), 0.0)
-                + 1.0
-            )
+            d.c.researcher_id,
+            func.max(func.ts_rank(d.c.search_vector, tsq)).label('best'),
+            func.count().label('n'),
         )
-        .where(
-            d.c.researcher_id == r.c.researcher_id,
-            *document_conditions(filters),
-        )
-        .scalar_subquery()
+        .where(*document_conditions(filters))
+        .group_by(d.c.researcher_id)
+        .subquery('doc_relevance')
+    )
+    stmt = stmt.outerjoin(docs, docs.c.researcher_id == r.c.researcher_id)
+    doc_relevance = func.coalesce(docs.c.best, 0.0) + func.ln(
+        cast(func.coalesce(docs.c.n, 0), Float) + 1.0
     )
     if not profile_counts(filters):
-        return doc_relevance
-    return func.ts_rank(r.c.profile_vector, tsq) * 1.5 + doc_relevance
+        return stmt, doc_relevance
+    return stmt, func.ts_rank(r.c.profile_vector, tsq) * 1.5 + doc_relevance
 
 
 def _apply_sorting(
@@ -83,7 +89,7 @@ def _apply_sorting(
     """Aplica ordenação determinística ou por relevância."""
     tsq = search_tsquery(filters)
     if sort.sort_by == 'relevance' and tsq is not None:
-        score = _relevance_score(filters, tsq)
+        stmt, score = _relevance_score(stmt, filters, tsq)
         direction = score.desc() if sort.sort_order == 'desc' else score.asc()
         return stmt.order_by(
             direction, r.c.name.asc(), r.c.researcher_id.asc()

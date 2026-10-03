@@ -24,7 +24,6 @@ dependencies = [
     "langchain-openai (>=1.2.1,<2.0.0)",
     "alembic (>=1.18.4,<2.0.0)",
     "nltk (>=3.9.4,<4.0.0)",
-    "firebase-admin (>=7.4.0,<8.0.0)",
     "respx (>=0.23.1,<0.24.0)",
     "numpy (>=2.3,<2.4)",
     "docker (>=7.0)",

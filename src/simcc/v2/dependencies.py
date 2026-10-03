@@ -16,6 +16,7 @@ from simcc.v2.schemas.production import (
     BookFilter,
     EventFilter,
     PatentFilter,
+    ProductionOptions,
     ProductionSort,
     SoftwareFilter,
 )
@@ -59,4 +60,7 @@ PatentFilterDep = Annotated[PatentFilter, Depends(as_query(PatentFilter))]
 EventFilterDep = Annotated[EventFilter, Depends(as_query(EventFilter))]
 ProductionSortDep = Annotated[
     ProductionSort, Depends(as_query(ProductionSort))
+]
+ProductionOptionsDep = Annotated[
+    ProductionOptions, Depends(as_query(ProductionOptions))
 ]

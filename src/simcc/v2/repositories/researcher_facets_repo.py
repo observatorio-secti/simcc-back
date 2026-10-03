@@ -6,7 +6,7 @@ o do próprio facet; top `limit` por contagem com desempate estável; valores
 selecionados sempre presentes; `total` de valores com resultado.
 
 Para adicionar um facet: escreva uma função que monte os pares
-(pesquisador, valor) e chame `_rank_facet_values`, depois registre-a em
+(pesquisador, valor) e chame `rank_facet_values`, depois registre-a em
 `FACET_BUILDERS` e em `ALLOWED_FACETS` (schemas/params.py).
 """
 
@@ -16,9 +16,12 @@ from typing import Any, Optional
 from sqlalchemy import ColumnElement, Select, String, func, null, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from simcc.core.db.models.expertise import GreatAreaExpertise
 from simcc.core.db.models.graduate_program import GraduateProgram
 from simcc.core.db.models.institution import Institution
 from simcc.core.db.models.location import City
+from simcc.core.db.models.production import Foment
+from simcc.core.db.models.researcher import ResearcherAreaExpertise
 from simcc.v2.repositories.researcher_filters import (
     document_conditions,
     matching_researcher_ids,
@@ -36,7 +39,7 @@ r = mv_researcher_search
 d = mv_search_documents
 
 
-async def _rank_facet_values(  # noqa: PLR0913
+async def rank_facet_values(  # noqa: PLR0913
     session: AsyncSession,
     pairs: Select,
     *,
@@ -45,8 +48,9 @@ async def _rank_facet_values(  # noqa: PLR0913
     entity: Optional[type] = None,
     entity_id: Optional[ColumnElement] = None,
 ) -> FacetResult:
-    """Conta pesquisadores por valor a partir de `pairs` (colunas
-    `researcher_id`, `value`) e monta o `FacetResult` em uma consulta.
+    """Conta itens por valor a partir de `pairs` e monta o `FacetResult`
+    em uma consulta. `pairs` tem duas colunas: o id do item contado
+    (pesquisador, produção...) e `value`.
 
     Com `entity`, os valores são ids: rótulo e sigla vêm da tabela da
     entidade, e selecionados sem resultado entram via LEFT JOIN. Sem ela, o
@@ -57,7 +61,7 @@ async def _rank_facet_values(  # noqa: PLR0913
     counts = (
         select(
             pairs_sq.c.value,
-            func.count(func.distinct(pairs_sq.c.researcher_id)).label('n'),
+            func.count(func.distinct(pairs_sq.c[0])).label('n'),
         )
         .group_by(pairs_sq.c.value)
         .subquery()
@@ -168,7 +172,7 @@ def _column_pairs(
 
 
 async def fetch_institution_facet(session, filters, limit=20):
-    return await _rank_facet_values(
+    return await rank_facet_values(
         session,
         _array_pairs(filters, 'institution_id', r.c.institution_ids),
         selected=filters.institution_id,
@@ -179,7 +183,7 @@ async def fetch_institution_facet(session, filters, limit=20):
 
 
 async def fetch_graduate_program_facet(session, filters, limit=20):
-    return await _rank_facet_values(
+    return await rank_facet_values(
         session,
         _array_pairs(filters, 'graduate_program_id', r.c.graduate_program_ids),
         selected=filters.graduate_program_id,
@@ -190,7 +194,7 @@ async def fetch_graduate_program_facet(session, filters, limit=20):
 
 
 async def fetch_city_facet(session, filters, limit=20):
-    return await _rank_facet_values(
+    return await rank_facet_values(
         session,
         _array_pairs(filters, 'city_id', r.c.city_ids),
         selected=filters.city_id,
@@ -201,7 +205,7 @@ async def fetch_city_facet(session, filters, limit=20):
 
 
 async def fetch_identity_territory_facet(session, filters, limit=20):
-    return await _rank_facet_values(
+    return await rank_facet_values(
         session,
         _array_pairs(filters, 'identity_territory', r.c.identity_territories),
         selected=filters.identity_territory,
@@ -210,7 +214,7 @@ async def fetch_identity_territory_facet(session, filters, limit=20):
 
 
 async def fetch_graduation_facet(session, filters, limit=20):
-    return await _rank_facet_values(
+    return await rank_facet_values(
         session,
         _column_pairs(filters, 'graduation', r.c.graduation),
         selected=filters.graduation,
@@ -219,7 +223,7 @@ async def fetch_graduation_facet(session, filters, limit=20):
 
 
 async def fetch_classification_facet(session, filters, limit=20):
-    return await _rank_facet_values(
+    return await rank_facet_values(
         session,
         _column_pairs(filters, 'classification', r.c.classification),
         selected=filters.classification,
@@ -236,7 +240,7 @@ async def fetch_source_type_facet(session, filters, limit=20):
         d.c.researcher_id.in_(matching_researcher_ids(filters, exclude)),
         *document_conditions(unfiltered),
     )
-    return await _rank_facet_values(
+    return await rank_facet_values(
         session, pairs, selected=filters.source_type, limit=limit
     )
 
@@ -294,6 +298,45 @@ async def fetch_year_facet(session, filters, limit=20):
     )
 
 
+async def fetch_area_facet(session, filters, limit=20):
+    """Contagem de pesquisadores por grande área do conhecimento."""
+    exclude = frozenset({'area'})
+    rae = ResearcherAreaExpertise.__table__
+    gae = GreatAreaExpertise.__table__
+    pairs = (
+        select(rae.c.researcher_id, gae.c.name.label('value'))
+        .select_from(rae.join(gae, gae.c.id == rae.c.great_area_expertise_id))
+        .where(
+            gae.c.name.isnot(None),
+            rae.c.researcher_id.in_(
+                matching_researcher_ids(filters, exclude=exclude)
+            ),
+        )
+    )
+    return await rank_facet_values(
+        session, pairs, selected=filters.area, limit=limit
+    )
+
+
+async def fetch_modality_facet(session, filters, limit=20):
+    """Contagem de pesquisadores por modalidade de bolsa/fomento."""
+    exclude = frozenset({'modality'})
+    f = Foment.__table__
+    pairs = (
+        select(f.c.researcher_id, f.c.modality_name.label('value'))
+        .select_from(f)
+        .where(
+            f.c.modality_name.isnot(None),
+            f.c.researcher_id.in_(
+                matching_researcher_ids(filters, exclude=exclude)
+            ),
+        )
+    )
+    return await rank_facet_values(
+        session, pairs, selected=filters.modality, limit=limit
+    )
+
+
 FacetBuilder = Callable[
     [AsyncSession, ResearcherFilter, int], Coroutine[Any, Any, FacetResult]
 ]
@@ -307,6 +350,8 @@ FACET_BUILDERS: dict[str, FacetBuilder] = {
     'classification': fetch_classification_facet,
     'year': fetch_year_facet,
     'source_type': fetch_source_type_facet,
+    'area': fetch_area_facet,
+    'modality': fetch_modality_facet,
 }
 
 

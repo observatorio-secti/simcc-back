@@ -52,6 +52,23 @@ Cada facet é calculado com todos os filtros da requisição, **exceto o do pró
 | `source_type` | `source_type` | `ARTICLE`, `BOOK`, `BOOK_CHAPTER`, `PATENT`, `SOFTWARE`, `PARTICIPATION_EVENT`, `AREA_SPECIALTY` | Pesquisadores por tipo de obra que conta para a busca (casa com `q` e está no intervalo de anos). Funciona com ou sem `q`. |
 | `year` | `year_start` / `year_end` | ano | Com `q` ou `source_type`, conta os anos das obras que contam para a busca; sem eles, os anos de qualquer produção. Não tem `selected` (é um intervalo). |
 
+### Facets das listagens de produção
+
+Os endpoints `GET /v2/production/*` aceitam `facets` e `facet_limit` com o mesmo contrato, contando **produções** (cada obra canônica uma vez) em vez de pesquisadores.
+
+| Facet | Filtro que alimenta | Disponível em | Observações |
+|---|---|---|---|
+| `institution` | `institution_id` | todos | Instituição dos autores da plataforma. Traz `acronym`. |
+| `graduate_program` | `graduate_program_id` | todos | Traz `acronym`. |
+| `city` | `city_id` | todos | Cidade dos vínculos dos autores da plataforma. |
+| `identity_territory` | `identity_territory` | todos | Território dos vínculos dos autores da plataforma. |
+| `year` | `year_start` / `year_end` | todos | Não tem `selected` (é um intervalo). |
+| `qualis` | `qualis` | `article` | |
+| `category` | `category` | `patent` | |
+| `nature`, `type_participation`, `form_participation` | filtro de mesmo nome | `event` | |
+
+Pedir um facet que o tipo de produção não possui retorna **HTTP 422**.
+
 ### Formato da resposta
 
 Cada facet solicitado vira uma chave em `facets`, sempre com o mesmo formato:

@@ -1,4 +1,7 @@
-import time
+import html
+import re
+import unicodedata
+from collections import Counter
 
 import nltk
 from sqlalchemy import text
@@ -10,84 +13,218 @@ from simcc.core.logging.events import (
     routine_step_started,
 )
 
+MAX_NGRAM = 4
+MIN_FREQUENCY = 5
+MIN_UNIGRAM_LENGTH = 4
+MAX_TERM_LENGTH = 255
+# Fragmento é descartado se um n-grama maior responde por esta fração dele
+NESTED_RATIO = 0.9
+FETCH_BATCH = 5000
+INSERT_BATCH = 5000
 
-def get_stopwords():
+# Pontuação e hífen solto (" - ") encerram um segmento: n-gramas não os cruzam
+SEGMENT_BREAK = re.compile(r"[^\w\s'’-]+|\s-+\s")
+TOKEN = re.compile(r"[^\W_]+(?:['’][^\W_]+)*")
+HAS_DIGIT = re.compile(r'\d')
+
+# Conectivos ausentes das listas do NLTK e artigos/preposições do espanhol
+EXTRA_STOPWORDS = (
+    'sobre', 'após', 'através', 'partir', 'desde', 'durante',
+    'el', 'la', 'los', 'las', 'en', 'del', 'y', 'un', 'una', 'con',
+    'su', 'sus', 'al', 'lo',
+)  # fmt: skip
+
+SOURCES = [
+    (
+        'ARTICLE',
+        """
+        SELECT DISTINCT title FROM bibliographic_production
+        WHERE type = 'ARTICLE' AND title IS NOT NULL
+        """,
+    ),
+    (
+        'BOOK_CHAPTER',
+        """
+        SELECT DISTINCT title FROM bibliographic_production
+        WHERE type = 'BOOK_CHAPTER' AND title IS NOT NULL
+        """,
+    ),
+    (
+        'PATENT',
+        'SELECT DISTINCT title FROM patent WHERE title IS NOT NULL',
+    ),
+    (
+        'SPEAKER',
+        """
+        SELECT DISTINCT title FROM participation_events
+        WHERE title IS NOT NULL
+        """,
+    ),
+    (
+        'ABSTRACT',
+        """
+        SELECT DISTINCT abstract FROM researcher
+        WHERE abstract IS NOT NULL
+        """,
+    ),
+    (
+        'BOOK',
+        """
+        SELECT DISTINCT title FROM bibliographic_production
+        WHERE type = 'BOOK' AND title IS NOT NULL
+        """,
+    ),
+]
+
+INSERT_SQL = """
+    INSERT INTO research_dictionary (term, frequency, type_)
+    VALUES (:term, :frequency, :type_)
+"""
+
+
+def strip_accents(value: str) -> str:
+    if value.isascii():
+        return value
+    return ''.join(
+        char
+        for char in unicodedata.normalize('NFKD', value)
+        if not unicodedata.combining(char)
+    )
+
+
+def get_stopwords() -> frozenset[str]:
     stopwords = nltk.corpus.stopwords.words('english')
     stopwords.extend(nltk.corpus.stopwords.words('portuguese'))
-    return stopwords
+    stopwords.extend(EXTRA_STOPWORDS)
+    return frozenset(strip_accents(word.lower()) for word in stopwords)
 
 
-def get_query_article():
-    return r"""
-        INSERT INTO research_dictionary (term, frequency, type_)
-        WITH words AS (
-                SELECT regexp_split_to_table(translate(title,'-\.:,;''', ' '), '\s+') AS word
-                FROM bibliographic_production
-                WHERE type = 'ARTICLE'),
-            words_count AS (
-                SELECT COUNT(*) AS frequency, LOWER(word) AS word
-                FROM words
-                WHERE word ~ '\w+'
-                GROUP BY LOWER(word))
-        SELECT word, frequency, 'ARTICLE'
-        FROM words_count
-        WHERE 1 = 1
-            AND CHAR_LENGTH(word) > 3
-            AND TRIM(word) <> ALL(:stopwords)
-            AND CHAR_LENGTH(word) < 255
-        ORDER BY frequency;
+def iter_runs(content: str):
+    """Sequências de tokens contíguos, sem pontuação ou números no meio."""
+    # Títulos do Lattes trazem entidades HTML (&quot;, &amp;)
+    content = html.unescape(content).lower()
+    for segment in SEGMENT_BREAK.split(content):
+        run = []
+        for token in TOKEN.findall(segment):
+            if HAS_DIGIT.search(token):
+                if run:
+                    yield run
+                run = []
+            else:
+                run.append(token)
+        if run:
+            yield run
+
+
+def extract_terms(
+    content: str, stopwords: frozenset[str], max_n: int = MAX_NGRAM
+) -> set[str]:
+    """N-gramas (1..max_n) do texto que não começam nem terminam em stopword.
+
+    Stopwords no meio são mantidas ("qualidade de vida").
     """
+    terms = set()
+    for tokens in iter_runs(content):
+        is_stopword = [strip_accents(token) in stopwords for token in tokens]
+        for start in range(len(tokens)):
+            if is_stopword[start]:
+                continue
+            stop = min(start + max_n, len(tokens))
+            for end in range(start, stop):
+                if not is_stopword[end]:
+                    terms.add(' '.join(tokens[start : end + 1]))
+    return terms
 
 
-def get_query_generic(table, column, doc_type, extra_where=''):
-    return rf"""
-        INSERT INTO research_dictionary (term, frequency, type_)
-        WITH _words AS (
-            SELECT regexp_split_to_table(translate({column},'-\.:,;''', ' '), '\s+') AS word
-            FROM {table}
-            {extra_where}
-        ),
-        words AS (
-            SELECT LOWER(word) AS word, unaccent(LOWER(regexp_replace(word, '[^a-zA-Z0-9À-ÿ\s]', '', 'g'))) AS normalized_word
-            FROM _words
-        ),
-        words_count AS (
-            SELECT COUNT(*) AS frequency, word
-            FROM words
-            WHERE word ~ '\w+'
-            GROUP BY word
-        ),
-        words_sum AS (
-            SELECT normalized_word, COUNT(*) AS total_frequency
-            FROM words
-            GROUP BY normalized_word
-        ),
-        biggest_frequency AS (
-            SELECT DISTINCT ON (w.normalized_word)
-                wc.word, wc.frequency, w.normalized_word
-            FROM words_count wc
-            JOIN words w ON wc.word = w.word
-            ORDER BY w.normalized_word, wc.frequency DESC
-        )
-        SELECT bf.word AS term, ws.total_frequency AS frequency, '{doc_type}' AS type_
-        FROM biggest_frequency bf
-        JOIN words_sum ws ON bf.normalized_word = ws.normalized_word
-        WHERE
-            CHAR_LENGTH(bf.word) > 3
-            AND CHAR_LENGTH(bf.word) < 255
-            AND bf.frequency > 4
-            AND TRIM(bf.word) <> ALL(:stopwords)
-        ORDER BY frequency, word;
+def merge_variants(counts: Counter) -> tuple[Counter, dict[str, str]]:
+    """Soma variantes que só diferem na acentuação e elege a mais frequente."""
+    totals = Counter()
+    display = {}
+    for term, frequency in counts.items():
+        key = strip_accents(term)
+        totals[key] += frequency
+        current = display.get(key)
+        if current is None or (frequency, term) > (counts[current], current):
+            display[key] = term
+    return totals, display
+
+
+def find_nested(frequent: dict[str, int], stopwords: frozenset) -> set[str]:
+    """Fragmentos que quase só ocorrem dentro de um n-grama maior.
+
+    Ex.: "programa de pós" diante de "programa de pós graduação".
     """
+    largest_container = {}
+    for key, frequency in frequent.items():
+        tokens = key.split(' ')
+        for size in range(2, len(tokens)):
+            for start in range(len(tokens) - size + 1):
+                part = tokens[start : start + size]
+                if part[0] in stopwords or part[-1] in stopwords:
+                    continue
+                part = ' '.join(part)
+                if frequency > largest_container.get(part, 0):
+                    largest_container[part] = frequency
+
+    return {
+        part
+        for part, frequency in largest_container.items()
+        if frequency >= NESTED_RATIO * frequent.get(part, frequency)
+    }
 
 
-def list_researchers(session):
+def build_dictionary(
+    contents, stopwords: frozenset[str]
+) -> list[tuple[str, int]]:
+    """Termos e respectiva quantidade de textos em que aparecem."""
+    counts = Counter()
+    for content in contents:
+        counts.update(extract_terms(content, stopwords))
+
+    totals, display = merge_variants(counts)
+    del counts
+    frequent = {
+        key: frequency
+        for key, frequency in totals.items()
+        if frequency >= MIN_FREQUENCY
+    }
+    del totals
+    nested = find_nested(frequent, stopwords)
+
+    dictionary = []
+    for key, frequency in frequent.items():
+        if len(key) >= MAX_TERM_LENGTH or key in nested:
+            continue
+        if ' ' not in key and len(key) < MIN_UNIGRAM_LENGTH:
+            continue
+        dictionary.append((display[key], frequency))
+
+    dictionary.sort(key=lambda item: (-item[1], item[0]))
+    return dictionary
+
+
+def fetch_contents(session, query: str):
     result = session.execute(
-        text(
-            'SELECT id AS researcher_id, name, lattes_id FROM public.researcher'
-        )
+        text(query).execution_options(yield_per=FETCH_BATCH)
     )
-    return result.fetchall()
+    return result.scalars()
+
+
+def replace_dictionary(session, doc_type: str, dictionary) -> None:
+    session.execute(
+        text('DELETE FROM research_dictionary WHERE type_ = :type_'),
+        {'type_': doc_type},
+    )
+    for offset in range(0, len(dictionary), INSERT_BATCH):
+        session.execute(
+            text(INSERT_SQL),
+            [
+                {'term': term, 'frequency': frequency, 'type_': doc_type}
+                for term, frequency in dictionary[
+                    offset : offset + INSERT_BATCH
+                ]
+            ],
+        )
 
 
 items_found = 0
@@ -98,67 +235,27 @@ items_failed = 0
 def main():
     global items_found, items_succeeded, items_failed
     session = next(get_sync_session())
-    start_time = time.perf_counter()
-    items_found = 6
+    items_found = len(SOURCES)
 
     try:
         stopwords = get_stopwords()
 
-        configurations = [
-            ('ARTICLE', get_query_article()),
-            (
-                'BOOK_CHAPTER',
-                get_query_generic(
-                    'bibliographic_production',
-                    'title',
-                    'BOOK_CHAPTER',
-                    "WHERE type = 'BOOK_CHAPTER'",
-                ),
-            ),
-            ('PATENT', get_query_generic('patent', 'title', 'PATENT')),
-            (
-                'SPEAKER',
-                get_query_generic('participation_events', 'title', 'SPEAKER'),
-            ),
-            (
-                'ABSTRACT',
-                get_query_generic('researcher', 'abstract', 'ABSTRACT'),
-            ),
-            (
-                'BOOK',
-                get_query_generic(
-                    'bibliographic_production',
-                    'title',
-                    'BOOK',
-                    "WHERE type = 'BOOK'",
-                ),
-            ),
-        ]
-
-        succeeded_count = 0
-        for doc_type, query in configurations:
-            routine_step_started(f'dictionary_{doc_type.lower()}')
-            session.execute(
-                text(
-                    f"DELETE FROM research_dictionary WHERE type_ = '{doc_type}';"
-                )
+        for doc_type, query in SOURCES:
+            step = f'dictionary_{doc_type.lower()}'
+            routine_step_started(step)
+            dictionary = build_dictionary(
+                fetch_contents(session, query), stopwords
             )
-            session.execute(text(query), {'stopwords': stopwords})
-            routine_step_finished(f'dictionary_{doc_type.lower()}')
-            succeeded_count += 1
+            replace_dictionary(session, doc_type, dictionary)
+            routine_step_finished(step)
+            items_succeeded += 1
 
         session.commit()
-        items_succeeded = succeeded_count
         items_failed = items_found - items_succeeded
-        duration = time.perf_counter() - start_time
     except Exception as e:
-        items_succeeded = (
-            succeeded_count if 'succeeded_count' in locals() else 0
-        )
         items_failed = items_found - items_succeeded
         logger.error(f'Error in research_dictionaries: {e}')
         session.rollback()
-        duration = time.perf_counter() - start_time
         raise e
 
 

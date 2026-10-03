@@ -11,7 +11,6 @@ ROUTINES=(
     "graduate_program_indprod.py"
     "abstract_ai.py"
     "get_openAlex.py"
-    "search_terms.py"
     "researcher_classification.py"
     "sync_research_lines.py"
     "refresh_search_views.py"

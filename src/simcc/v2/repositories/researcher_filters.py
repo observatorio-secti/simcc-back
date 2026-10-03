@@ -30,6 +30,9 @@ from sqlalchemy import (
     select,
 )
 
+from simcc.core.db.models.expertise import GreatAreaExpertise
+from simcc.core.db.models.production import Foment
+from simcc.core.db.models.researcher import ResearcherAreaExpertise
 from simcc.v2.repositories.search_tables import (
     mv_researcher_search,
     mv_search_documents,
@@ -168,6 +171,46 @@ def _by_classification(
     return r.c.classification.in_(filters.classification)
 
 
+def _by_area(
+    filters: ResearcherFilter,
+) -> Optional[ColumnElement[bool]]:
+    if not filters.area:
+        return None
+    rae = ResearcherAreaExpertise.__table__
+    gae = GreatAreaExpertise.__table__
+    normalized = [a.replace(' ', '_').upper() for a in filters.area]
+    area_cond = or_(
+        gae.c.name.in_(filters.area),
+        func.upper(gae.c.name).in_(normalized),
+    )
+    return (
+        select(literal_column('1'))
+        .select_from(rae.join(gae, gae.c.id == rae.c.great_area_expertise_id))
+        .where(
+            rae.c.researcher_id == r.c.researcher_id,
+            area_cond,
+        )
+        .exists()
+    )
+
+
+def _by_modality(
+    filters: ResearcherFilter,
+) -> Optional[ColumnElement[bool]]:
+    if not filters.modality:
+        return None
+    f = Foment.__table__
+    return (
+        select(literal_column('1'))
+        .select_from(f)
+        .where(
+            f.c.researcher_id == r.c.researcher_id,
+            f.c.modality_name.in_(filters.modality),
+        )
+        .exists()
+    )
+
+
 _FILTER_BUILDERS: list[
     Callable[[ResearcherFilter], Optional[ColumnElement[bool]]]
 ] = [
@@ -180,6 +223,8 @@ _FILTER_BUILDERS: list[
     _by_identity_territories,
     _by_graduation,
     _by_classification,
+    _by_area,
+    _by_modality,
 ]
 
 

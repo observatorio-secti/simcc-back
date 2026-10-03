@@ -82,7 +82,7 @@ class OriginalWordsQuery(BaseQuery):
             self.params['type'] = self.type_
 
             return f"""
-                SELECT DISTINCT unaccent(term) AS term, COUNT(frequency) AS frequency, type_ AS type
+                SELECT DISTINCT unaccent(term) AS term, SUM(frequency) AS frequency, type_ AS type
                 FROM research_dictionary r
                 WHERE 
                     {filter_type}

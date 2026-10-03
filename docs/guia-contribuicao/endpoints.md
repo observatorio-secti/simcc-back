@@ -42,7 +42,7 @@ Crie a função de rota e vincule ao aplicativo:
 1. **Campo** em `ResearcherFilter` (`schemas/filters.py`) com `Field(description=...)`. Ele passa a ser aceito na URL, aparece no Swagger e entra na chave do cache automaticamente.
 2. **Condição** `_by_<nome>` em `repositories/researcher_filters.py`, registrada em `_FILTER_BUILDERS`. Se o filtro for sobre obras, altere `document_conditions`, que é usada pela busca, relevância, evidências e facets.
 3. **Coluna na MV**, se o dado ainda não estiver em `mv_researcher_search`: migration + `tests/setup_mvs.py` + `search_tables.py`. Prefira arrays com índice GIN para campos com vários valores por pesquisador.
-4. **Facet** em `repositories/researcher_facets_repo.py`: monte os pares (pesquisador, valor) com `_array_pairs` ou `_column_pairs` e chame `_rank_facet_values`, que cuida de ordenação, `selected`, `total` e disjunção. Registre em `FACET_BUILDERS` e em `ALLOWED_FACETS`.
+4. **Facet** em `repositories/researcher_facets_repo.py`: monte os pares (pesquisador, valor) com `_array_pairs` ou `_column_pairs` e chame `rank_facet_values`, que cuida de ordenação, `selected`, `total` e disjunção. Registre em `FACET_BUILDERS` e em `ALLOWED_FACETS`.
 5. **Testes** do filtro e do facet em `tests/v2/unit/`.
 
 ---
