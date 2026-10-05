@@ -1763,3 +1763,112 @@ async def get_labs(conn, lattes_id, researcher_id):
             {FILTERS}
         """
     return await conn.select(SCRIPT_SQL, params)
+
+
+async def get_situation_report_researcher(conn, researcher_id: str):
+    """Busca dados básicos do pesquisador para o relatório de situação."""
+    SCRIPT_SQL = """
+        SELECT
+            r.id,
+            r.name,
+            r.lattes_id,
+            r.graduation,
+            r.last_update AS lattes_update,
+            i.name AS institution,
+            REPLACE(rp.great_area, '_', ' ') AS area,
+            rp.articles,
+            rp.book_chapters,
+            rp.book,
+            rp.patent,
+            rp.software,
+            rp.brand,
+            opr.h_index,
+            opr.i10_index,
+            opr.cited_by_count,
+            opr.openalex,
+            r.orcid,
+            JSONB_AGG(DISTINCT JSONB_BUILD_OBJECT(
+                'graduate_program_id', gp.graduate_program_id,
+                'name', gp.name,
+                'acronym', gp.acronym,
+                'modality', gp.modality,
+                'rating', gp.rating,
+                'type', gpr.type_
+            )) FILTER (WHERE gp.graduate_program_id IS NOT NULL) AS graduate_programs
+        FROM researcher r
+            LEFT JOIN institution i ON i.id = r.institution_id
+            LEFT JOIN researcher_production rp ON rp.researcher_id = r.id
+            LEFT JOIN openalex_researcher opr ON opr.researcher_id = r.id
+            LEFT JOIN graduate_program_researcher gpr ON gpr.researcher_id = r.id
+            LEFT JOIN graduate_program gp ON gpr.graduate_program_id = gp.graduate_program_id
+        WHERE r.id = %(researcher_id)s
+        GROUP BY r.id, r.name, r.lattes_id, r.graduation, r.last_update,
+                 i.name, rp.great_area, rp.articles, rp.book_chapters, rp.book,
+                 rp.patent, rp.software, rp.brand, opr.h_index, opr.i10_index,
+                 opr.cited_by_count, opr.openalex, r.orcid;
+    """
+    return await conn.select(SCRIPT_SQL, {'researcher_id': researcher_id}, one=True)
+
+
+async def get_situation_report_active_guidances(conn, researcher_id: str):
+    """Busca orientações ativas (em andamento) do pesquisador para o relatório."""
+    SCRIPT_SQL = """
+        SELECT
+            g.id,
+            g.title,
+            g.oriented AS student_name,
+            g.type,
+            g.nature,
+            g.year,
+            g.status
+        FROM guidance g
+        WHERE g.researcher_id = %(researcher_id)s
+          AND g.status NOT ILIKE '%CONCLU%'
+          AND g.status NOT ILIKE '%FINALI%'
+        ORDER BY g.year DESC, g.type, g.oriented;
+    """
+    return await conn.select(SCRIPT_SQL, {'researcher_id': researcher_id})
+
+
+async def get_situation_report_quadrienal_articles(conn, researcher_id: str, year_start: int, year_end: int):
+    """Busca artigos em periódicos do pesquisador dentro da quadrienal para o relatório."""
+    SCRIPT_SQL = """
+        SELECT
+            bp.title,
+            bp.year,
+            bpa.periodical_magazine_name AS journal,
+            bpa.qualis,
+            bpa.jcr
+        FROM bibliographic_production bp
+            INNER JOIN bibliographic_production_article bpa
+                ON bpa.bibliographic_production_id = bp.id
+        WHERE bp.researcher_id = %(researcher_id)s
+          AND bp.type = 'ARTICLE'
+          AND bp.year BETWEEN %(year_start)s AND %(year_end)s
+        ORDER BY bp.year DESC, bpa.qualis;
+    """
+    return await conn.select(SCRIPT_SQL, {
+        'researcher_id': researcher_id,
+        'year_start': year_start,
+        'year_end': year_end,
+    })
+
+
+async def get_situation_report_quadrienal_summary(conn, researcher_id: str, year_start: int, year_end: int):
+    """Busca resumo consolidado da produção na quadrienal para o relatório."""
+    SCRIPT_SQL = """
+        SELECT
+            bp.type,
+            COUNT(*) AS total,
+            bp.year
+        FROM bibliographic_production bp
+        WHERE bp.researcher_id = %(researcher_id)s
+          AND bp.year BETWEEN %(year_start)s AND %(year_end)s
+        GROUP BY bp.type, bp.year
+        ORDER BY bp.year, bp.type;
+    """
+    return await conn.select(SCRIPT_SQL, {
+        'researcher_id': researcher_id,
+        'year_start': year_start,
+        'year_end': year_end,
+    })

@@ -6,8 +6,11 @@ SERVICE_API="${SERVICE_API:-simcc-back}"
 docker compose up -d "$SERVICE_API"
 
 exec_api() {
-  docker compose exec "$SERVICE_API" python "/app/routines/$1"
+  docker compose exec "$SERVICE_API" python "/app/routines/$@"
 }
+
+echo "--- Registrando Snapshot Pré-Carga (Auditoria) ---"
+exec_api data_quality_monitor.py --snapshot
 
 echo "--- Início da Rotina SOAP_LATTES ---"
 
@@ -35,5 +38,8 @@ echo "--- Início das rotinas pós-extração ---"
 for r in "${ROTINES[@]}"; do
   exec_api "$r"
 done
+
+echo "--- Executando Auditoria de Variação e Integridade ---"
+exec_api data_quality_monitor.py --audit
 
 echo "--- Rotina Concluída ---"

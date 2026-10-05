@@ -237,3 +237,58 @@ async def get_great_area(conn, default_filters):
 
 async def get_labs(conn, lattes_id, researcher_id):
     return await researcher_repository.get_labs(conn, lattes_id, researcher_id)
+
+
+def _get_current_quadrienal() -> tuple[int, int]:
+    """Retorna o ano de início e fim da quadrienal em vigor."""
+    import datetime
+    year = datetime.datetime.now().year
+    # Quadriênios CAPES: 2017-2020, 2021-2024, 2025-2028, ...
+    quadrienal_starts = [2013, 2017, 2021, 2025, 2029]
+    for i, start in enumerate(quadrienal_starts[:-1]):
+        end = quadrienal_starts[i + 1] - 1
+        if start <= year <= end:
+            return start, end
+    # Fallback: quadrienal em curso a partir de 2025
+    return 2025, 2028
+
+
+async def get_situation_report(conn, researcher_id: str) -> dict:
+    """
+    Consolida os dados para o Relatório de Situação do Pesquisador:
+    - Dados cadastrais e programas de pós-graduação
+    - Orientações ativas (em andamento)
+    - Produção bibliográfica na quadrienal atual
+    """
+    year_start, year_end = _get_current_quadrienal()
+
+    researcher = await researcher_repository.get_situation_report_researcher(
+        conn, researcher_id
+    )
+    if not researcher:
+        return {}
+
+    active_guidances = await researcher_repository.get_situation_report_active_guidances(
+        conn, researcher_id
+    )
+
+    quadrienal_articles = await researcher_repository.get_situation_report_quadrienal_articles(
+        conn, researcher_id, year_start, year_end
+    )
+
+    quadrienal_summary = await researcher_repository.get_situation_report_quadrienal_summary(
+        conn, researcher_id, year_start, year_end
+    )
+
+    # Serializa dicts/UUIDs para JSON-safe
+    def safe(row):
+        return {k: (str(v) if not isinstance(v, (str, int, float, bool, list, dict, type(None))) else v)
+                for k, v in dict(row).items()}
+
+    return {
+        'quadrienal': f'{year_start}-{year_end}',
+        'researcher': safe(researcher),
+        'active_guidances': [safe(g) for g in (active_guidances or [])],
+        'quadrienal_articles': [safe(a) for a in (quadrienal_articles or [])],
+        'quadrienal_summary': [safe(s) for s in (quadrienal_summary or [])],
+    }

@@ -22,6 +22,15 @@ class Settings(BaseSettings, extra='ignore'):
 
     OPENAI_API_KEY: str = None
 
+    # Configurações de Alerta de Auditoria e E-mail (ETL Data Quality)
+    SMTP_HOST: Optional[str] = 'smtp.gmail.com'
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = ''
+    SMTP_PASSWORD: Optional[str] = ''
+    SMTP_FROM: Optional[str] = ''
+    ALERT_EMAILS: Optional[str] = 'eric.queiroz@aln.senaicimatec.edu.br,ejorge@uneb.br'
+    ALERT_ON_SUCCESS: bool = False
+
     class Config:
         env_file = '.env'
         env_file_encoding = 'utf-8'

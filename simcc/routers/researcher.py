@@ -182,3 +182,16 @@ async def get_researchers_by_city(
     return await researcher_service.search_in_researcher(
         conn, conn_admin, filters, None
     )
+
+
+@router.get('/researcher/situation-report')
+async def get_researcher_situation_report(
+    conn: Conn,
+    researcher_id: str,
+):
+    """
+    Retorna os dados consolidados da situação do pesquisador:
+    informações cadastrais, orientações ativas e produção na quadrienal vigente.
+    Utilizado pelo frontend para geração do PDF de relatório.
+    """
+    return await researcher_service.get_situation_report(conn, researcher_id)
