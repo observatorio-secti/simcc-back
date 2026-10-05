@@ -1848,13 +1848,14 @@ async def get_situation_report_quadrienal_articles(conn, researcher_id: str, yea
                 ON bpa.bibliographic_production_id = bp.id
         WHERE bp.researcher_id = %(researcher_id)s
           AND bp.type = 'ARTICLE'
-          AND bp.year BETWEEN %(year_start)s AND %(year_end)s
+          AND bp.year >= %(year_start)s::text
+          AND bp.year <= %(year_end)s::text
         ORDER BY bp.year DESC, bpa.qualis;
     """
     return await conn.select(SCRIPT_SQL, {
         'researcher_id': researcher_id,
-        'year_start': year_start,
-        'year_end': year_end,
+        'year_start': str(year_start),
+        'year_end': str(year_end),
     })
 
 
@@ -1867,12 +1868,13 @@ async def get_situation_report_quadrienal_summary(conn, researcher_id: str, year
             bp.year
         FROM bibliographic_production bp
         WHERE bp.researcher_id = %(researcher_id)s
-          AND bp.year BETWEEN %(year_start)s AND %(year_end)s
+          AND bp.year >= %(year_start)s::text
+          AND bp.year <= %(year_end)s::text
         GROUP BY bp.type, bp.year
         ORDER BY bp.year, bp.type;
     """
     return await conn.select(SCRIPT_SQL, {
         'researcher_id': researcher_id,
-        'year_start': year_start,
-        'year_end': year_end,
+        'year_start': str(year_start),
+        'year_end': str(year_end),
     })
