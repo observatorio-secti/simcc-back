@@ -1823,11 +1823,15 @@ async def get_situation_report_active_guidances(conn, researcher_id: str):
             g.status
         FROM guidance g
         WHERE g.researcher_id = %(researcher_id)s
-          AND g.status NOT ILIKE '%CONCLU%'
-          AND g.status NOT ILIKE '%FINALI%'
+          AND g.status NOT ILIKE %(not_conclu)s
+          AND g.status NOT ILIKE %(not_finali)s
         ORDER BY g.year DESC, g.type, g.oriented;
     """
-    return await conn.select(SCRIPT_SQL, {'researcher_id': researcher_id})
+    return await conn.select(SCRIPT_SQL, {
+        'researcher_id': researcher_id,
+        'not_conclu': '%CONCLU%',
+        'not_finali': '%FINALI%',
+    })
 
 
 async def get_situation_report_quadrienal_articles(conn, researcher_id: str, year_start: int, year_end: int):
