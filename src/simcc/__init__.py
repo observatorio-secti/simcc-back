@@ -42,11 +42,6 @@ app.add_middleware(LoggingMiddleware)
 v2_app.dependency_overrides = app.dependency_overrides
 v1_app.dependency_overrides = app.dependency_overrides
 
-app.mount('/v2', v2_app)
-app.mount('/v1', v1_app)
-app.mount('/', v1_app)
-
-
 STORAGE_INSTITUTIONS_DIR = Path('storage/institutions').resolve()
 STORAGE_INSTITUTIONS_DIR.mkdir(parents=True, exist_ok=True)
 app.mount(
@@ -54,3 +49,7 @@ app.mount(
     StaticFiles(directory=str(STORAGE_INSTITUTIONS_DIR)),
     name='institutions_storage',
 )
+
+app.mount('/v2', v2_app)
+app.mount('/v1', v1_app)
+app.mount('/', v1_app)
