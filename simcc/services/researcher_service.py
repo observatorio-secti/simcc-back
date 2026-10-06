@@ -239,28 +239,30 @@ async def get_labs(conn, lattes_id, researcher_id):
     return await researcher_repository.get_labs(conn, lattes_id, researcher_id)
 
 
-def _get_current_quadrienal() -> tuple[int, int]:
-    """Retorna o ano de início e fim da quadrienal em vigor."""
-    import datetime
-    year = datetime.datetime.now().year
-    # Quadriênios CAPES: 2017-2020, 2021-2024, 2025-2028, ...
-    quadrienal_starts = [2013, 2017, 2021, 2025, 2029]
-    for i, start in enumerate(quadrienal_starts[:-1]):
-        end = quadrienal_starts[i + 1] - 1
-        if start <= year <= end:
-            return start, end
-    # Fallback: quadrienal em curso a partir de 2025
-    return 2025, 2028
+def _get_current_quadrienal(year_start: int | None = None, year_end: int | None = None) -> tuple[int, int]:
+    """
+    Retorna o intervalo de anos para o relatório de situação.
+    Por padrão, utiliza o quadriênio avaliativo de referência da CAPES (2021-2024).
+    """
+    if year_start is not None and year_end is not None:
+        return year_start, year_end
+    # Padrão da pós-graduação e avaliação CAPES atual nos painéis do iaPós
+    return 2021, 2024
 
 
-async def get_situation_report(conn, researcher_id: str) -> dict:
+async def get_situation_report(
+    conn,
+    researcher_id: str,
+    year_start: int | None = None,
+    year_end: int | None = None,
+) -> dict:
     """
     Consolida os dados para o Relatório de Situação do Pesquisador:
     - Dados cadastrais e programas de pós-graduação
     - Orientações ativas (em andamento)
-    - Produção bibliográfica na quadrienal atual
+    - Produção bibliográfica na quadrienal de referência
     """
-    year_start, year_end = _get_current_quadrienal()
+    start_year, end_year = _get_current_quadrienal(year_start, year_end)
 
     researcher = await researcher_repository.get_situation_report_researcher(
         conn, researcher_id
@@ -273,11 +275,11 @@ async def get_situation_report(conn, researcher_id: str) -> dict:
     )
 
     quadrienal_articles = await researcher_repository.get_situation_report_quadrienal_articles(
-        conn, researcher_id, year_start, year_end
+        conn, researcher_id, start_year, end_year
     )
 
     quadrienal_summary = await researcher_repository.get_situation_report_quadrienal_summary(
-        conn, researcher_id, year_start, year_end
+        conn, researcher_id, start_year, end_year
     )
 
     # Serializa dicts/UUIDs para JSON-safe
@@ -286,7 +288,7 @@ async def get_situation_report(conn, researcher_id: str) -> dict:
                 for k, v in dict(row).items()}
 
     return {
-        'quadrienal': f'{year_start}-{year_end}',
+        'quadrienal': f'{start_year}-{end_year}',
         'researcher': safe(researcher),
         'active_guidances': [safe(g) for g in (active_guidances or [])],
         'quadrienal_articles': [safe(a) for a in (quadrienal_articles or [])],
