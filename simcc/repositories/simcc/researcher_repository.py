@@ -1878,3 +1878,51 @@ async def get_situation_report_quadrienal_summary(conn, researcher_id: str, year
         'year_start': str(year_start),
         'year_end': str(year_end),
     })
+
+
+async def get_situation_report_ind_prod(conn, researcher_id: str, year_start: int, year_end: int):
+    """Busca o IndProd acumulado do pesquisador no intervalo da quadrienal."""
+    SCRIPT_SQL = """
+        SELECT
+            COALESCE(SUM(ind_prod_article), 0)
+            + COALESCE(SUM(ind_prod_book), 0)
+            + COALESCE(SUM(ind_prod_book_chapter), 0)
+            + COALESCE(SUM(ind_prod_software), 0)
+            + COALESCE(SUM(ind_prod_report), 0)
+            + COALESCE(SUM(ind_prod_granted_patent), 0)
+            + COALESCE(SUM(ind_prod_not_granted_patent), 0)
+            + COALESCE(SUM(ind_prod_guidance), 0) AS ind_prod
+        FROM researcher_ind_prod
+        WHERE researcher_id = %(researcher_id)s
+          AND year >= %(year_start)s
+          AND year <= %(year_end)s;
+    """
+    return await conn.select(SCRIPT_SQL, {
+        'researcher_id': researcher_id,
+        'year_start': year_start,
+        'year_end': year_end,
+    }, one=True)
+
+
+async def get_situation_report_quadrienal_productions(
+    conn, researcher_id: str, year_start: int, year_end: int, prod_type: str
+):
+    """Busca produções de um tipo específico (BOOK, BOOK_CHAPTER, SOFTWARE, etc.) na quadrienal."""
+    SCRIPT_SQL = """
+        SELECT
+            bp.title,
+            bp.year,
+            bp.doi
+        FROM bibliographic_production bp
+        WHERE bp.researcher_id = %(researcher_id)s
+          AND bp.type = %(prod_type)s
+          AND bp.year >= %(year_start)s::text
+          AND bp.year <= %(year_end)s::text
+        ORDER BY bp.year DESC, bp.title;
+    """
+    return await conn.select(SCRIPT_SQL, {
+        'researcher_id': researcher_id,
+        'prod_type': prod_type,
+        'year_start': str(year_start),
+        'year_end': str(year_end),
+    })

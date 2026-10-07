@@ -282,6 +282,21 @@ async def get_situation_report(
         conn, researcher_id, start_year, end_year
     )
 
+    ind_prod_row = await researcher_repository.get_situation_report_ind_prod(
+        conn, researcher_id, start_year, end_year
+    )
+    ind_prod_value = float(ind_prod_row.get('ind_prod', 0) or 0) if ind_prod_row else 0
+
+    # Produções detalhadas além de artigos
+    EXTRA_TYPES = ['BOOK', 'BOOK_CHAPTER', 'SOFTWARE', 'PATENT_GRANTED', 'PATENT_NOT_GRANTED', 'REPORT']
+    quadrienal_productions: dict[str, list] = {}
+    for prod_type in EXTRA_TYPES:
+        rows = await researcher_repository.get_situation_report_quadrienal_productions(
+            conn, researcher_id, start_year, end_year, prod_type
+        )
+        if rows:
+            quadrienal_productions[prod_type] = rows
+
     # Serializa dicts/UUIDs para JSON-safe
     def safe(row):
         return {k: (str(v) if not isinstance(v, (str, int, float, bool, list, dict, type(None))) else v)
@@ -293,4 +308,8 @@ async def get_situation_report(
         'active_guidances': [safe(g) for g in (active_guidances or [])],
         'quadrienal_articles': [safe(a) for a in (quadrienal_articles or [])],
         'quadrienal_summary': [safe(s) for s in (quadrienal_summary or [])],
+        'ind_prod': round(ind_prod_value, 2),
+        'quadrienal_productions': {
+            k: [safe(p) for p in v] for k, v in quadrienal_productions.items()
+        },
     }
