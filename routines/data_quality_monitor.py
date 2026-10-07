@@ -575,6 +575,7 @@ def send_audit_email(report):
         print("  -> O relatório HTML completo foi salvo em disco para consulta local.")
         # Salva o HTML localmente para inspeção
         preview_file = os.path.join(SNAPSHOT_DIR, "latest_email_preview.html")
+        os.makedirs(os.path.dirname(preview_file), exist_ok=True)
         with open(preview_file, "w", encoding="utf-8") as f:
             f.write(html_content)
         print(f"  -> Preview HTML salvo em: {preview_file}")
