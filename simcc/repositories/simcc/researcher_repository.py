@@ -1894,8 +1894,7 @@ async def get_situation_report_ind_prod(conn, researcher_id: str, year_start: in
             + COALESCE(SUM(ind_prod_software), 0)
             + COALESCE(SUM(ind_prod_report), 0)
             + COALESCE(SUM(ind_prod_granted_patent), 0)
-            + COALESCE(SUM(ind_prod_not_granted_patent), 0)
-            + COALESCE(SUM(ind_prod_guidance), 0) AS ind_prod
+            + COALESCE(SUM(ind_prod_not_granted_patent), 0) AS ind_prod
         FROM researcher_ind_prod
         WHERE researcher_id = %(researcher_id)s
           AND year >= %(year_start)s
