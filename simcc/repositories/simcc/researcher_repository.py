@@ -1881,7 +1881,11 @@ async def get_situation_report_quadrienal_summary(conn, researcher_id: str, year
 
 
 async def get_situation_report_ind_prod(conn, researcher_id: str, year_start: int, year_end: int):
-    """Busca o IndProd acumulado do pesquisador no intervalo da quadrienal."""
+    """Busca o IndProd acumulado do pesquisador no intervalo da quadrienal.
+    
+    Replica o cálculo do Power BI que soma os campos individuais por ano:
+    ind_prod = SUM(ind_prod_article + ind_prod_book + ... para cada ano no range)
+    """
     SCRIPT_SQL = """
         SELECT
             COALESCE(SUM(ind_prod_article), 0)

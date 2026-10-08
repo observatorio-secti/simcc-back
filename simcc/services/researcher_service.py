@@ -286,6 +286,13 @@ async def get_situation_report(
         conn, researcher_id, start_year, end_year
     )
     ind_prod_value = float(ind_prod_row.get('ind_prod', 0) or 0) if ind_prod_row else 0
+    
+    # Debug: log para verificar se IndProd está sendo calculado
+    if ind_prod_value == 0:
+        print(f"[DEBUG] IndProd = 0 para researcher_id={researcher_id}, período {start_year}-{end_year}")
+        print(f"[DEBUG] ind_prod_row retornado: {ind_prod_row}")
+    else:
+        print(f"[DEBUG] IndProd calculado = {ind_prod_value} para researcher_id={researcher_id}")
 
     # Produções detalhadas além de artigos
     EXTRA_TYPES = ['BOOK', 'BOOK_CHAPTER', 'SOFTWARE', 'PATENT_GRANTED', 'PATENT_NOT_GRANTED', 'REPORT']
