@@ -1911,7 +1911,7 @@ async def get_situation_report_ind_prod(conn, researcher_id: str, year_start: in
 async def get_situation_report_quadrienal_productions(
     conn, researcher_id: str, year_start: int, year_end: int, prod_type: str
 ):
-    """Busca produções de um tipo específico (BOOK, BOOK_CHAPTER, SOFTWARE, etc.) na quadrienal."""
+    """Busca produções bibliográficas (BOOK, BOOK_CHAPTER, WORK_IN_EVENT, etc.) na quadrienal."""
     SCRIPT_SQL = """
         SELECT
             bp.title,
@@ -1929,4 +1929,54 @@ async def get_situation_report_quadrienal_productions(
         'prod_type': prod_type,
         'year_start': str(year_start),
         'year_end': str(year_end),
+    })
+
+
+async def get_situation_report_quadrienal_softwares(
+    conn, researcher_id: str, year_start: int, year_end: int
+):
+    """Busca registros de software do pesquisador na quadrienal."""
+    SCRIPT_SQL = """
+        SELECT
+            s.title,
+            s.year,
+            '' AS doi
+        FROM software s
+        WHERE s.researcher_id = %(researcher_id)s
+          AND s.year >= %(year_start)s
+          AND s.year <= %(year_end)s
+        ORDER BY s.year DESC, s.title;
+    """
+    return await conn.select(SCRIPT_SQL, {
+        'researcher_id': researcher_id,
+        'year_start': year_start,
+        'year_end': year_end,
+    })
+
+
+async def get_situation_report_quadrienal_patents(
+    conn, researcher_id: str, year_start: int, year_end: int
+):
+    """Busca patentes do pesquisador no período da quadrienal."""
+    SCRIPT_SQL = """
+        SELECT
+            p.title,
+            CASE 
+                WHEN p.development_year ~ '^[0-9]+$' THEN p.development_year::int
+                WHEN p.grant_date IS NOT NULL THEN EXTRACT(YEAR FROM p.grant_date)::int
+                ELSE NULL
+            END AS year,
+            '' AS doi
+        FROM patent p
+        WHERE p.researcher_id = %(researcher_id)s
+          AND (
+            (p.development_year ~ '^[0-9]+$' AND p.development_year::int >= %(year_start)s AND p.development_year::int <= %(year_end)s)
+            OR (p.grant_date IS NOT NULL AND EXTRACT(YEAR FROM p.grant_date) >= %(year_start)s AND EXTRACT(YEAR FROM p.grant_date) <= %(year_end)s)
+          )
+        ORDER BY year DESC NULLS LAST, p.title;
+    """
+    return await conn.select(SCRIPT_SQL, {
+        'researcher_id': researcher_id,
+        'year_start': year_start,
+        'year_end': year_end,
     })

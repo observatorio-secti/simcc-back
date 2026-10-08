@@ -295,14 +295,29 @@ async def get_situation_report(
         print(f"[DEBUG] IndProd calculado = {ind_prod_value} para researcher_id={researcher_id}")
 
     # Produções detalhadas além de artigos
-    EXTRA_TYPES = ['BOOK', 'BOOK_CHAPTER', 'SOFTWARE', 'PATENT_GRANTED', 'PATENT_NOT_GRANTED', 'REPORT']
+    # Tipos válidos no enum bibliographic_production_type_enum:
+    BIBLIOGRAPHIC_TYPES = ['BOOK', 'BOOK_CHAPTER', 'WORK_IN_EVENT', 'TEXT_IN_NEWSPAPER_MAGAZINE']
     quadrienal_productions: dict[str, list] = {}
-    for prod_type in EXTRA_TYPES:
+    for prod_type in BIBLIOGRAPHIC_TYPES:
         rows = await researcher_repository.get_situation_report_quadrienal_productions(
             conn, researcher_id, start_year, end_year, prod_type
         )
         if rows:
             quadrienal_productions[prod_type] = rows
+
+    # Softwares (tabela software)
+    softwares = await researcher_repository.get_situation_report_quadrienal_softwares(
+        conn, researcher_id, start_year, end_year
+    )
+    if softwares:
+        quadrienal_productions['SOFTWARE'] = softwares
+
+    # Patentes (tabela patent)
+    patents = await researcher_repository.get_situation_report_quadrienal_patents(
+        conn, researcher_id, start_year, end_year
+    )
+    if patents:
+        quadrienal_productions['PATENT'] = patents
 
     # Serializa dicts/UUIDs para JSON-safe
     def safe(row):
