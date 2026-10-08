@@ -319,6 +319,13 @@ async def get_situation_report(
     if patents:
         quadrienal_productions['PATENT'] = patents
 
+    # IndProd do quadriênio ATUAL (2025-2028) — valor destacado no card principal do BI
+    ind_prod_current_row = await researcher_repository.get_situation_report_ind_prod_current(
+        conn, researcher_id
+    )
+    ind_prod_current_value = float(ind_prod_current_row.get('ind_prod_current', 0) or 0) if ind_prod_current_row else 0
+    ind_prod_current_years = int(ind_prod_current_row.get('years_available', 0) or 0) if ind_prod_current_row else 0
+
     # Serializa dicts/UUIDs para JSON-safe
     def safe(row):
         return {k: (str(v) if not isinstance(v, (str, int, float, bool, list, dict, type(None))) else v)
@@ -331,6 +338,8 @@ async def get_situation_report(
         'quadrienal_articles': [safe(a) for a in (quadrienal_articles or [])],
         'quadrienal_summary': [safe(s) for s in (quadrienal_summary or [])],
         'ind_prod': round(ind_prod_value, 2),
+        'ind_prod_current': round(ind_prod_current_value, 2),
+        'ind_prod_current_years': ind_prod_current_years,
         'quadrienal_productions': {
             k: [safe(p) for p in v] for k, v in quadrienal_productions.items()
         },

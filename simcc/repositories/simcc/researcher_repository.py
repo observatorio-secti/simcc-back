@@ -1903,20 +1903,23 @@ async def get_situation_report_quadrienal_summary(conn, researcher_id: str, year
 
 
 async def get_situation_report_ind_prod(conn, researcher_id: str, year_start: int, year_end: int):
-    """Busca o IndProd acumulado do pesquisador no intervalo da quadrienal.
+    """Busca o IndProd MÉDIO por ano do pesquisador no intervalo da quadrienal.
     
-    Replica o cálculo do Power BI que soma os campos individuais por ano:
-    ind_prod = SUM(ind_prod_article + ind_prod_book + ... para cada ano no range)
+    Replica o cálculo do Power BI: média anual dos índices de produção.
+    O gráfico 'Evolução do Índice de Produção por Quadrienal' no BI exibe AVG, não SUM.
     """
     SCRIPT_SQL = """
         SELECT
-            COALESCE(SUM(ind_prod_article), 0)
-            + COALESCE(SUM(ind_prod_book), 0)
-            + COALESCE(SUM(ind_prod_book_chapter), 0)
-            + COALESCE(SUM(ind_prod_software), 0)
-            + COALESCE(SUM(ind_prod_report), 0)
-            + COALESCE(SUM(ind_prod_granted_patent), 0)
-            + COALESCE(SUM(ind_prod_not_granted_patent), 0) AS ind_prod
+            CASE WHEN COUNT(*) = 0 THEN 0 ELSE
+            (
+                COALESCE(SUM(ind_prod_article), 0)
+                + COALESCE(SUM(ind_prod_book), 0)
+                + COALESCE(SUM(ind_prod_book_chapter), 0)
+                + COALESCE(SUM(ind_prod_software), 0)
+                + COALESCE(SUM(ind_prod_report), 0)
+                + COALESCE(SUM(ind_prod_granted_patent), 0)
+                + COALESCE(SUM(ind_prod_not_granted_patent), 0)
+            ) / COUNT(*) END AS ind_prod
         FROM researcher_ind_prod
         WHERE researcher_id = %(researcher_id)s
           AND year >= %(year_start)s
@@ -1926,6 +1929,35 @@ async def get_situation_report_ind_prod(conn, researcher_id: str, year_start: in
         'researcher_id': researcher_id,
         'year_start': year_start,
         'year_end': year_end,
+    }, one=True)
+
+
+async def get_situation_report_ind_prod_current(conn, researcher_id: str):
+    """Busca o IndProd médio por ano do pesquisador no quadriênio atual (2025-2028).
+    
+    Este é o valor destacado no card principal do Power BI (painel Visão Pesquisador).
+    Inclui apenas os anos já disponíveis no banco (parcial se ainda não chegou em 2028).
+    """
+    SCRIPT_SQL = """
+        SELECT
+            CASE WHEN COUNT(*) = 0 THEN 0 ELSE
+            (
+                COALESCE(SUM(ind_prod_article), 0)
+                + COALESCE(SUM(ind_prod_book), 0)
+                + COALESCE(SUM(ind_prod_book_chapter), 0)
+                + COALESCE(SUM(ind_prod_software), 0)
+                + COALESCE(SUM(ind_prod_report), 0)
+                + COALESCE(SUM(ind_prod_granted_patent), 0)
+                + COALESCE(SUM(ind_prod_not_granted_patent), 0)
+            ) / COUNT(*) END AS ind_prod_current,
+            COUNT(*) AS years_available
+        FROM researcher_ind_prod
+        WHERE researcher_id = %(researcher_id)s
+          AND year >= 2025
+          AND year <= 2028;
+    """
+    return await conn.select(SCRIPT_SQL, {
+        'researcher_id': researcher_id,
     }, one=True)
 
 
