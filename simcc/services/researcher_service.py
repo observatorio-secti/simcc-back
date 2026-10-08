@@ -250,6 +250,55 @@ def _get_current_quadrienal(year_start: int | None = None, year_end: int | None 
     return 2021, 2024
 
 
+async def _fetch_period_data(conn, researcher_id: str, s_year: int, e_year: int) -> dict:
+    """Busca artigos, resumo, ind_prod e produções extras para um intervalo de anos específico."""
+    articles = await researcher_repository.get_situation_report_quadrienal_articles(
+        conn, researcher_id, s_year, e_year
+    )
+    summary = await researcher_repository.get_situation_report_quadrienal_summary(
+        conn, researcher_id, s_year, e_year
+    )
+    ind_prod_row = await researcher_repository.get_situation_report_ind_prod(
+        conn, researcher_id, s_year, e_year
+    )
+    ind_prod_val = float(ind_prod_row.get('ind_prod', 0) or 0) if ind_prod_row else 0
+
+    BIBLIOGRAPHIC_TYPES = ['BOOK', 'BOOK_CHAPTER', 'WORK_IN_EVENT', 'TEXT_IN_NEWSPAPER_MAGAZINE']
+    productions: dict[str, list] = {}
+    for prod_type in BIBLIOGRAPHIC_TYPES:
+        rows = await researcher_repository.get_situation_report_quadrienal_productions(
+            conn, researcher_id, s_year, e_year, prod_type
+        )
+        if rows:
+            productions[prod_type] = rows
+
+    softwares = await researcher_repository.get_situation_report_quadrienal_softwares(
+        conn, researcher_id, s_year, e_year
+    )
+    if softwares:
+        productions['SOFTWARE'] = softwares
+
+    patents = await researcher_repository.get_situation_report_quadrienal_patents(
+        conn, researcher_id, s_year, e_year
+    )
+    if patents:
+        productions['PATENT'] = patents
+
+    def safe(row):
+        return {k: (str(v) if not isinstance(v, (str, int, float, bool, list, dict, type(None))) else v)
+                for k, v in dict(row).items()}
+
+    return {
+        'quadrienal': f'{s_year}-{e_year}',
+        'articles': [safe(a) for a in (articles or [])],
+        'summary': [safe(s) for s in (summary or [])],
+        'ind_prod': round(ind_prod_val, 2),
+        'productions': {
+            k: [safe(p) for p in v] for k, v in productions.items()
+        },
+    }
+
+
 async def get_situation_report(
     conn,
     researcher_id: str,
@@ -260,7 +309,8 @@ async def get_situation_report(
     Consolida os dados para o Relatório de Situação do Pesquisador:
     - Dados cadastrais e programas de pós-graduação
     - Orientações ativas (em andamento)
-    - Produção bibliográfica na quadrienal de referência
+    - Quadriênio atual (2025-2028) para acompanhamento presente de metas
+    - Quadriênio anterior (2021-2024) para parâmetro e histórico CAPES
     """
     start_year, end_year = _get_current_quadrienal(year_start, year_end)
 
@@ -274,73 +324,39 @@ async def get_situation_report(
         conn, researcher_id
     )
 
-    quadrienal_articles = await researcher_repository.get_situation_report_quadrienal_articles(
-        conn, researcher_id, start_year, end_year
-    )
+    # 1. Dados do Quadriênio Anterior / Referência CAPES (2021-2024)
+    previous_period = await _fetch_period_data(conn, researcher_id, start_year, end_year)
 
-    quadrienal_summary = await researcher_repository.get_situation_report_quadrienal_summary(
-        conn, researcher_id, start_year, end_year
-    )
+    # 2. Dados do Quadriênio Atual em andamento (2025-2028)
+    current_period = await _fetch_period_data(conn, researcher_id, 2025, 2028)
 
-    ind_prod_row = await researcher_repository.get_situation_report_ind_prod(
-        conn, researcher_id, start_year, end_year
-    )
-    ind_prod_value = float(ind_prod_row.get('ind_prod', 0) or 0) if ind_prod_row else 0
-    
-    # Debug: log para verificar se IndProd está sendo calculado
-    if ind_prod_value == 0:
-        print(f"[DEBUG] IndProd = 0 para researcher_id={researcher_id}, período {start_year}-{end_year}")
-        print(f"[DEBUG] ind_prod_row retornado: {ind_prod_row}")
-    else:
-        print(f"[DEBUG] IndProd calculado = {ind_prod_value} para researcher_id={researcher_id}")
-
-    # Produções detalhadas além de artigos
-    # Tipos válidos no enum bibliographic_production_type_enum:
-    BIBLIOGRAPHIC_TYPES = ['BOOK', 'BOOK_CHAPTER', 'WORK_IN_EVENT', 'TEXT_IN_NEWSPAPER_MAGAZINE']
-    quadrienal_productions: dict[str, list] = {}
-    for prod_type in BIBLIOGRAPHIC_TYPES:
-        rows = await researcher_repository.get_situation_report_quadrienal_productions(
-            conn, researcher_id, start_year, end_year, prod_type
-        )
-        if rows:
-            quadrienal_productions[prod_type] = rows
-
-    # Softwares (tabela software)
-    softwares = await researcher_repository.get_situation_report_quadrienal_softwares(
-        conn, researcher_id, start_year, end_year
-    )
-    if softwares:
-        quadrienal_productions['SOFTWARE'] = softwares
-
-    # Patentes (tabela patent)
-    patents = await researcher_repository.get_situation_report_quadrienal_patents(
-        conn, researcher_id, start_year, end_year
-    )
-    if patents:
-        quadrienal_productions['PATENT'] = patents
-
-    # IndProd do quadriênio ATUAL (2025-2028) — valor destacado no card principal do BI
+    # IndProd do quadriênio ATUAL (2025-2028)
     ind_prod_current_row = await researcher_repository.get_situation_report_ind_prod_current(
         conn, researcher_id
     )
     ind_prod_current_value = float(ind_prod_current_row.get('ind_prod_current', 0) or 0) if ind_prod_current_row else 0
     ind_prod_current_years = int(ind_prod_current_row.get('years_available', 0) or 0) if ind_prod_current_row else 0
+    current_period['ind_prod'] = round(ind_prod_current_value, 2)
+    current_period['years_available'] = ind_prod_current_years
 
-    # Serializa dicts/UUIDs para JSON-safe
     def safe(row):
         return {k: (str(v) if not isinstance(v, (str, int, float, bool, list, dict, type(None))) else v)
                 for k, v in dict(row).items()}
 
     return {
         'quadrienal': f'{start_year}-{end_year}',
+        'current_quadrienal': '2025-2028',
+        'previous_quadrienal': f'{start_year}-{end_year}',
         'researcher': safe(researcher),
         'active_guidances': [safe(g) for g in (active_guidances or [])],
-        'quadrienal_articles': [safe(a) for a in (quadrienal_articles or [])],
-        'quadrienal_summary': [safe(s) for s in (quadrienal_summary or [])],
-        'ind_prod': round(ind_prod_value, 2),
+        # Estruturas completas por período
+        'current_period': current_period,
+        'previous_period': previous_period,
+        # Compatibilidade com chaves diretas
+        'quadrienal_articles': previous_period['articles'],
+        'quadrienal_summary': previous_period['summary'],
+        'ind_prod': previous_period['ind_prod'],
         'ind_prod_current': round(ind_prod_current_value, 2),
         'ind_prod_current_years': ind_prod_current_years,
-        'quadrienal_productions': {
-            k: [safe(p) for p in v] for k, v in quadrienal_productions.items()
-        },
+        'quadrienal_productions': previous_period['productions'],
     }
