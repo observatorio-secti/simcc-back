@@ -1,4 +1,4 @@
-import argparse
+import io
 import os
 import time
 import zipfile
@@ -6,11 +6,12 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 
 import httpx
+import polars as pl
 from sqlalchemy import text
 from zeep import Client
 from zeep.transports import Transport
 
-from simcc.core.db.database import get_admin_sync_session, get_sync_session
+from simcc.core.db.database import get_sync_session
 from simcc.core.logging import logger
 from simcc.core.logging.context import routine_name_ctx
 from simcc.core.logging.events import (
@@ -30,72 +31,27 @@ PROXY = SETTINGS.ALTERNATIVE_CNPQ_SERVICE
 
 MAX_RETRIES = 3
 MAX_PARALLEL_DOWNLOADS = 5
+MAX_PARALLEL_CHECKS = 10
+HTTP_TIMEOUT = httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=10.0)
 
-HTTP_TIMEOUT = httpx.Timeout(
-    connect=10.0,
-    read=60.0,
-    write=10.0,
-    pool=10.0,
-)
+AUTH_TOKEN_URL = 'http://localhost:8009/auth/token'
+EXPORT_PARQUET_URL = ('http://localhost:8009/academic/researchers/export/parquet')  # fmt: skip  # ruff: ignore[line-too-long]
 
-client = None
+ADMIN_USERNAME: str = 'admin'
+ADMIN_EMAIL: str = 'admin@simcc.org'
+ADMIN_PASSWORD: str = 'admin_secret_password'
+
+_zeep_client = None
 
 
 def get_zeep_client():
-    global client
-    if client is None and not PROXY:
-        client = Client(
+    global _zeep_client
+    if _zeep_client is None and not PROXY:
+        _zeep_client = Client(
             'http://servicosweb.cnpq.br/srvcurriculo/WSCurriculo?wsdl',
             transport=Transport(timeout=30, operation_timeout=30),
         )
-    return client
-
-
-def list_admin_researchers(session, researcher_ids=None, lattes_ids=None):
-    query = """
-        SELECT researcher_id, name, lattes_id
-        FROM public.researcher
-        WHERE 1=1
-    """
-
-    params = {}
-
-    if researcher_ids:
-        query += ' AND researcher_id = ANY(:researcher_ids)'
-        params['researcher_ids'] = list(researcher_ids)
-
-    if lattes_ids:
-        query += ' AND lattes_id = ANY(:lattes_ids)'
-        params['lattes_ids'] = list(lattes_ids)
-
-    result = session.execute(text(query), params)
-
-    return result.mappings().all()
-
-
-def list_main_researchers(session, researcher_ids=None, lattes_ids=None):
-    query = """
-        SELECT
-            id AS researcher_id,
-            name,
-            lattes_id
-        FROM researcher
-        WHERE 1=1
-    """
-
-    params = {}
-
-    if researcher_ids:
-        query += ' AND id = ANY(:researcher_ids)'
-        params['researcher_ids'] = list(researcher_ids)
-
-    if lattes_ids:
-        query += ' AND lattes_id = ANY(:lattes_ids)'
-        params['lattes_ids'] = list(lattes_ids)
-
-    result = session.execute(text(query), params)
-
-    return result.mappings().all()
+    return _zeep_client
 
 
 def cnpq_att_call(lattes_id):
@@ -108,8 +64,8 @@ def cnpq_att_call(lattes_id):
         response.raise_for_status()
         return response.json()
 
-    zeep_client = get_zeep_client()
-    return zeep_client.service.getDataAtualizacaoCV(lattes_id)
+    client = get_zeep_client()
+    return client.service.getDataAtualizacaoCV(lattes_id)
 
 
 def cnpq_att(lattes_id):
@@ -117,329 +73,341 @@ def cnpq_att(lattes_id):
     for attempt in range(1, MAX_RETRIES + 1):
         try:
             data = cnpq_att_call(lattes_id)
-
             if not data:
                 return datetime.min, None
-
             return datetime.strptime(data, '%d/%m/%Y %H:%M:%S'), None
-
         except Exception as e:
             last_err = str(e)
             if attempt < MAX_RETRIES:
                 time.sleep(2**attempt)
-
     return (
         None,
-        f'Falha ao consultar data de atualização no CNPq após {MAX_RETRIES} tentativas: {last_err}',
+        f'Falha ao consultar data CNPq após {MAX_RETRIES} tentativas: {last_err}',
     )
 
 
-def database_att(session, lattes_id):
+def get_db_dates_map():
+    session = None
     try:
+        session = next(get_sync_session())
         result = (
             session
             .execute(
                 text(
-                    """
-                    SELECT last_update
-                    FROM researcher
-                    WHERE lattes_id = :lattes_id
-                    """
-                ),
-                {'lattes_id': lattes_id},
+                    'SELECT lattes_id, last_update FROM researcher WHERE lattes_id IS NOT NULL'
+                )
             )
             .mappings()
-            .first()
+            .all()
         )
-
-        if result and result.get('last_update'):
-            return result['last_update'], None
-
-        return datetime.min, None
-    except Exception as e:
-        return (
-            None,
-            f'Falha ao consultar última atualização no banco de dados: {e}',
-        )
-
-
-def download_xml(lattes_id, researcher_id, name=None):
-    session = None
-    try:
-        session = next(get_sync_session())
-    except Exception as e:
-        return (
-            False,
-            f'Não foi possível obter sessão do banco de dados: {e}',
-        )
-
-    try:
-        cnpq_date, cnpq_err = cnpq_att(lattes_id)
-        if cnpq_err:
-            return False, cnpq_err
-
-        db_date, db_err = database_att(session, lattes_id)
-        if db_err:
-            return False, db_err
-
-        if cnpq_date <= db_date:
-            cnpq_str = (
-                cnpq_date.strftime('%d/%m/%Y %H:%M:%S')
-                if cnpq_date != datetime.min
-                else 'Sem data'
-            )
-            db_str = (
-                db_date.strftime('%d/%m/%Y %H:%M:%S')
-                if db_date != datetime.min
-                else 'Sem data'
-            )
-            return (
-                False,
-                f'Currículo já está atualizado no banco (Data CNPq: {cnpq_str} <= Data Banco: {db_str})',
-            )
-
-        try:
-            if PROXY:
-                response = httpx.get(
-                    f'https://simcc.uesc.br/v3/api/getCurriculoCompactado?lattes_id={lattes_id}',
-                    verify=False,
-                    timeout=HTTP_TIMEOUT,
-                )
-                response.raise_for_status()
-                content = response.content
-            else:
-                zeep_client = get_zeep_client()
-                content = zeep_client.service.getCurriculoCompactado(lattes_id)
-
-            if not content:
-                return False, 'CNPq/Proxy retornou conteúdo de arquivo vazio'
-
-        except Exception as e:
-            return False, f'Falha no download do XML/ZIP: {e}'
-
-        try:
-            zip_path = os.path.join(ZIP_XML_PATH, f'{lattes_id}.zip')
-
-            os.makedirs(ZIP_XML_PATH, exist_ok=True)
-            os.makedirs(XML_PATH, exist_ok=True)
-            os.makedirs(CURRENT_XML_PATH, exist_ok=True)
-
-            with open(zip_path, 'wb') as f:
-                f.write(content)
-
-            with zipfile.ZipFile(zip_path, 'r') as z:
-                z.extractall(XML_PATH)
-                z.extractall(CURRENT_XML_PATH)
-
-            if os.path.exists(zip_path):
-                os.remove(zip_path)
-
-            return True, 'XML baixado e extraído com sucesso'
-
-        except Exception as e:
-            return False, f'Falha ao salvar ou extrair arquivo XML: {e}'
-
+        return {
+            str(row['lattes_id']).strip().zfill(16): row['last_update']
+            for row in result
+            if row['lattes_id']
+        }
     finally:
         if session is not None:
             session.close()
 
 
-items_found = 0
-items_succeeded = 0
-items_failed = 0
+def check_researcher_status(record, db_dates):
+    lattes_id = record['lattes_id']
+    researcher_id = record['researcher_id']
+    name = record['name']
+
+    cnpq_date, cnpq_err = cnpq_att(lattes_id)
+    if cnpq_err:
+        return False, record, cnpq_err
+
+    db_date = db_dates.get(lattes_id)
+    if db_date is None:
+        db_date = datetime.min
+
+    if cnpq_date <= db_date:
+        cnpq_str = (
+            cnpq_date.strftime('%d/%m/%Y %H:%M:%S')
+            if cnpq_date != datetime.min
+            else 'Sem data'
+        )
+        db_str = (
+            db_date.strftime('%d/%m/%Y %H:%M:%S')
+            if db_date != datetime.min
+            else 'Sem data'
+        )
+        return (
+            False,
+            record,
+            f'Atualizado no banco (CNPq: {cnpq_str} <= Banco: {db_str})',
+        )
+
+    return True, record, None
 
 
-def main(researcher_ids=None, lattes_ids=None):
-    global items_found, items_succeeded, items_failed
-
-    if not routine_name_ctx.get():
-        routine_name_ctx.set('soap_lattes')
-    start_time = datetime.now()
-    logger.info(
-        f'[INÍCIO] Rotina soap_lattes iniciada em {start_time.strftime("%Y-%m-%d %H:%M:%S")}'
-    )
-
-    admin_session = None
-    researchers = []
+def download_single_xml(record):
+    lattes_id = record['lattes_id']
+    researcher_id = record['researcher_id']
+    name = record['name']
 
     try:
-        try:
-            admin_session = next(get_admin_sync_session())
-            researchers = list_admin_researchers(
-                admin_session,
-                researcher_ids,
-                lattes_ids,
+        if PROXY:
+            response = httpx.get(
+                f'https://simcc.uesc.br/v3/api/getCurriculoCompactado?lattes_id={lattes_id}',
+                verify=False,
+                timeout=HTTP_TIMEOUT,
             )
-            logger.info(
-                f'Utilizando banco administrativo ({len(researchers)} pesquisadores encontrados).'
+            response.raise_for_status()
+            content = response.content
+        else:
+            client = get_zeep_client()
+            content = client.service.getCurriculoCompactado(lattes_id)
+
+        if not content:
+            return False, 'Conteúdo retornado pelo serviço está vazio'
+    except Exception as e:
+        return False, f'Falha na requisição do arquivo: {e}'
+
+    try:
+        zip_path = os.path.join(ZIP_XML_PATH, f'{lattes_id}.zip')
+
+        os.makedirs(ZIP_XML_PATH, exist_ok=True)
+        os.makedirs(XML_PATH, exist_ok=True)
+        os.makedirs(CURRENT_XML_PATH, exist_ok=True)
+
+        with open(zip_path, 'wb') as f:
+            f.write(content)
+
+        with zipfile.ZipFile(zip_path, 'r') as z:
+            z.extractall(XML_PATH)
+            z.extractall(CURRENT_XML_PATH)
+
+        if os.path.exists(zip_path):
+            os.remove(zip_path)
+
+        return True, 'XML extraído'
+    except Exception as e:
+        return False, f'Falha ao extrair arquivo: {e}'
+
+
+def get_auth_token():
+    payload = {
+        'grant_type': 'password',
+        'username': ADMIN_USERNAME,
+        'password': ADMIN_PASSWORD,
+        'scope': '',
+        'client_id': '',
+        'client_secret': '',
+    }
+    headers = {
+        'accept': '*/*',
+        'Content-Type': 'application/x-www-form-urlencoded',
+    }
+
+    response = httpx.post(
+        AUTH_TOKEN_URL,
+        data=payload,
+        headers=headers,
+        timeout=15.0,
+    )
+    response.raise_for_status()
+    data = response.json()
+    return data['access_token']
+
+
+def fetch_researchers():
+    token = get_auth_token()
+    headers = {
+        'Authorization': f'Bearer {token}',
+    }
+
+    response = httpx.get(
+        EXPORT_PARQUET_URL,
+        headers=headers,
+        timeout=60.0,
+    )
+    response.raise_for_status()
+
+    df = pl.read_parquet(io.BytesIO(response.content))
+
+    if 'lattes_id' not in df.columns:
+        raise ValueError(
+            "Coluna obrigatória 'lattes_id' ausente no arquivo Parquet."
+        )
+
+    if 'researcher_id' not in df.columns:
+        if 'id' in df.columns:
+            df = df.with_columns(pl.col('id').alias('researcher_id'))
+        else:
+            df = df.with_columns(
+                pl.int_range(0, pl.len()).cast(pl.Utf8).alias('researcher_id')
             )
-        except Exception as admin_err:
-            logger.warning(
-                f'[AVISO] Não foi possível conectar ao banco administrativo: {admin_err}'
-            )
-            logger.info('Tentando conectar ao banco principal...')
+
+    if 'name' not in df.columns:
+        df = df.with_columns(pl.lit('Desconhecido').alias('name'))
+
+    df = (
+        df
+        .filter(pl.col('lattes_id').is_not_null())
+        .with_columns([
+            pl.col('researcher_id').cast(pl.Utf8),
+            pl.col('name').fill_null('Desconhecido').cast(pl.Utf8),
+            pl.col('lattes_id').cast(pl.Utf8).str.strip_chars().str.zfill(16),
+        ])
+        .filter(pl.col('lattes_id') != '0' * 16)
+    )
+
+    return df
+
+
+def filter_outdated_researchers(researchers_df):
+    records = researchers_df.to_dicts()
+    total = len(records)
+    if total == 0:
+        return []
+
+    try:
+        db_dates = get_db_dates_map()
+    except Exception as e:
+        logger.error(f'Falha ao consultar datas no banco local: {e}')
+        raise
+
+    routine_step_started('check_cnpq_updates', total_items=total)
+
+    outdated = []
+    completed = 0
+    with ThreadPoolExecutor(max_workers=MAX_PARALLEL_CHECKS) as executor:
+        futures = {
+            executor.submit(check_researcher_status, record, db_dates): record
+            for record in records
+        }
+
+        for future in as_completed(futures):
+            completed += 1
+            is_outdated, record, reason = future.result()
+
+            if is_outdated:
+                outdated.append(record)
+            elif reason and not reason.startswith('Atualizado no banco'):
+                routine_item_error(
+                    record['researcher_id'],
+                    f'ERRO CHECAGEM: {reason}',
+                    name=record['name'],
+                    lattes_id=record['lattes_id'],
+                )
+
+            if completed % 50 == 0 or completed == total:
+                routine_progress(
+                    'check_cnpq_updates',
+                    completed,
+                    total,
+                    len(outdated),
+                    completed - len(outdated),
+                )
+
+    routine_step_finished('check_cnpq_updates', total_items=total)
+    return outdated
+
+
+def download_lattes(researchers_list):
+    total = len(researchers_list)
+    if total == 0:
+        logger.info('Nenhum pesquisador necessita de atualização.')
+        return
+
+    if os.path.exists(XML_PATH):
+        for file in os.listdir(XML_PATH):
+            path = os.path.join(XML_PATH, file)
+            if os.path.isfile(path) and file.endswith('.xml'):
+                try:
+                    os.remove(path)
+                except Exception:
+                    pass
+    else:
+        os.makedirs(XML_PATH, exist_ok=True)
+
+    routine_step_started('download_cnpq_lattes', total_items=total)
+
+    succeeded = 0
+    failed = 0
+    completed = 0
+
+    with ThreadPoolExecutor(max_workers=MAX_PARALLEL_DOWNLOADS) as executor:
+        futures = {
+            executor.submit(download_single_xml, record): record
+            for record in researchers_list
+        }
+
+        for future in as_completed(futures):
+            completed += 1
+            record = futures[future]
+            res_id = record['researcher_id']
+            name = record['name']
+            lattes_id = record['lattes_id']
 
             try:
-                admin_session = next(get_sync_session())
-                researchers = list_main_researchers(
-                    admin_session,
-                    researcher_ids,
-                    lattes_ids,
-                )
-                logger.info(
-                    f'Utilizando banco principal ({len(researchers)} pesquisadores encontrados).'
-                )
-            except Exception as main_err:
-                logger.error(
-                    f'[ERRO] Não foi possível conectar ao banco principal: {main_err}'
-                )
-                logger.error(
-                    f'[INTERROMPIDO] Rotina soap_lattes parou no meio em {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}. Motivo: Não foi possível conectar ao banco principal: {main_err}'
-                )
-                raise main_err
-
-        if os.path.exists(XML_PATH):
-            for file in os.listdir(XML_PATH):
-                path = os.path.join(XML_PATH, file)
-                if os.path.isfile(path) and file.endswith('.xml'):
-                    try:
-                        os.remove(path)
-                    except Exception:
-                        pass
-        else:
-            os.makedirs(XML_PATH, exist_ok=True)
-
-        if not researchers:
-            logger.warning(
-                'Nenhum pesquisador encontrado com os parâmetros informados.'
-            )
-            end_time = datetime.now()
-            logger.info(
-                f'[FIM] Rotina soap_lattes encerrada em {end_time.strftime("%Y-%m-%d %H:%M:%S")}. Total: 0 | Baixados: 0 | Não baixados: 0'
-            )
-            return
-
-        total = len(researchers)
-        items_found = total
-
-        succeeded_count = 0
-        failed_count = 0
-
-        with ThreadPoolExecutor(
-            max_workers=MAX_PARALLEL_DOWNLOADS
-        ) as executor:
-            futures = {}
-
-            for researcher in researchers:
-                lattes_id = researcher.get('lattes_id')
-                researcher_id = str(researcher.get('researcher_id'))
-                name = researcher.get('name', 'Desconhecido')
-
-                if not lattes_id or not str(lattes_id).strip():
-                    reason = 'Lattes ID não informado ou em branco'
-                    logger.warning(
-                        f'[NÃO BAIXADO] Pesquisador {name} (ID: {researcher_id}, Lattes: {lattes_id}): Motivo: {reason}'
-                    )
-                    failed_count += 1
-                    continue
-
-                lattes_id_clean = str(lattes_id).strip().zfill(16)
-
-                future = executor.submit(
-                    download_xml,
-                    lattes_id_clean,
-                    researcher_id,
-                    name,
-                )
-
-                futures[future] = (lattes_id_clean, researcher_id, name)
-
-            routine_step_started('download_cnpq_lattes', total_items=total)
-
-            completed = 0
-            for future in as_completed(futures):
-                completed += 1
-                lattes_id_clean, researcher_id, name = futures[future]
-
-                try:
-                    success, detail = future.result()
-
-                    if success:
-                        succeeded_count += 1
-                        logger.debug(
-                            f'[OK] [{completed}/{total}] Pesquisador {name} (ID: {researcher_id}, Lattes: {lattes_id_clean}): {detail}'
-                        )
-                    else:
-                        failed_count += 1
-                        routine_item_error(
-                            researcher_id,
-                            f'NÃO BAIXADO: {detail}',
-                            name=name,
-                            lattes_id=lattes_id_clean,
-                        )
-
-                except Exception as e:
-                    failed_count += 1
-                    reason = f'Erro inesperado no processamento: {e}'
+                success, detail = future.result()
+                if success:
+                    succeeded += 1
+                    msg = f'[OK] [{completed}/{total}] {name} ({lattes_id}): {detail}'
+                    logger.debug(msg)
+                else:
+                    failed += 1
                     routine_item_error(
-                        researcher_id,
-                        reason,
+                        res_id,
+                        f'NÃO BAIXADO: {detail}',
                         name=name,
-                        lattes_id=lattes_id_clean,
+                        lattes_id=lattes_id,
                     )
+            except Exception as e:
+                failed += 1
+                routine_item_error(
+                    res_id,
+                    f'ERRO PROCESSAMENTO: {e}',
+                    name=name,
+                    lattes_id=lattes_id,
+                )
 
-                if completed % 20 == 0 or completed == total:
-                    routine_progress(
-                        'download_cnpq_lattes',
-                        completed,
-                        total,
-                        succeeded_count,
-                        failed_count,
-                    )
+            if completed % 20 == 0 or completed == total:
+                routine_progress(
+                    'download_cnpq_lattes',
+                    completed,
+                    total,
+                    succeeded,
+                    failed,
+                )
 
-            routine_step_finished('download_cnpq_lattes', total_items=total)
+    routine_step_finished('download_cnpq_lattes', total_items=total)
 
-        items_succeeded = succeeded_count
-        items_failed = failed_count
+
+def main():
+    if not routine_name_ctx.get():
+        routine_name_ctx.set('soap_lattes')
+
+    start_time = datetime.now()
+    msg = f'[INÍCIO] Rotina soap_lattes iniciada em {start_time.strftime("%Y-%m-%d %H:%M:%S")}'
+    logger.info(msg)
+
+    try:
+        researchers = fetch_researchers()
+        msg = f'{len(researchers)} pesquisadores carregados do endpoint.'
+        logger.info(msg)
+
+        outdated_researchers = filter_outdated_researchers(researchers)
+        msg = f'{len(outdated_researchers)} pesquisadores identificados como desatualizados.'
+        logger.info(msg)
+
+        download_lattes(outdated_researchers)
 
         end_time = datetime.now()
         duration_str = str(end_time - start_time).split('.')[0]
-        logger.info(
-            f'[FIM] Rotina soap_lattes encerrada em {end_time.strftime("%Y-%m-%d %H:%M:%S")} (Duração: {duration_str}). Total: {total} | Baixados com sucesso: {succeeded_count} | Não baixados: {failed_count}'
-        )
+        msg = f'[FIM] Rotina soap_lattes finalizada em {end_time.strftime("%Y-%m-%d %H:%M:%S")} (Duração: {duration_str})'
+        logger.info(msg)
 
     except Exception as e:
         end_time = datetime.now()
-        logger.error(
-            f'[INTERROMPIDO] Rotina soap_lattes parou no meio em {end_time.strftime("%Y-%m-%d %H:%M:%S")}. Motivo: {e}'
-        )
-
-        raise e
-    finally:
-        if admin_session is not None:
-            admin_session.close()
+        msg = f'[INTERROMPIDO] Rotina soap_lattes finalizada com erro em {end_time.strftime("%Y-%m-%d %H:%M:%S")}: {e}'
+        logger.error(msg)
+        raise
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        '--researcher-ids',
-        nargs='+',
-        type=str,
-        default=None,
-    )
-
-    parser.add_argument(
-        '--lattes-ids',
-        nargs='+',
-        type=str,
-        default=None,
-    )
-
-    args = parser.parse_args()
-
-    main(
-        researcher_ids=args.researcher_ids,
-        lattes_ids=args.lattes_ids,
-    )
+    main()
