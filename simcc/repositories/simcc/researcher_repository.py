@@ -1775,8 +1775,30 @@ async def get_situation_report_researcher(conn, researcher_id: str):
             r.graduation,
             r.last_update AS lattes_update,
             i.name AS institution,
-            REPLACE(rp.great_area, '_', ' ') AS area,
-            rp.articles,
+            COALESCE(
+                NULLIF(TRIM(REPLACE(rp.great_area, '_', ' ')), ''),
+                (
+                    SELECT REPLACE(gae.name, '_', ' ')
+                    FROM researcher_area_expertise rae
+                    JOIN great_area_expertise gae ON gae.id = rae.great_area_expertise_id
+                    WHERE rae.researcher_id = r.id
+                    LIMIT 1
+                ),
+                (
+                    SELECT REPLACE(ae.name, '_', ' ')
+                    FROM researcher_area_expertise rae
+                    JOIN area_expertise ae ON ae.id = rae.area_expertise_id
+                    WHERE rae.researcher_id = r.id
+                    LIMIT 1
+                ),
+                (
+                    SELECT gp2.area
+                    FROM graduate_program_researcher gpr2
+                    JOIN graduate_program gp2 ON gp2.graduate_program_id = gpr2.graduate_program_id
+                    WHERE gpr2.researcher_id = r.id AND gp2.area IS NOT NULL
+                    LIMIT 1
+                )
+            ) AS area,
             rp.book_chapters,
             rp.book,
             rp.patent,
