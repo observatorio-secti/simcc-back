@@ -1773,7 +1773,7 @@ async def get_situation_report_researcher(conn, researcher_id: str):
             r.name,
             r.lattes_id,
             r.graduation,
-            r.last_update AS lattes_update,
+            TO_CHAR(r.last_update, 'DD/MM/YYYY') AS lattes_update,
             i.name AS institution,
             COALESCE(
                 NULLIF(TRIM(REPLACE(rp.great_area, '_', ' ')), ''),
