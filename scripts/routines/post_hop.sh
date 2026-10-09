@@ -9,7 +9,6 @@ ROUTINES=(
     "get_lattes_10.py"
     "researcher_indprod.py"
     "graduate_program_indprod.py"
-    "abstract_ai.py"
     "get_openAlex.py"
     "researcher_classification.py"
     "sync_research_lines.py"
