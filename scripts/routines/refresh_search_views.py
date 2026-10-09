@@ -10,21 +10,8 @@ from simcc.core.logging.events import (
     routine_step_started,
 )
 from simcc.core.settings import Settings
+from simcc.v2.services.mv_refresh_service import SEARCH_MATERIALIZED_VIEWS
 from simcc.v2.services.search_cache import bump_search_generation
-
-SEARCH_MATERIALIZED_VIEWS = [
-    # Camada 1: Visões por fonte
-    'mv_search_articles',
-    'mv_search_books',
-    'mv_search_patents',
-    'mv_search_software',
-    'mv_search_events',
-    'mv_search_areas',
-    # Camada 1 consolidada: UNION ALL das visões por fonte
-    'mv_search_documents',
-    # Camada 2: Visão agregada consolidada
-    'mv_researcher_search',
-]
 
 items_found = len(SEARCH_MATERIALIZED_VIEWS)
 items_succeeded = 0
