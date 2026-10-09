@@ -18,6 +18,7 @@ from simcc.v2.schemas.production import (
     PatentFilter,
     ProductionOptions,
     ProductionSort,
+    ResearchProjectFilter,
     SoftwareFilter,
 )
 from simcc.v2.schemas.query import as_query
@@ -58,6 +59,9 @@ SoftwareFilterDep = Annotated[
 ]
 PatentFilterDep = Annotated[PatentFilter, Depends(as_query(PatentFilter))]
 EventFilterDep = Annotated[EventFilter, Depends(as_query(EventFilter))]
+ResearchProjectFilterDep = Annotated[
+    ResearchProjectFilter, Depends(as_query(ResearchProjectFilter))
+]
 ProductionSortDep = Annotated[
     ProductionSort, Depends(as_query(ProductionSort))
 ]

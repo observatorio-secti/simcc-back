@@ -1,5 +1,5 @@
 """Serviço para busca, listagem e detalhe de produções canônicas.
-Livros, Capítulos, Software, Patentes e Eventos.
+Livros, Capítulos, Software, Patentes, Eventos e Projetos de Pesquisa.
 """
 
 import math
@@ -17,6 +17,7 @@ from simcc.v2.repositories.search_tables import (
     mv_canonical_books,
     mv_canonical_events,
     mv_canonical_patents,
+    mv_canonical_research_projects,
     mv_canonical_software,
 )
 from simcc.v2.schemas.params import Pagination, PaginationParams
@@ -39,6 +40,13 @@ from simcc.v2.schemas.production import (
     PatentSummary,
     ProductionSort,
     ResearcherRef,
+    ResearchProjectComponent,
+    ResearchProjectDetail,
+    ResearchProjectFilter,
+    ResearchProjectFoment,
+    ResearchProjectProduction,
+    ResearchProjectSearchResponse,
+    ResearchProjectSummary,
     SoftwareDetail,
     SoftwareFilter,
     SoftwareSearchResponse,
@@ -495,4 +503,110 @@ async def get_event_detail(
         type_participation=r.get('type_participation'),
         platform_authors=_authors(r),
         form_participation=r.get('form_participation'),
+    )
+
+
+# =========================================================================
+# 6. PROJETOS DE PESQUISA
+# =========================================================================
+
+async def search_research_projects(
+    session: AsyncSession,
+    filters: Optional[ResearchProjectFilter] = None,
+    pagination: Optional[PaginationParams] = None,
+    sort: Optional[ProductionSort] = None,
+) -> ResearchProjectSearchResponse:
+    t0 = time.perf_counter()
+    filters = filters or ResearchProjectFilter()
+    pagination = pagination or PaginationParams()
+    sort = sort or ProductionSort()
+
+    table = mv_canonical_research_projects
+    total = await production_repo.count_production(session, table, filters)
+    rows = await production_repo.search_production(
+        session, table, filters, sort, pagination
+    )
+
+    snippets = {}
+    if filters.q and rows:
+        ids = [r['canonical_id'] for r in rows]
+        snippets = await production_repo.get_production_snippets(
+            session, table, ids, filters.q, secondary_col='description'
+        )
+
+    data = [
+        ResearchProjectSummary(
+            id=r['canonical_id'],
+            title=r['title'],
+            start_year=r.get('start_year'),
+            end_year=r.get('end_year'),
+            status=r.get('status'),
+            nature=r.get('nature'),
+            agency_name=r.get('agency_name'),
+            platform_authors=_authors(dict(r)),
+            matches=snippets.get(r['canonical_id']),
+        )
+        for r in rows
+    ]
+
+    total_pages = math.ceil(total / pagination.per_page) if total > 0 else 0
+    return ResearchProjectSearchResponse(
+        data=data,
+        pagination=Pagination(
+            page=pagination.page,
+            per_page=pagination.per_page,
+            total_items=total,
+            total_pages=total_pages,
+            has_next=pagination.page < total_pages,
+            has_prev=pagination.page > 1,
+        ),
+        filters_applied=filters,
+        sort=sort,
+        meta=Meta(
+            took_ms=int((time.perf_counter() - t0) * 1000),
+            cached=False,
+            timestamp=datetime.now(timezone.utc),
+        ),
+    )
+
+
+async def get_research_project_detail(
+    session: AsyncSession,
+    project_id: UUID | str,
+) -> ResearchProjectDetail:
+    row = await production_repo.get_production_by_id(
+        session, mv_canonical_research_projects, project_id
+    )
+    if not row:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Projeto de pesquisa '{project_id}' não encontrado",
+        )
+    r = dict(row)
+    return ResearchProjectDetail(
+        id=r['canonical_id'],
+        title=r['title'],
+        start_year=r.get('start_year'),
+        end_year=r.get('end_year'),
+        status=r.get('status'),
+        nature=r.get('nature'),
+        agency_name=r.get('agency_name'),
+        platform_authors=_authors(r),
+        agency_code=r.get('agency_code'),
+        description=r.get('description'),
+        number_undergraduates=r.get('number_undergraduates'),
+        number_specialists=r.get('number_specialists'),
+        number_academic_masters=r.get('number_academic_masters'),
+        number_phd=r.get('number_phd'),
+        foment=[
+            ResearchProjectFoment(**f) for f in (r.get('foment') or [])
+        ],
+        components=[
+            ResearchProjectComponent(**c)
+            for c in (r.get('components') or [])
+        ],
+        productions=[
+            ResearchProjectProduction(**p)
+            for p in (r.get('productions') or [])
+        ],
     )
