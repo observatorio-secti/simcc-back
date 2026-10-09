@@ -70,10 +70,11 @@ async def test_article_deduplication_and_detail(
     await session.execute(
         text("""
         INSERT INTO bibliographic_production
-            (id, researcher_id, title, year_, doi, type, relevance, has_image)
+            (id, researcher_id, sequence_code, title, year_, doi, type,
+             relevance, has_image)
         VALUES
-            (:id1, :r1, :title, :year, :doi, 'ARTICLE', true, false),
-            (:id2, :r2, :title, :year, :doi, 'ARTICLE', true, false);
+            (:id1, :r1, 1, :title, :year, :doi, 'ARTICLE', true, false),
+            (:id2, :r2, 1, :title, :year, :doi, 'ARTICLE', true, false);
         """),
         {
             'id1': bp_id1,

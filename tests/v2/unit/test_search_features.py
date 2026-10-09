@@ -5,6 +5,7 @@ import pytest
 from sqlalchemy import event
 
 from simcc.core.db.models.production import Software
+from tests.factories.production import next_sequence_code
 
 
 @pytest.mark.asyncio
@@ -75,6 +76,7 @@ async def test_full_text_search_production_document_and_matches(
     # Adiciona um software na produção de Ada Lovelace
     sw = Software(
         researcher_id=r1.id,
+        sequence_code=next_sequence_code(),
         title='Simulador Algébrico de Máquinas Analíticas',
         year=2021,
     )
@@ -200,6 +202,7 @@ async def test_relevance_ranking_by_production_volume(
     r_few = await researcher_factory(name='Pesquisador Poucas Ocorrências')
     sw1 = Software(
         researcher_id=r_few.id,
+        sequence_code=next_sequence_code(),
         title='Sistema de monitoramento de Dengue em áreas urbanas',
         year=2022,
     )
@@ -209,6 +212,7 @@ async def test_relevance_ranking_by_production_volume(
     for i in range(3):
         sw = Software(
             researcher_id=r_many.id,
+            sequence_code=next_sequence_code(),
             title=f'Epidemiologia e controle da Dengue volume {i}',
             year=2020 + i,
         )

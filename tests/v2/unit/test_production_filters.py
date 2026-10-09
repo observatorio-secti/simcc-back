@@ -6,6 +6,8 @@ import pytest
 import pytest_asyncio
 from sqlalchemy import text
 
+from tests.factories.production import next_sequence_code
+
 
 def _titles(response):
     assert response.status_code == HTTPStatus.OK, response.text
@@ -27,12 +29,15 @@ def article_factory(session):
         await session.execute(
             text("""
             INSERT INTO bibliographic_production
-                (id, researcher_id, title, year_, type, relevance, has_image)
-            VALUES (:id, :researcher_id, :title, :year, 'ARTICLE', true, false)
+                (id, researcher_id, sequence_code, title, year_, type,
+                 relevance, has_image)
+            VALUES (:id, :researcher_id, :sequence_code, :title, :year,
+                    'ARTICLE', true, false)
             """),
             {
                 'id': production_id,
                 'researcher_id': researcher.id,
+                'sequence_code': next_sequence_code(),
                 'title': title,
                 'year': year,
             },
@@ -71,14 +76,15 @@ def event_factory(session):
         await session.execute(
             text("""
             INSERT INTO participation_events
-                (id, researcher_id, title, event_name, nature,
-                 form_participation, type_participation, year)
-            VALUES (:id, :researcher_id, :title, 'Evento', :nature, :form,
-                    'Apresentação Oral', :year)
+                (id, researcher_id, sequence_code, title, event_name,
+                 nature, form_participation, type_participation, year)
+            VALUES (:id, :researcher_id, :sequence_code, :title, 'Evento',
+                    :nature, :form, 'Apresentação Oral', :year)
             """),
             {
                 'id': uuid4(),
                 'researcher_id': researcher.id,
+                'sequence_code': next_sequence_code(),
                 'title': title,
                 'nature': nature,
                 'form': form,
@@ -96,14 +102,15 @@ def patent_factory(session):
         await session.execute(
             text("""
             INSERT INTO patent
-                (id, researcher_id, title, category, development_year,
-                 code, grant_date)
-            VALUES (:id, :researcher_id, :title, :category, '2024', :code,
-                    :grant_date)
+                (id, researcher_id, sequence_code, title, category,
+                 development_year, code, grant_date)
+            VALUES (:id, :researcher_id, :sequence_code, :title, :category,
+                    '2024', :code, :grant_date)
             """),
             {
                 'id': uuid4(),
                 'researcher_id': researcher.id,
+                'sequence_code': next_sequence_code(),
                 'title': title,
                 'category': category,
                 'code': f'BR {uuid4().hex[:12]}',

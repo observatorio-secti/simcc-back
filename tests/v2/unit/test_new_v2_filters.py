@@ -14,6 +14,7 @@ from simcc.core.db.models.production import (
     Foment,
 )
 from simcc.core.db.models.researcher import ResearcherAreaExpertise
+from tests.factories.production import next_sequence_code
 
 
 def _names(response):
@@ -64,6 +65,7 @@ async def _link_great_area(session, researcher, great_area_name):
 async def _add_foment(session, researcher, modality_name):
     f = Foment(
         researcher_id=researcher.id,
+        sequence_code=next_sequence_code(),
         modality_name=modality_name,
     )
     session.add(f)
@@ -126,8 +128,9 @@ async def test_article_magazine_and_issn_filters(
     m1_id = uuid.uuid4()
     await session.execute(
         text("""
-        INSERT INTO bibliographic_production (id, researcher_id, title, year_, type)
-        VALUES (:id, :rid, 'Estudo na Nature', 2024, 'ARTICLE')
+        INSERT INTO bibliographic_production
+            (id, researcher_id, sequence_code, title, year_, type)
+        VALUES (:id, :rid, 1, 'Estudo na Nature', 2024, 'ARTICLE')
         """),
         {'id': p1_id, 'rid': author.id},
     )
@@ -151,8 +154,9 @@ async def test_article_magazine_and_issn_filters(
     m2_id = uuid.uuid4()
     await session.execute(
         text("""
-        INSERT INTO bibliographic_production (id, researcher_id, title, year_, type)
-        VALUES (:id, :rid, 'Estudo na Science', 2024, 'ARTICLE')
+        INSERT INTO bibliographic_production
+            (id, researcher_id, sequence_code, title, year_, type)
+        VALUES (:id, :rid, 2, 'Estudo na Science', 2024, 'ARTICLE')
         """),
         {'id': p2_id, 'rid': author.id},
     )
@@ -205,8 +209,9 @@ async def test_production_area_filter_and_facet(
     p2_id = uuid.uuid4()
     await session.execute(
         text("""
-        INSERT INTO bibliographic_production (id, researcher_id, title, year_, type)
-        VALUES (:id, :rid, 'Livro de Computacao', 2024, 'BOOK')
+        INSERT INTO bibliographic_production
+            (id, researcher_id, sequence_code, title, year_, type)
+        VALUES (:id, :rid, 1, 'Livro de Computacao', 2024, 'BOOK')
         """),
         {'id': p1_id, 'rid': author1.id},
     )
@@ -220,8 +225,9 @@ async def test_production_area_filter_and_facet(
 
     await session.execute(
         text("""
-        INSERT INTO bibliographic_production (id, researcher_id, title, year_, type)
-        VALUES (:id, :rid, 'Livro de Botanica', 2024, 'BOOK')
+        INSERT INTO bibliographic_production
+            (id, researcher_id, sequence_code, title, year_, type)
+        VALUES (:id, :rid, 1, 'Livro de Botanica', 2024, 'BOOK')
         """),
         {'id': p2_id, 'rid': author2.id},
     )

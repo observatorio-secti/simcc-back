@@ -53,10 +53,11 @@ async def test_book_deduplication_and_detail(
     await session.execute(
         text("""
         INSERT INTO bibliographic_production
-            (id, researcher_id, title, year_, type, relevance, has_image)
+            (id, researcher_id, sequence_code, title, year_, type,
+             relevance, has_image)
         VALUES
-            (:id1, :r1, :title, :year, 'BOOK', true, false),
-            (:id2, :r2, :title, :year, 'BOOK', true, false);
+            (:id1, :r1, 1, :title, :year, 'BOOK', true, false),
+            (:id2, :r2, 1, :title, :year, 'BOOK', true, false);
         """),
         {
             'id1': bp_id1,
@@ -158,10 +159,11 @@ async def test_book_chapter_deduplication_and_detail(
     await session.execute(
         text("""
         INSERT INTO bibliographic_production
-            (id, researcher_id, title, year_, type, relevance, has_image)
+            (id, researcher_id, sequence_code, title, year_, type,
+             relevance, has_image)
         VALUES
-            (:id1, :r1, :title, :year, 'BOOK_CHAPTER', true, false),
-            (:id2, :r2, :title, :year, 'BOOK_CHAPTER', true, false);
+            (:id1, :r1, 1, :title, :year, 'BOOK_CHAPTER', true, false),
+            (:id2, :r2, 1, :title, :year, 'BOOK_CHAPTER', true, false);
         """),
         {
             'id1': bp_id1,
@@ -264,12 +266,12 @@ async def test_software_deduplication_and_detail(
     await session.execute(
         text("""
         INSERT INTO software
-            (id, researcher_id, title, year, platform, environment, code,
-             availability, financing_institutionc)
+            (id, researcher_id, sequence_code, title, year, platform,
+             environment, code, availability, financing_institutionc)
         VALUES
-            (:id1, :r1, :title, :year, 'Web', 'Docker/Python', :code,
+            (:id1, :r1, 1, :title, :year, 'Web', 'Docker/Python', :code,
              'Restrita', 'FAPEMIG'),
-            (:id2, :r2, :title, :year, 'Web', 'Docker/Python', :code,
+            (:id2, :r2, 1, :title, :year, 'Web', 'Docker/Python', :code,
              'Restrita', 'FAPEMIG');
         """),
         {
@@ -353,12 +355,12 @@ async def test_patent_deduplication_and_detail(
     await session.execute(
         text("""
         INSERT INTO patent
-            (id, researcher_id, title, category, development_year, details,
-             code, deposit_date)
+            (id, researcher_id, sequence_code, title, category,
+             development_year, details, code, deposit_date)
         VALUES
-            (:id1, :r1, :title, 'Invenção', :dev_year,
+            (:id1, :r1, 1, :title, 'Invenção', :dev_year,
              'Detalhes tecnicos do microcontrolador', :code, '10/01/2024'),
-            (:id2, :r2, :title, 'Invenção', :dev_year,
+            (:id2, :r2, 1, :title, 'Invenção', :dev_year,
              'Detalhes tecnicos do microcontrolador', :code, '10/01/2024');
         """),
         {
@@ -441,12 +443,12 @@ async def test_event_deduplication_and_detail(
     await session.execute(
         text("""
         INSERT INTO participation_events
-            (id, researcher_id, title, event_name, nature,
+            (id, researcher_id, sequence_code, title, event_name, nature,
              form_participation, type_participation, year)
         VALUES
-            (:id1, :r1, :title, :event_name, 'Nacional', 'Oral',
+            (:id1, :r1, 1, :title, :event_name, 'Nacional', 'Oral',
              'Participante Convidado', :year),
-            (:id2, :r2, :title, :event_name, 'Nacional', 'Oral',
+            (:id2, :r2, 1, :title, :event_name, 'Nacional', 'Oral',
              'Participante Convidado', :year);
         """),
         {
@@ -505,9 +507,7 @@ async def test_research_project_detail_not_found(client):
 
 @pytest.mark.asyncio
 async def test_research_project_list_structure(client):
-    response = client.get(
-        '/v2/production/research-project?page=1&per_page=5'
-    )
+    response = client.get('/v2/production/research-project?page=1&per_page=5')
     assert response.status_code == HTTPStatus.OK
     body = response.json()
     assert 'data' in body

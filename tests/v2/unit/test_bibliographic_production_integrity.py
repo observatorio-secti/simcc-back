@@ -9,6 +9,7 @@ from simcc.core.db.models.production import (
     BibliographicProductionBook,
     BibliographicProductionBookChapter,
 )
+from tests.factories.production import next_sequence_code
 
 
 @pytest.mark.asyncio
@@ -19,6 +20,7 @@ async def test_cannot_create_duplicate_article_for_same_production(
 
     production = BibliographicProduction(
         researcher_id=researcher.id,
+        sequence_code=next_sequence_code(),
         title='Artigo de Teste',
         type='ARTICLE',
         year='2024',
@@ -62,6 +64,7 @@ async def test_cannot_create_duplicate_book_for_same_production(
 
     production = BibliographicProduction(
         researcher_id=researcher.id,
+        sequence_code=next_sequence_code(),
         title='Livro de Teste',
         type='BOOK',
         year='2024',
@@ -99,6 +102,7 @@ async def test_cannot_create_duplicate_book_chapter_for_same_production(
 
     production = BibliographicProduction(
         researcher_id=researcher.id,
+        sequence_code=next_sequence_code(),
         title='Capítulo de Teste',
         type='BOOK_CHAPTER',
         year='2024',
@@ -137,6 +141,7 @@ async def test_valid_1_to_1_bibliographic_production_children(
     # Artigo
     prod_article = BibliographicProduction(
         researcher_id=researcher.id,
+        sequence_code=next_sequence_code(),
         title='Artigo 1:1',
         type='ARTICLE',
         year='2024',
@@ -158,6 +163,7 @@ async def test_valid_1_to_1_bibliographic_production_children(
     # Livro
     prod_book = BibliographicProduction(
         researcher_id=researcher.id,
+        sequence_code=next_sequence_code(),
         title='Livro 1:1',
         type='BOOK',
         year='2024',
@@ -176,6 +182,7 @@ async def test_valid_1_to_1_bibliographic_production_children(
     # Capítulo
     prod_chp = BibliographicProduction(
         researcher_id=researcher.id,
+        sequence_code=next_sequence_code(),
         title='Capítulo 1:1',
         type='BOOK_CHAPTER',
         year='2024',
