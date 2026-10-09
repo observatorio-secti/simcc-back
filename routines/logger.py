@@ -24,7 +24,12 @@ def logger_routine(type_, error, detail=None):
     }
     SCRIPT_SQL = """
         INSERT INTO logs.routine
-        (type, error, detail)
-        VALUES (%(type)s, %(error)s, %(detail)s);
+        (type, error, detail, created_at)
+        VALUES (%(type)s, %(error)s, %(detail)s, NOW())
+        ON CONFLICT (type)
+        DO UPDATE SET
+            error = EXCLUDED.error,
+            detail = EXCLUDED.detail,
+            created_at = EXCLUDED.created_at;
         """
     conn.exec(SCRIPT_SQL, params)
