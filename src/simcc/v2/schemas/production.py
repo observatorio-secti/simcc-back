@@ -499,3 +499,120 @@ class EventSearchResponse(BaseModel):
     sort: ProductionSort
     meta: Meta
     facets: Optional[dict[str, FacetResult]] = None
+
+
+# =========================================================================
+# 6. PROJETOS DE PESQUISA
+# =========================================================================
+
+class ResearchProjectFoment(BaseModel):
+    """Agência financiadora de um projeto de pesquisa."""
+
+    agency_name: Optional[str] = Field(None, description='Nome da agência')
+    agency_code: Optional[str] = Field(None, description='Código da agência')
+    nature: Optional[str] = Field(
+        None, description='Natureza do financiamento (ex.: Bolsa, Auxílio)'
+    )
+
+
+class ResearchProjectComponent(BaseModel):
+    """Integrante de um projeto de pesquisa, conforme declarado no Lattes."""
+
+    name: Optional[str] = Field(None, description='Nome do integrante')
+    lattes_id: Optional[str] = Field(None, description='ID Lattes')
+    citations: Optional[str] = Field(
+        None, description='Nome em citações bibliográficas'
+    )
+    coordinator: bool = Field(
+        False, description='Indica se é coordenador do projeto'
+    )
+
+
+class ResearchProjectProduction(BaseModel):
+    """Produção declarada como resultado do projeto."""
+
+    title: Optional[str] = Field(None, description='Título da produção')
+    type: Optional[str] = Field(None, description='Tipo da produção')
+
+
+class ResearchProjectSummary(BaseModel):
+    """Card resumido de projeto de pesquisa."""
+
+    id: UUID = Field(description='ID canônico do projeto')
+    title: str = Field(description='Nome do projeto')
+    start_year: Optional[int] = Field(None, description='Ano de início')
+    end_year: Optional[int] = Field(
+        None, description='Ano de término (ausente se em andamento)'
+    )
+    status: Optional[str] = Field(
+        None, description='Situação (ex.: EM_ANDAMENTO, CONCLUIDO)'
+    )
+    nature: Optional[str] = Field(
+        None, description='Natureza (ex.: PESQUISA, EXTENSAO)'
+    )
+    agency_name: Optional[str] = Field(
+        None, description='Agência financiadora principal'
+    )
+    platform_authors: list[ResearcherRef] = Field(
+        default_factory=list, description='Integrantes da plataforma'
+    )
+    matches: Optional[list[ArticleMatch]] = Field(None, description='Matches')
+
+
+class ResearchProjectDetail(ResearchProjectSummary):
+    """Dossiê detalhado de projeto de pesquisa."""
+
+    agency_code: Optional[str] = Field(
+        None, description='Código da agência financiadora principal'
+    )
+    description: Optional[str] = Field(
+        None, description='Descrição do projeto'
+    )
+    number_undergraduates: Optional[int] = Field(
+        None, description='Número de alunos de graduação'
+    )
+    number_specialists: Optional[int] = Field(
+        None, description='Número de alunos de especialização'
+    )
+    number_academic_masters: Optional[int] = Field(
+        None, description='Número de alunos de mestrado acadêmico'
+    )
+    number_phd: Optional[int] = Field(
+        None, description='Número de alunos de doutorado'
+    )
+    foment: list[ResearchProjectFoment] = Field(
+        default_factory=list, description='Financiamentos do projeto'
+    )
+    components: list[ResearchProjectComponent] = Field(
+        default_factory=list, description='Integrantes declarados no Lattes'
+    )
+    productions: list[ResearchProjectProduction] = Field(
+        default_factory=list, description='Produções vinculadas ao projeto'
+    )
+
+
+class ResearchProjectFilter(ProductionBaseFilter):
+    """Filtros para busca de projetos de pesquisa.
+
+    `year_start`/`year_end` se aplicam ao ano de início do projeto.
+    """
+
+    status: list[str] = Field(
+        default_factory=list,
+        description='Situação do projeto (ex.: EM_ANDAMENTO, CONCLUIDO)',
+    )
+    nature: list[str] = Field(
+        default_factory=list,
+        description='Natureza do projeto (ex.: PESQUISA, EXTENSAO)',
+    )
+
+
+class ResearchProjectSearchResponse(BaseModel):
+    """Resposta paginada da busca de projetos de pesquisa."""
+
+    data: list[ResearchProjectSummary]
+    pagination: Pagination
+    filters_applied: ResearchProjectFilter
+    sort: ProductionSort
+    meta: Meta
+    facets: Optional[dict[str, FacetResult]] = None

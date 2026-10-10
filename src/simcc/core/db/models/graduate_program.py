@@ -11,6 +11,7 @@ from sqlalchemy import (
     Integer,
     String,
     Text,
+    UniqueConstraint,
     text,
 )
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
@@ -59,6 +60,14 @@ class GraduateProgram:
 @table_registry.mapped_as_dataclass
 class GraduateProgramResearcher:
     __tablename__ = 'graduate_program_researcher'
+    __table_args__ = (
+        UniqueConstraint(
+            'graduate_program_id',
+            'researcher_id',
+            'year',
+            name='uq_graduate_program_researcher_program_researcher_year',
+        ),
+    )
 
     graduate_program_id: Mapped[UUID] = mapped_column(
         ForeignKey(

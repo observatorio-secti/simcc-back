@@ -1,6 +1,7 @@
 """Repositório genérico de produções científicas canônicas v2.
 
-Atende Livros, Capítulos de Livros, Softwares, Patentes e Eventos.
+Atende Livros, Capítulos de Livros, Softwares, Patentes, Eventos e
+Projetos de Pesquisa.
 """
 
 from typing import Any, Mapping, Optional
@@ -44,6 +45,7 @@ COLUMN_FILTERS = (
     'qualis',
     'category',
     'nature',
+    'status',
     'type_participation',
     'form_participation',
     'magazine_name',

@@ -186,3 +186,33 @@ mv_canonical_events = Table(
     Column('form_participation', String, nullable=True),
     Column('search_vector', TSVECTOR, nullable=True),
 )
+
+mv_canonical_research_projects = Table(
+    'mv_canonical_research_projects',
+    search_metadata,
+    Column('canonical_id', PG_UUID(as_uuid=True), primary_key=True),
+    Column('production_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=False),
+    Column('researcher_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=False),
+    Column('institution_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=True),
+    Column(
+        'graduate_program_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=True
+    ),
+    Column('platform_authors', JSONB, nullable=True),
+    Column('title', Text, nullable=False),
+    Column('year', Integer, nullable=True),
+    Column('start_year', Integer, nullable=True),
+    Column('end_year', Integer, nullable=True),
+    Column('status', String, nullable=True),
+    Column('nature', String, nullable=True),
+    Column('agency_name', String, nullable=True),
+    Column('agency_code', String, nullable=True),
+    Column('description', Text, nullable=True),
+    Column('number_undergraduates', Integer, nullable=True),
+    Column('number_specialists', Integer, nullable=True),
+    Column('number_academic_masters', Integer, nullable=True),
+    Column('number_phd', Integer, nullable=True),
+    Column('foment', JSONB, nullable=True),
+    Column('components', JSONB, nullable=True),
+    Column('productions', JSONB, nullable=True),
+    Column('search_vector', TSVECTOR, nullable=True),
+)

@@ -31,6 +31,7 @@ class BibliographicProduction:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     title_en: Mapped[Optional[str]] = mapped_column(String, default=None)
     doi: Mapped[Optional[str]] = mapped_column(String, default=None)
     nature: Mapped[Optional[str]] = mapped_column(String, default=None)
@@ -169,6 +170,7 @@ class Software:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     title: Mapped[Optional[str]] = mapped_column(String, default=None)
     platform: Mapped[Optional[str]] = mapped_column(String, default=None)
     goal: Mapped[Optional[str]] = mapped_column(String, default=None)
@@ -206,6 +208,7 @@ class Patent:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     title: Mapped[Optional[str]] = mapped_column(String, default=None)
     category: Mapped[Optional[str]] = mapped_column(String, default=None)
     relevance: Mapped[bool] = mapped_column(
@@ -244,6 +247,7 @@ class ResearchReport:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     title: Mapped[Optional[str]] = mapped_column(String, default=None)
     project_name: Mapped[Optional[str]] = mapped_column(String, default=None)
     financing_institutionc: Mapped[Optional[str]] = mapped_column(
@@ -271,6 +275,7 @@ class Brand:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     title: Mapped[Optional[str]] = mapped_column(String, default=None)
     relevance: Mapped[bool] = mapped_column(
         Boolean, server_default=text('false'), default=False
@@ -302,6 +307,7 @@ class AdvisoryActivity:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     organ_name: Mapped[Optional[str]] = mapped_column(String)
     start_year: Mapped[Optional[str]] = mapped_column(String)
     sequence_id: Mapped[Optional[int]] = mapped_column(Integer, default=None)
@@ -330,6 +336,7 @@ class ArtisticProduction:
     )
     title: Mapped[str] = mapped_column(Text)
     type: Mapped[str] = mapped_column(Text)
+    sequence_code: Mapped[int] = mapped_column(Integer)
     year: Mapped[Optional[int]] = mapped_column(Integer, default=None)
 
 
@@ -347,6 +354,7 @@ class DidacticMaterial:
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
     title: Mapped[str] = mapped_column(Text)
+    sequence_code: Mapped[int] = mapped_column(Integer)
     country: Mapped[Optional[str]] = mapped_column(String, default=None)
     nature: Mapped[Optional[str]] = mapped_column(String, default=None)
     description: Mapped[Optional[str]] = mapped_column(Text, default=None)
@@ -366,6 +374,7 @@ class EventOrganization:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     title: Mapped[Optional[str]] = mapped_column(String, default=None)
     promoter_institution: Mapped[Optional[str]] = mapped_column(
         String, default=None
@@ -394,6 +403,7 @@ class ResearchProject:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     start_year: Mapped[Optional[int]] = mapped_column(Integer, default=None)
     end_year: Mapped[Optional[int]] = mapped_column(Integer, default=None)
     agency_code: Mapped[Optional[str]] = mapped_column(String, default=None)
@@ -475,6 +485,7 @@ class TechnicalWorkProgram:
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
     title: Mapped[str] = mapped_column(Text)
+    sequence_code: Mapped[int] = mapped_column(Integer)
     country: Mapped[Optional[str]] = mapped_column(String, default=None)
     nature: Mapped[Optional[str]] = mapped_column(String, default=None)
     year: Mapped[Optional[int]] = mapped_column(Integer, default=None)
@@ -495,6 +506,7 @@ class TechnicalWork:
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
     title: Mapped[str] = mapped_column(Text)
+    sequence_code: Mapped[int] = mapped_column(Integer)
     country: Mapped[Optional[str]] = mapped_column(String, default=None)
     nature: Mapped[Optional[str]] = mapped_column(String, default=None)
     funding_institution: Mapped[Optional[str]] = mapped_column(
@@ -518,6 +530,7 @@ class TechnicalWorkPresentation:
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
     title: Mapped[str] = mapped_column(Text)
+    sequence_code: Mapped[int] = mapped_column(Integer)
     country: Mapped[Optional[str]] = mapped_column(String, default=None)
     nature: Mapped[Optional[str]] = mapped_column(String, default=None)
     year: Mapped[Optional[int]] = mapped_column(Integer, default=None)
@@ -541,6 +554,7 @@ class TechnologicalProduct:
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
     title: Mapped[str] = mapped_column(Text)
+    sequence_code: Mapped[int] = mapped_column(Integer)
     country: Mapped[Optional[str]] = mapped_column(String, default=None)
     nature: Mapped[Optional[str]] = mapped_column(String, default=None)
     type: Mapped[Optional[str]] = mapped_column(String, default=None)
@@ -596,6 +610,7 @@ class ProcessOrTechnique:
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
     title: Mapped[str] = mapped_column(Text)
+    sequence_code: Mapped[int] = mapped_column(Integer)
     sequence_id: Mapped[Optional[int]] = mapped_column(Integer, default=None)
     nature: Mapped[Optional[str]] = mapped_column(String, default=None)
     title_en: Mapped[Optional[str]] = mapped_column(Text, default=None)
@@ -636,6 +651,7 @@ class Mockup:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     production_sequence: Mapped[Optional[int]] = mapped_column(
         Integer, default=None
     )
@@ -664,6 +680,7 @@ class Publishing:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     production_sequence: Mapped[Optional[int]] = mapped_column(
         Integer, default=None
     )
@@ -692,6 +709,7 @@ class IndustrialDesign:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     production_sequence: Mapped[Optional[int]] = mapped_column(
         Integer, default=None
     )
@@ -720,6 +738,7 @@ class MaintenanceArtisticWork:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     production_sequence: Mapped[Optional[int]] = mapped_column(
         Integer, default=None
     )
@@ -748,6 +767,7 @@ class LetterMapOrSimilar:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     production_sequence: Mapped[Optional[int]] = mapped_column(
         Integer, default=None
     )
@@ -776,6 +796,7 @@ class ShortCourseTaught:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     production_sequence: Mapped[Optional[int]] = mapped_column(
         Integer, default=None
     )
@@ -804,6 +825,7 @@ class RadioOrTvProgram:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     production_sequence: Mapped[Optional[int]] = mapped_column(
         Integer, default=None
     )
@@ -832,6 +854,7 @@ class ShortCourse:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     production_sequence: Mapped[Optional[int]] = mapped_column(
         Integer, default=None
     )
@@ -860,6 +883,7 @@ class SocialMediaWebsiteBlog:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     production_sequence: Mapped[Optional[int]] = mapped_column(
         Integer, default=None
     )
@@ -888,6 +912,7 @@ class OtherTechnicalProduction:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     production_sequence: Mapped[Optional[int]] = mapped_column(
         Integer, default=None
     )
@@ -915,6 +940,7 @@ class Guidance:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     title: Mapped[Optional[str]] = mapped_column(String, default=None)
     nature: Mapped[Optional[str]] = mapped_column(String, default=None)
     oriented: Mapped[Optional[str]] = mapped_column(String, default=None)
@@ -942,6 +968,7 @@ class ParticipationEvents:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     title: Mapped[Optional[str]] = mapped_column(String, default=None)
     event_name: Mapped[Optional[str]] = mapped_column(String, default=None)
     nature: Mapped[Optional[str]] = mapped_column(String, default=None)
@@ -973,6 +1000,7 @@ class Foment:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     modality_code: Mapped[Optional[str]] = mapped_column(String, default=None)
     modality_name: Mapped[Optional[str]] = mapped_column(String, default=None)
     call_title: Mapped[Optional[str]] = mapped_column(String, default=None)
@@ -1002,6 +1030,7 @@ class RegisteredCultivar:
     researcher_id: Mapped[UUID] = mapped_column(
         ForeignKey('researcher.id', ondelete='CASCADE')
     )
+    sequence_code: Mapped[int] = mapped_column(Integer)
     denomination: Mapped[Optional[str]] = mapped_column(String, default=None)
     denomination_en: Mapped[Optional[str]] = mapped_column(
         String, default=None

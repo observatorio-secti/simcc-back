@@ -1,3 +1,4 @@
+import itertools
 import uuid
 
 import factory
@@ -10,12 +11,21 @@ from simcc.core.db.models.production import (
     Software,
 )
 
+_sequence_codes = itertools.count(1)
+
+
+def next_sequence_code() -> int:
+    """Código de sequência (SEQUENCIA-PRODUCAO do Lattes) único para cada
+    produção criada nos testes."""
+    return next(_sequence_codes)
+
 
 class BibliographicProductionFactory(factory.Factory):
     class Meta:
         model = BibliographicProduction
 
     title = factory.Faker('sentence')
+    sequence_code = factory.LazyFunction(next_sequence_code)
     type = 'ARTICLE'
     year = '2024'
     year_ = 2024
@@ -26,6 +36,7 @@ class SoftwareFactory(factory.Factory):
         model = Software
 
     title = factory.Faker('sentence')
+    sequence_code = factory.LazyFunction(next_sequence_code)
     year = 2022
 
 

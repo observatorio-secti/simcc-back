@@ -17,6 +17,7 @@ from simcc.core.db.models.production import (
     Software,
 )
 from simcc.core.db.models.researcher import ResearcherAreaExpertise
+from tests.factories.production import next_sequence_code
 
 
 @pytest_asyncio.fixture
@@ -25,6 +26,7 @@ def production_factory(session: AsyncSession, refresh_mvs):
     atualiza as MVs."""
 
     async def _create(researcher, title, type_='ARTICLE', year=2022, **kwargs):
+        kwargs.setdefault('sequence_code', next_sequence_code())
         if type_ == 'SOFTWARE':
             production = Software(
                 researcher_id=researcher.id, title=title, year=year, **kwargs
@@ -103,6 +105,7 @@ def article_factory(session: AsyncSession, refresh_mvs):
         magazine_name='Revista Teste',
         **kwargs,
     ):
+        kwargs.setdefault('sequence_code', next_sequence_code())
         production = BibliographicProduction(
             title=title,
             type=type_,

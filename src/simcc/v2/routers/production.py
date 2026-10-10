@@ -13,6 +13,7 @@ from simcc.v2.dependencies import (
     PatentFilterDep,
     ProductionOptionsDep,
     ProductionSortDep,
+    ResearchProjectFilterDep,
     SearchCacheDep,
     SoftwareFilterDep,
 )
@@ -22,6 +23,7 @@ from simcc.v2.repositories.search_tables import (
     mv_canonical_books,
     mv_canonical_events,
     mv_canonical_patents,
+    mv_canonical_research_projects,
     mv_canonical_software,
 )
 from simcc.v2.schemas.params import PaginationParams
@@ -44,6 +46,9 @@ from simcc.v2.schemas.production import (
     PatentSearchResponse,
     ProductionOptions,
     ProductionSort,
+    ResearchProjectDetail,
+    ResearchProjectFilter,
+    ResearchProjectSearchResponse,
     SoftwareDetail,
     SoftwareFilter,
     SoftwareSearchResponse,
@@ -352,4 +357,52 @@ async def get_event(
     return await production_service.get_event_detail(
         session=session,
         event_id=event_id,
+    )
+
+
+# =========================================================================
+# 6. PROJETOS DE PESQUISA
+# =========================================================================
+
+@router.get(
+    '/production/research-project',
+    response_model=ResearchProjectSearchResponse,
+    dependencies=[_known_params(ResearchProjectFilter, ProductionSort)],
+    summary='Busca e listagem paginada de projetos de pesquisa',
+)
+async def list_research_projects(  # noqa: PLR0913, PLR0917
+    session: AsyncSession,
+    cache: SearchCacheDep,
+    filters: ResearchProjectFilterDep,
+    pagination: PaginationDep,
+    sort: ProductionSortDep,
+    options: ProductionOptionsDep,
+) -> ResearchProjectSearchResponse:
+    """Retorna lista paginada de projetos de pesquisa com filtros."""
+    return await production_search_service.search_production(
+        production_service.search_research_projects,
+        ResearchProjectSearchResponse,
+        mv_canonical_research_projects,
+        session=session,
+        filters=filters,
+        pagination=pagination,
+        sort=sort,
+        options=options,
+        cache=cache,
+    )
+
+
+@router.get(
+    '/production/research-project/{project_id:path}',
+    response_model=ResearchProjectDetail,
+    summary='Dossiê detalhado de projeto de pesquisa',
+)
+async def get_research_project(
+    session: AsyncSession,
+    project_id: str,
+) -> ResearchProjectDetail:
+    """Retorna detalhes de um projeto de pesquisa pelo ID canônico."""
+    return await production_service.get_research_project_detail(
+        session=session,
+        project_id=project_id,
     )
