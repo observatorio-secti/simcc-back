@@ -31,6 +31,12 @@ class Settings(BaseSettings, extra='ignore'):
     LOG_DIR: str = 'logs'
     LOG_RETENTION_DAYS: int = 7
 
+    # Open DGP API (ODA) - fonte dos grupos de pesquisa do Power BI
+    ODA_API_URL: str = 'https://oda.vertb.com.br'
+    ODA_RESEARCH_GROUPS_PATH: str = (
+        'storage/powerBI/oda_research_groups.parquet'
+    )
+
     # Configurações de Cache (Redis)
     REDIS_URL: str = 'redis://localhost:6379/0'
     REDIS_ENABLED: bool = True

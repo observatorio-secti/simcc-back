@@ -1,4 +1,12 @@
+import os
+
+import polars as pl
+from fastapi import HTTPException
+
+from simcc.core.settings import Settings
 from simcc.v1.queries import powerBi_query
+
+SETTINGS = Settings()
 
 
 async def get_fat_area_specialty(session):
@@ -91,14 +99,87 @@ async def get_dim_departament_researcher(session):
     return []
 
 
+def _load_oda_research_groups() -> pl.DataFrame:
+    path = SETTINGS.ODA_RESEARCH_GROUPS_PATH
+    if not os.path.exists(path):
+        raise HTTPException(
+            status_code=503,
+            detail='Grupos de pesquisa da ODA ainda não sincronizados. '
+            'Execute a rotina sync_oda_research_groups.py.',
+        )
+    return pl.read_parquet(path)
+
+
 async def get_fat_group_leaders(session):
-    query = powerBi_query.FatGroupLeadersQuery(session)
-    return await query.execute()
+    groups = _load_oda_research_groups()
+    researchers = await powerBi_query.ResearcherLattesIdQuery(
+        session
+    ).execute()
+    researcher_by_lattes = {
+        r['lattes_id']: r['researcher_id'] for r in researchers
+    }
+
+    rows = []
+    for group in groups.iter_rows(named=True):
+        leaders = (group['leaders'] or [])[:2]
+        leaders += [{'name': None, 'lattes_id': None}] * (2 - len(leaders))
+        first, second = leaders
+        first_id = researcher_by_lattes.get(first['lattes_id'])
+        second_id = researcher_by_lattes.get(second['lattes_id'])
+        if first_id is None and second_id is None:
+            continue
+        rows.append({
+            'id': group['oda_id'],
+            'name': group['name'],
+            'institution': group['institution_acronym'],
+            'first_leader': first['name'],
+            'first_leader_id': first_id,
+            'second_leader': second['name'],
+            'second_leader_id': second_id,
+            'AREA': group['area'],
+            'census': None,
+            'start_of_collection': None,
+            'end_of_collection': None,
+            'group_identifier': group['dgp_id'],
+            'YEAR': str(group['year']) if group['year'] is not None else None,
+            'institution_name': group['institution_name'],
+            'category': None,
+        })
+    return rows
 
 
 async def get_dim_research_group(session):
-    query = powerBi_query.DimResearchGroupQuery(session)
-    return await query.execute()
+    groups = _load_oda_research_groups()
+    institutions = await powerBi_query.InstitutionAcronymQuery(
+        session
+    ).execute()
+
+    groups_by_acronym = {}
+    for group in groups.iter_rows(named=True):
+        acronym = (group['institution_acronym'] or '').strip().upper()
+        groups_by_acronym.setdefault(acronym, []).append(group)
+
+    # Mantém o RIGHT JOIN original: toda instituição aparece, com ou sem grupo
+    rows = []
+    for institution in institutions:
+        acronym = (institution['acronym'] or '').strip().upper()
+        matches = groups_by_acronym.get(acronym) if acronym else None
+        if not matches:
+            rows.append({
+                'group_id': None,
+                'group_name': None,
+                'area': None,
+                'institution_id': institution['institution_id'],
+            })
+            continue
+        for group in matches:
+            rows.append({
+                'group_id': group['oda_id'],
+                'group_name': (group['name'] or '').replace('"', '') or None,
+                'area': group['area'],
+                'institution_id': institution['institution_id'],
+            })
+    return rows
 
 
 async def get_dim_category_level_code(session):

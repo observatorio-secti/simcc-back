@@ -18,6 +18,7 @@ __pycache__/
 *.json
 !tests/fixtures/**/*.json
 *.csv
+*.parquet
 
 # Distribution / packaging
 .Python

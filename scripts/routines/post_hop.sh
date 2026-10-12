@@ -12,6 +12,7 @@ ROUTINES=(
     "get_openAlex.py"
     "researcher_classification.py"
     "sync_research_lines.py"
+    "sync_oda_research_groups.py"
     "refresh_search_views.py"
 )
 
