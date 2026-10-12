@@ -25,8 +25,13 @@ class Pagination(BaseModel):
     has_prev: bool
 
 
+# Ordenações por pontuação da busca textual: exigem `q` e são `desc` por
+# padrão.
+SCORE_SORTS = {'relevance', 'matches'}
+
+
 class SortParams(BaseModel):
-    sort_by: Literal['name', 'id', 'relevance'] = Field(
+    sort_by: Literal['name', 'id', 'relevance', 'matches'] = Field(
         'name', description='Campo para ordenação'
     )
     sort_order: Optional[Literal['asc', 'desc']] = Field(
@@ -36,7 +41,7 @@ class SortParams(BaseModel):
     @model_validator(mode='after')
     def set_default_sort_order(self) -> 'SortParams':
         if self.sort_order is None:
-            self.sort_order = 'desc' if self.sort_by == 'relevance' else 'asc'
+            self.sort_order = 'desc' if self.sort_by in SCORE_SORTS else 'asc'
         return self
 
 

@@ -18,6 +18,7 @@ from simcc.v2.repositories import (
 )
 from simcc.v2.schemas.filters import ResearcherFilter
 from simcc.v2.schemas.params import (
+    SCORE_SORTS,
     Pagination,
     PaginationParams,
     SearchOptions,
@@ -78,11 +79,12 @@ async def search_researchers(  # noqa: PLR0913
 
     # Validações de consistência entre parâmetros
     has_q = bool(resolved_filters.q and resolved_filters.q.strip())
-    if resolved_sort.sort_by == 'relevance' and not has_q:
+    if resolved_sort.sort_by in SCORE_SORTS and not has_q:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
             detail=(
-                "Ordenação 'sort_by=relevance' requer o filtro de busca 'q'."
+                f"Ordenação 'sort_by={resolved_sort.sort_by}' requer o "
+                "filtro de busca 'q'."
             ),
         )
 

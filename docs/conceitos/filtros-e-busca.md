@@ -22,7 +22,7 @@ Todos os endpoints de busca de pesquisadores e catálogos seguem a mesma conven�
 | `year_end` | Número inteiro | `?year_end=2024` | Ano final do intervalo de produção. Deve ser maior ou igual a `year_start`. |
 | `page` | Número inteiro | `?page=1` | Número da página solicitada (mínimo 1, padrão 1). |
 | `per_page` | Número inteiro | `?per_page=20` | Quantidade de itens por página (entre 1 e 100, padrão 20). |
-| `sort_by` | Texto fixo | `?sort_by=relevance` | Campo de ordenação: `name`, `id` ou `relevance`. |
+| `sort_by` | Texto fixo | `?sort_by=relevance` | Campo de ordenação: `name`, `id`, `relevance` ou `matches`. `relevance` e `matches` exigem `q`. |
 | `sort_order` | Texto fixo | `?sort_order=desc` | Sentido da ordenação: `asc` (crescente) ou `desc` (decrescente). |
 | `facets` | Lista de textos | `?facets=institution,year` | Facets opt-in solicitados para compor painéis laterais de contagem. Veja [Facets](facets-e-evidencias.md#referencia-dos-facets). |
 | `facet_limit` | Número inteiro | `?facet_limit=10` | Quantidade máxima de valores por facet (1 a 100, padrão 20). Valores selecionados no filtro sempre voltam, mesmo além do limite. |
@@ -72,7 +72,12 @@ $$\text{Score} = (\text{Score do Perfil} \times 1.5) + \text{Densidade da Melhor
 * **Densidade da Melhor Produção:** Pontuação atribuída pelo motor de busca (`ts_rank`) para a obra onde o termo aparece com maior destaque no título.
 * **Volume de Produções Casadas ($\ln(N + 1)$):** Premia pesquisadores com ampla produção sobre o tema. Uma escala logarítmica garante que quem tem 30 artigos sobre o assunto apareça à frente de quem tem apenas 1, sem que essa diferença matemática distorça os demais fatores.
 
+### Ordenação por Evidências (`sort_by=matches`)
+
+Ordena pelo número de obras que casam com `q`, o mesmo valor exibido em `matches.total` com `include=matches`. Respeita `year_start`, `year_end` e `source_type`. O perfil (nome e resumo) não entra na contagem: quem casa só pelo perfil fica com 0 e aparece no fim. Empates são desfeitos por nome e, depois, por id.
+
 ### Direção de Ordenação Inteligente
 
 * Ao ordenar por `sort_by=relevance`, a ordenação padrão assumida pela API é **decrescente (`desc`)**, apresentando os pesquisadores mais relevantes no topo da lista.
+* Ao ordenar por `sort_by=matches`, a ordenação padrão também é **decrescente (`desc`)**.
 * Ao ordenar por `sort_by=name`, a ordenação padrão é **crescente (`asc`)**, organizando a listagem em ordem alfabética de A a Z.

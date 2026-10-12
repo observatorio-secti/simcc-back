@@ -231,3 +231,52 @@ async def test_relevance_ranking_by_production_volume(
     assert str(r_many.id) in ids
     assert str(r_few.id) in ids
     assert ids.index(str(r_many.id)) < ids.index(str(r_few.id))
+
+
+@pytest.mark.asyncio
+async def test_validation_sort_by_matches_requires_q(client):
+    response = client.get('/v2/researcher?sort_by=matches')
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
+    assert 'matches' in response.json()['detail']
+
+
+@pytest.mark.asyncio
+async def test_matches_ranking_by_document_count(
+    client,
+    session,
+    researcher_factory,
+    refresh_mvs,
+):
+    """Ordena pelo número de obras que casam (o `matches.total`), sem contar
+    o perfil; empates saem por nome."""
+    r_profile = await researcher_factory(name='Dengue Apenas no Nome')
+    r_one_b = await researcher_factory(name='Bruno Uma Ocorrência')
+    r_one_a = await researcher_factory(name='Ana Uma Ocorrência')
+    r_many = await researcher_factory(name='Carla Muitas Ocorrências')
+    for researcher, total in ((r_one_b, 1), (r_one_a, 1), (r_many, 3)):
+        for i in range(total):
+            session.add(
+                Software(
+                    researcher_id=researcher.id,
+                    sequence_code=next_sequence_code(),
+                    title=f'Controle da Dengue volume {i}',
+                    year=2020 + i,
+                )
+            )
+    await session.commit()
+    await refresh_mvs()
+
+    res = client.get('/v2/researcher?q=Dengue&sort_by=matches&include=matches')
+    assert res.status_code == HTTPStatus.OK
+    body = res.json()
+    assert body['sort'] == {'by': 'matches', 'order': 'desc'}
+
+    ids = [item['researcher_id'] for item in body['data']]
+    assert ids == [
+        str(r_many.id),
+        str(r_one_a.id),
+        str(r_one_b.id),
+        str(r_profile.id),
+    ]
+    totals = [item['matches']['total'] for item in body['data']]
+    assert totals == [3, 1, 1, 0]

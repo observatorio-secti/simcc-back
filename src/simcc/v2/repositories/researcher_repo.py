@@ -54,24 +54,32 @@ SORTABLE = {
 }
 
 
+def _document_matches(filters: ResearcherFilter, *, with_rank: bool):
+    """Obras que contam agregadas por pesquisador: `n` e, com `with_rank`,
+    o melhor `ts_rank` (`best`).
+
+    A agregação roda uma única vez e é juntada ao pesquisador. Um subselect
+    correlacionado repetiria a varredura do índice GIN para cada
+    pesquisador, o que custa dezenas de segundos em termos amplos."""
+    columns = [d.c.researcher_id, func.count().label('n')]
+    if with_rank:
+        tsq = search_tsquery(filters)
+        columns.append(
+            func.max(func.ts_rank(d.c.search_vector, tsq)).label('best')
+        )
+    return (
+        select(*columns)
+        .where(*document_conditions(filters))
+        .group_by(d.c.researcher_id)
+        .subquery('doc_matches')
+    )
+
+
 def _relevance_score(
     stmt: Select, filters: ResearcherFilter, tsq
 ) -> tuple[Select, ColumnElement]:
-    """Perfil × 1.5 + melhor obra + ln(obras que contam + 1).
-
-    As obras são agregadas uma única vez e juntadas ao pesquisador. Um
-    subselect correlacionado repetiria a varredura do índice GIN para cada
-    pesquisador, o que custa dezenas de segundos em termos amplos."""
-    docs = (
-        select(
-            d.c.researcher_id,
-            func.max(func.ts_rank(d.c.search_vector, tsq)).label('best'),
-            func.count().label('n'),
-        )
-        .where(*document_conditions(filters))
-        .group_by(d.c.researcher_id)
-        .subquery('doc_relevance')
-    )
+    """Perfil × 1.5 + melhor obra + ln(obras que contam + 1)."""
+    docs = _document_matches(filters, with_rank=True)
     stmt = stmt.outerjoin(docs, docs.c.researcher_id == r.c.researcher_id)
     doc_relevance = func.coalesce(docs.c.best, 0.0) + func.ln(
         cast(func.coalesce(docs.c.n, 0), Float) + 1.0
@@ -81,15 +89,30 @@ def _relevance_score(
     return stmt, func.ts_rank(r.c.profile_vector, tsq) * 1.5 + doc_relevance
 
 
+def _matches_score(
+    stmt: Select, filters: ResearcherFilter
+) -> tuple[Select, ColumnElement]:
+    """Número de obras que contam, o mesmo valor de `matches.total`. O
+    perfil não entra na contagem."""
+    docs = _document_matches(filters, with_rank=False)
+    stmt = stmt.outerjoin(docs, docs.c.researcher_id == r.c.researcher_id)
+    return stmt, func.coalesce(docs.c.n, 0)
+
+
 def _apply_sorting(
     stmt: Select,
     sort: SortParams,
     filters: ResearcherFilter,
 ) -> Select:
-    """Aplica ordenação determinística ou por relevância."""
+    """Aplica ordenação determinística, por relevância ou por evidências.
+    Empates de pontuação são desfeitos por nome e id."""
     tsq = search_tsquery(filters)
+    score = None
     if sort.sort_by == 'relevance' and tsq is not None:
         stmt, score = _relevance_score(stmt, filters, tsq)
+    elif sort.sort_by == 'matches' and tsq is not None:
+        stmt, score = _matches_score(stmt, filters)
+    if score is not None:
         direction = score.desc() if sort.sort_order == 'desc' else score.asc()
         return stmt.order_by(
             direction, r.c.name.asc(), r.c.researcher_id.asc()
