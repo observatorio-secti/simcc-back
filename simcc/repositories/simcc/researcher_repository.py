@@ -1814,6 +1814,7 @@ async def get_situation_report_researcher(conn, researcher_id: str):
                 'name', gp.name,
                 'acronym', gp.acronym,
                 'modality', gp.modality,
+                'program_type', gp.type,
                 'rating', gp.rating,
                 'type', gpr.type_
             )) FILTER (WHERE gp.graduate_program_id IS NOT NULL) AS graduate_programs
