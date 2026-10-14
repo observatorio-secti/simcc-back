@@ -141,20 +141,19 @@ ON CONFLICT (graduate_program_id, researcher_id, year) DO NOTHING;
             routine_step_finished(step_name)
             succeeded_steps += 1
 
-        # Step 13: Quadrennial updates
         routine_step_started('update_quadrennial')
         quadrennials = [
-            {'start_year': 2013, 'end_year': 2016},
-            {'start_year': 2017, 'end_year': 2020},
-            {'start_year': 2021, 'end_year': 2024},
-            {'start_year': 2025, 'end_year': 2028},
+            {'start_year': 2013, 'end_year': 2016, 'label': '2013/2016'},
+            {'start_year': 2017, 'end_year': 2020, 'label': '2017/2020'},
+            {'start_year': 2021, 'end_year': 2028, 'label': '2021/2024'},
         ]
         case_clauses = []
         for q in quadrennials:
             start = q['start_year']
             end = q['end_year']
+            label = q['label']
             case_clauses.append(
-                f"WHEN bp.year_ BETWEEN {start} AND {end} THEN '{start}/{end}'"
+                f"WHEN bp.year_ BETWEEN {start} AND {end} THEN '{label}'"
             )
         case_sql = ' '.join(case_clauses)
         update_quadrennial_sql = f"""
