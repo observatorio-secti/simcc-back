@@ -42,6 +42,7 @@ dependencies = [
     "opentelemetry-instrumentation-redis (>=0.51b0,<1.0.0)",
     "opentelemetry-instrumentation-httpx (>=0.51b0,<1.0.0)",
     "httpx2 (>=2.12.0,<3.0.0)",
+    "google-analytics-data (>=0.23.3,<0.24.0)",
 ]
 
 [tool.poetry]

@@ -1,3 +1,9 @@
+from simcc.v2.schemas.analytics import (
+    AnalyticsMetricItem,
+    AnalyticsParams,
+    AnalyticsResponse,
+    AnalyticsSummary,
+)
 from simcc.v2.schemas.catalog import CatalogItem, CatalogResponse
 from simcc.v2.schemas.city import CityRef
 from simcc.v2.schemas.filters import (
@@ -61,4 +67,8 @@ __all__ = [
     'Sort',
     'SortParams',
     'validate_unknown_researcher_params',
+    'AnalyticsMetricItem',
+    'AnalyticsParams',
+    'AnalyticsResponse',
+    'AnalyticsSummary',
 ]

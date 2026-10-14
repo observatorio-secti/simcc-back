@@ -1,3 +1,17 @@
-from simcc.v2.routers import graduate_program, institution, researcher
+from simcc.v2.routers import (
+    analytics,
+    graduate_program,
+    institution,
+    production,
+    researcher,
+    suggestion,
+)
 
-__all__ = ['graduate_program', 'institution', 'researcher']
+__all__ = [
+    'analytics',
+    'graduate_program',
+    'institution',
+    'production',
+    'researcher',
+    'suggestion',
+]

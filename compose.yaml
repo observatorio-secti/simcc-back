@@ -50,6 +50,7 @@ services:
     volumes:
       - xml:/app/storage/xml
       - logs:/app/logs
+      - ./google_credentials.json:/app/google_credentials.json:ro
     restart: always
     depends_on:
       db:
@@ -59,7 +60,8 @@ services:
 
   hop:
     image: gleidsoncosta/simcc-extrator:latest
-    mem_limit: 4g
+    profiles:
+      - tools
     environment:
       HOP_RUN_CONFIG: local
       HOP_LOG_LEVEL: Basic
