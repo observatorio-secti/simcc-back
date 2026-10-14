@@ -304,6 +304,7 @@ async def get_situation_report(
     researcher_id: str,
     year_start: int | None = None,
     year_end: int | None = None,
+    graduate_program_id: str | None = None,
 ) -> dict:
     """
     Consolida os dados para o Relatório de Situação do Pesquisador:
@@ -311,6 +312,7 @@ async def get_situation_report(
     - Orientações ativas (em andamento)
     - Quadriênio atual (2025-2028) para acompanhamento presente de metas
     - Quadriênio anterior (2021-2024) para parâmetro e histórico CAPES
+    - Comparativo de IndProd com os docentes do programa de pós-graduação
     """
     start_year, end_year = _get_current_quadrienal(year_start, year_end)
 
@@ -339,6 +341,40 @@ async def get_situation_report(
     current_period['ind_prod'] = round(ind_prod_current_value, 2)
     current_period['years_available'] = ind_prod_current_years
 
+    # 3. Estatísticas comparativas do programa de pós-graduação (Régua de Alcance / Min-Max-Médio)
+    target_program_id = graduate_program_id
+    if not target_program_id:
+        gps = researcher.get('graduate_programs') or []
+        if isinstance(gps, list) and len(gps) > 0 and gps[0].get('graduate_program_id'):
+            target_program_id = gps[0].get('graduate_program_id')
+
+    program_comparison = None
+    if target_program_id:
+        comp_curr = await researcher_repository.get_situation_report_program_comparison(
+            conn, str(target_program_id), 2025, 2028
+        )
+        comp_prev = await researcher_repository.get_situation_report_program_comparison(
+            conn, str(target_program_id), start_year, end_year
+        )
+        if comp_curr:
+            program_comparison = {
+                'graduate_program_id': str(comp_curr.get('graduate_program_id') or target_program_id),
+                'program_name': comp_curr.get('program_name') or '',
+                'acronym': comp_curr.get('acronym') or '',
+                'current': {
+                    'min_ind_prod': round(float(comp_curr.get('min_ind_prod', 0) or 0), 2),
+                    'max_ind_prod': round(float(comp_curr.get('max_ind_prod', 0) or 0), 2),
+                    'avg_ind_prod': round(float(comp_curr.get('avg_ind_prod', 0) or 0), 2),
+                    'total_researchers': int(comp_curr.get('total_researchers', 0) or 0),
+                },
+                'previous': {
+                    'min_ind_prod': round(float(comp_prev.get('min_ind_prod', 0) or 0), 2) if comp_prev else 0,
+                    'max_ind_prod': round(float(comp_prev.get('max_ind_prod', 0) or 0), 2) if comp_prev else 0,
+                    'avg_ind_prod': round(float(comp_prev.get('avg_ind_prod', 0) or 0), 2) if comp_prev else 0,
+                    'total_researchers': int(comp_prev.get('total_researchers', 0) or 0) if comp_prev else 0,
+                } if comp_prev else None,
+            }
+
     def safe(row):
         return {k: (str(v) if not isinstance(v, (str, int, float, bool, list, dict, type(None))) else v)
                 for k, v in dict(row).items()}
@@ -352,6 +388,8 @@ async def get_situation_report(
         # Estruturas completas por período
         'current_period': current_period,
         'previous_period': previous_period,
+        # Comparativo com o programa de pós-graduação
+        'program_comparison': program_comparison,
         # Compatibilidade com chaves diretas
         'quadrienal_articles': previous_period['articles'],
         'quadrienal_summary': previous_period['summary'],

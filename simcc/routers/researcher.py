@@ -190,6 +190,7 @@ async def get_researcher_situation_report(
     researcher_id: str,
     year_start: int | None = None,
     year_end: int | None = None,
+    graduate_program_id: str | None = None,
 ):
     """
     Retorna os dados consolidados da situação do pesquisador:
@@ -197,5 +198,5 @@ async def get_researcher_situation_report(
     Utilizado pelo frontend para geração do PDF de relatório.
     """
     return await researcher_service.get_situation_report(
-        conn, researcher_id, year_start, year_end
+        conn, researcher_id, year_start, year_end, graduate_program_id
     )

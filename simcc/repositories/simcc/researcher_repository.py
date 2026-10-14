@@ -2034,3 +2034,53 @@ async def get_situation_report_quadrienal_patents(
         'year_start': year_start,
         'year_end': year_end,
     })
+
+
+async def get_situation_report_program_comparison(
+    conn, graduate_program_id: str, year_start: int, year_end: int
+):
+    """
+    Calcula as estatísticas de IndProd (Mínimo, Máximo e Média) dos docentes
+    vinculados ao programa de pós-graduação no período especificado.
+    Alinhado à medida DAX Barra_Comparativo_Impacto do Power BI.
+    """
+    SCRIPT_SQL = """
+        WITH researcher_ind_scores AS (
+            SELECT
+                gpr.researcher_id,
+                CASE WHEN COUNT(rip.year) = 0 THEN 0 ELSE
+                (
+                    COALESCE(SUM(rip.ind_prod_article), 0)
+                    + COALESCE(SUM(rip.ind_prod_book), 0)
+                    + COALESCE(SUM(rip.ind_prod_book_chapter), 0)
+                    + COALESCE(SUM(rip.ind_prod_software), 0)
+                    + COALESCE(SUM(rip.ind_prod_report), 0)
+                    + COALESCE(SUM(rip.ind_prod_granted_patent), 0)
+                    + COALESCE(SUM(rip.ind_prod_not_granted_patent), 0)
+                ) / COUNT(rip.year) END AS ind_prod
+            FROM graduate_program_researcher gpr
+            JOIN researcher_ind_prod rip
+                ON rip.researcher_id = gpr.researcher_id
+                AND rip.year >= %(year_start)s
+                AND rip.year <= %(year_end)s
+            WHERE gpr.graduate_program_id = %(graduate_program_id)s
+            GROUP BY gpr.researcher_id
+        )
+        SELECT
+            gp.graduate_program_id,
+            gp.name AS program_name,
+            gp.acronym,
+            COALESCE(MIN(ris.ind_prod), 0) AS min_ind_prod,
+            COALESCE(MAX(ris.ind_prod), 0) AS max_ind_prod,
+            COALESCE(AVG(ris.ind_prod), 0) AS avg_ind_prod,
+            COUNT(ris.researcher_id) AS total_researchers
+        FROM graduate_program gp
+        LEFT JOIN researcher_ind_scores ris ON TRUE
+        WHERE gp.graduate_program_id = %(graduate_program_id)s
+        GROUP BY gp.graduate_program_id, gp.name, gp.acronym;
+    """
+    return await conn.select(SCRIPT_SQL, {
+        'graduate_program_id': graduate_program_id,
+        'year_start': year_start,
+        'year_end': year_end,
+    }, one=True)
