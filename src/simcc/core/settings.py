@@ -1,6 +1,6 @@
 from typing import Optional
 
-from pydantic import field_validator
+from pydantic import AliasChoices, Field, field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -58,8 +58,16 @@ class Settings(BaseSettings, extra='ignore'):
     OTEL_SERVICE_NAMESPACE: str = 'simcc'
 
     # Configurações do Google Analytics 4 (GA4)
-    GA4_PROPERTY_ID: Optional[str] = None
-    GA4_SITE_URL: Optional[str] = None
+    GA4_PROPERTY_ID: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            'GA4_PROPERTY_ID', 'VITE_GA4_PROPERTY_ID'
+        ),
+    )
+    GA4_SITE_URL: Optional[str] = Field(
+        default=None,
+        validation_alias=AliasChoices('GA4_SITE_URL', 'VITE_URL_SITE'),
+    )
     GOOGLE_APPLICATION_CREDENTIALS: Optional[str] = 'google_credentials.json'
 
     @field_validator(
