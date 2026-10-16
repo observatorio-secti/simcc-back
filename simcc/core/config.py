@@ -28,7 +28,7 @@ class Settings(BaseSettings, extra='ignore'):
     SMTP_USER: Optional[str] = ''
     SMTP_PASSWORD: Optional[str] = ''
     SMTP_FROM: Optional[str] = ''
-    ALERT_EMAILS: Optional[str] = 'eric.queiroz@aln.senaicimatec.edu.br,ejorge@uneb.br'
+    ALERT_EMAILS: Optional[str] = '1lisboaeric@gmail.com'  # Para testes; em produção, sobrescrever via .env
     ALERT_ON_SUCCESS: bool = False
 
     class Config:
