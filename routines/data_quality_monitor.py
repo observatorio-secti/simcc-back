@@ -256,7 +256,7 @@ def collect_indprod_data(db_conn):
                     + COALESCE(ind_prod_book_chapter, 0)
                     + COALESCE(ind_prod_software, 0)
                     + COALESCE(ind_prod_report, 0)
-                    + COALESCE(ind_prod_granted_patent), 0)
+                    + COALESCE(ind_prod_granted_patent, 0)
                     + COALESCE(ind_prod_not_granted_patent, 0)
                 ELSE 0 END
             ), 0.0) AS ind_prod_current,
