@@ -1145,20 +1145,34 @@ def simulate_anomaly():
     simulated_post = json.loads(json.dumps(real_current))
 
     # Injeta anomalia drástica no pós-carga:
-    # 1. Fernando Pessoa teve seu IndProd zerado (bug de extração do Lattes)
-    if "r1" in simulated_post["indprod"]["researchers"]:
-        simulated_pre["indprod"]["researchers"]["r1"]["current"] = 5.20
-        simulated_post["indprod"]["researchers"]["r1"]["current"] = 0.00
+    res_list = list(simulated_post["indprod"]["researchers"].values())
+    if len(res_list) >= 3:
+        # Prioriza docentes com IndProd > 0 para simular a queda
+        with_score = [r for r in res_list if r.get("current", 0) > 0]
+        chosen = with_score[:3] if len(with_score) >= 3 else res_list[:3]
 
-    # 2. Alex Bandeira sofreu queda drástica de 6.80 para 1.50 (-78%)
-    if "r2" in simulated_post["indprod"]["researchers"]:
-        simulated_pre["indprod"]["researchers"]["r2"]["current"] = 6.80
-        simulated_post["indprod"]["researchers"]["r2"]["current"] = 1.50
+        # 1. Primeiro docente tem seu IndProd zerado (bug de extração do Lattes)
+        r1_id = chosen[0]["researcher_id"]
+        simulated_pre["indprod"]["researchers"][r1_id]["current"] = 5.20
+        simulated_post["indprod"]["researchers"][r1_id]["current"] = 0.00
 
-    # 3. Herman Lepikson sofreu queda de 4.80 para 2.20 (-54%)
-    if "r3" in simulated_post["indprod"]["researchers"]:
-        simulated_pre["indprod"]["researchers"]["r3"]["current"] = 4.80
-        simulated_post["indprod"]["researchers"]["r3"]["current"] = 2.20
+        # 2. Segundo docente sofre queda drástica de 6.80 para 1.50 (-78%)
+        r2_id = chosen[1]["researcher_id"]
+        simulated_pre["indprod"]["researchers"][r2_id]["current"] = 6.80
+        simulated_post["indprod"]["researchers"][r2_id]["current"] = 1.50
+
+        # 3. Terceiro docente sofre queda de 4.80 para 2.20 (-54%)
+        r3_id = chosen[2]["researcher_id"]
+        simulated_pre["indprod"]["researchers"][r3_id]["current"] = 4.80
+        simulated_post["indprod"]["researchers"][r3_id]["current"] = 2.20
+    else:
+        for rid, name, prog, pre_v, post_v in [
+            ("r1", "Fernando Luiz Pellegrini Pessoa", "GETEC", 5.20, 0.00),
+            ("r2", "Alex Álisson Bandeira Santos", "MCTI", 6.80, 1.50),
+            ("r3", "Herman Lepikson", "GETEC", 4.80, 2.20),
+        ]:
+            simulated_pre["indprod"]["researchers"][rid] = {"researcher_id": rid, "name": name, "program_acronym": prog, "current": pre_v, "previous": pre_v}
+            simulated_post["indprod"]["researchers"][rid] = {"researcher_id": rid, "name": name, "program_acronym": prog, "current": post_v, "previous": pre_v}
 
     # 4. Programa GETEC com queda drástica
     for p in simulated_pre["indprod"]["programs"]:
