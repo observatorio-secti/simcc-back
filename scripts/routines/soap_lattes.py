@@ -1,6 +1,7 @@
 import io
 import os
 import time
+import xml.etree.ElementTree as ET
 import zipfile
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
@@ -35,7 +36,9 @@ MAX_PARALLEL_CHECKS = 10
 HTTP_TIMEOUT = httpx.Timeout(connect=10.0, read=60.0, write=10.0, pool=10.0)
 
 AUTH_TOKEN_URL = 'http://localhost:8009/auth/token'
-EXPORT_PARQUET_URL = ('http://localhost:8009/academic/researchers/export/parquet')  # fmt: skip  # ruff: ignore[line-too-long]
+EXPORT_PARQUET_URL = (
+    'http://localhost:8009/academic/researchers/export/parquet'
+)
 
 ADMIN_USERNAME: str = 'admin'
 ADMIN_EMAIL: str = 'admin@simcc.org'
@@ -177,13 +180,44 @@ def download_single_xml(record):
             f.write(content)
 
         with zipfile.ZipFile(zip_path, 'r') as z:
+            extracted_names = z.namelist()
             z.extractall(XML_PATH)
             z.extractall(CURRENT_XML_PATH)
 
         if os.path.exists(zip_path):
             os.remove(zip_path)
 
-        return True, 'XML extraído'
+        valid_files_count = 0
+        for file_name in extracted_names:
+            if not file_name.lower().endswith('.xml'):
+                continue
+
+            path_xml = os.path.join(XML_PATH, file_name)
+            path_curr = os.path.join(CURRENT_XML_PATH, file_name)
+
+            has_valid_identifier = False
+            if os.path.isfile(path_xml):
+                try:
+                    tree = ET.parse(path_xml)
+                    root = tree.getroot()
+                    identifier = root.attrib.get('NUMERO-IDENTIFICADOR')
+                    if identifier and str(identifier).strip():
+                        has_valid_identifier = True
+                except Exception:
+                    has_valid_identifier = False
+
+            if not has_valid_identifier:
+                if os.path.exists(path_xml):
+                    os.remove(path_xml)
+                if os.path.exists(path_curr):
+                    os.remove(path_curr)
+            else:
+                valid_files_count += 1
+
+        if valid_files_count == 0:
+            return False, 'Arquivo XML sem NUMERO-IDENTIFICADOR'
+
+        return True, 'XML extraído e validado'
     except Exception as e:
         return False, f'Falha ao extrair arquivo: {e}'
 
