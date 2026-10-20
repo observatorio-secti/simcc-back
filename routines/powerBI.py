@@ -886,7 +886,35 @@ def production_distinct_novo_csv_db():
     csv.to_csv(csv_path)
 
 
+def sync_graduate_program_researcher():
+    """Sincroniza os vínculos docente-programa do banco administrativo (iapos_admin)
+    para o banco principal (iapos). Garante que o banco principal esteja sempre
+    atualizado independentemente do Hop. Deve ser chamado antes de gerar os CSVs."""
+    admin_rows = conn_admin.select("""
+        SELECT graduate_program_id, researcher_id, year, type_::text as type_
+        FROM graduate_program_researcher;
+    """)
+    inserted = 0
+    skipped = 0
+    for row in (admin_rows or []):
+        sql = """
+            INSERT INTO public.graduate_program_researcher
+                (graduate_program_id, researcher_id, year, type_)
+            VALUES (%(graduate_program_id)s, %(researcher_id)s, %(year)s, %(type_)s)
+            ON CONFLICT DO NOTHING;
+        """
+        try:
+            conn.exec(sql, row)
+            inserted += 1
+        except Exception:
+            skipped += 1
+    print(f'[sync_graduate_program_researcher] {inserted} vínculos sincronizados, {skipped} ignorados (FK ausente ou conflito).')
+
+
 def cimatec_graduate_program_researcher():
+    # Sincroniza o banco principal com o administrativo antes de exportar
+    sync_graduate_program_researcher()
+
     SCRIPT_SQL = """
         SELECT researcher_id,
             graduate_program_id,
