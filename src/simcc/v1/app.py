@@ -20,7 +20,11 @@ from simcc.v1.routers.production import (
     summaries,
 )
 
-v1_app = FastAPI()
+v1_app = FastAPI(
+    title='SIMCC API - v1',
+    version='1.0.0',
+    description='API do SIMCC versão 1',
+)
 
 
 v1_app.include_router(external.router)

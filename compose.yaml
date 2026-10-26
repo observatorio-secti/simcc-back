@@ -39,6 +39,7 @@ services:
       - .env
     environment:
       URL: ${URL}
+      ROOT_PATH: ${ROOT_PATH:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       CORS_ALLOW_ORIGINS: '["*"]'
       ALTERNATIVE_CNPQ_SERVICE: ${ALTERNATIVE_CNPQ_SERVICE}

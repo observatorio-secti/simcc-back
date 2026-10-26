@@ -1,6 +1,7 @@
 from typing import Optional
+from urllib.parse import urlparse
 
-from pydantic import AliasChoices, Field, field_validator
+from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings
 
 
@@ -15,6 +16,12 @@ class Settings(BaseSettings, extra='ignore'):
 
     ADMIN_URL: str = 'http://localhost:0000/'
     URL: str = 'http://localhost:0000/'
+    ROOT_PATH: str = Field(
+        default='',
+        validation_alias=AliasChoices(
+            'ROOT_PATH', 'API_ROOT_PATH', 'FASTAPI_ROOT_PATH'
+        ),
+    )
     OPENAI_API_KEY: Optional[str] = None
     INTERNAL_API_KEY: Optional[str] = None
     LOG_STREAM_TOKEN: Optional[str] = None
@@ -83,6 +90,24 @@ class Settings(BaseSettings, extra='ignore'):
         elif isinstance(v, (list, str)):
             return v
         raise ValueError(v)
+
+    @field_validator('ROOT_PATH', mode='before')
+    @classmethod
+    def assemble_root_path(cls, v: Optional[str]) -> str:
+        if v:
+            path = v.strip().rstrip('/')
+            if path and not path.startswith('/'):
+                path = f'/{path}'
+            return path
+        return ''
+
+    @model_validator(mode='after')
+    def set_default_root_path(self) -> 'Settings':
+        if not self.ROOT_PATH and self.URL:
+            path = urlparse(self.URL).path.rstrip('/')
+            if path:
+                self.ROOT_PATH = path
+        return self
 
     class Config:
         env_file = '.env'

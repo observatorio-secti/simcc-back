@@ -9,7 +9,11 @@ from simcc.v2.routers import (
     suggestion,
 )
 
-v2_app = FastAPI()
+v2_app = FastAPI(
+    title='SIMCC API - v2',
+    version='2.0.0',
+    description='API do SIMCC versão 2',
+)
 
 v2_app.include_router(analytics.router)
 v2_app.include_router(researcher.router)
