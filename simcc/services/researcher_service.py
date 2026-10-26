@@ -341,24 +341,34 @@ async def get_situation_report(
     current_period['ind_prod'] = round(ind_prod_current_value, 2)
     current_period['years_available'] = ind_prod_current_years
 
-    # 3. Estatísticas comparativas do programa de pós-graduação (Régua de Alcance / Min-Max-Médio)
-    target_program_id = graduate_program_id
-    if not target_program_id:
-        gps = researcher.get('graduate_programs') or []
-        if isinstance(gps, list) and len(gps) > 0 and gps[0].get('graduate_program_id'):
-            target_program_id = gps[0].get('graduate_program_id')
+    # 3. Estatísticas comparativas de todos os programas do pesquisador (Régua de Alcance / Min-Max)
+    # Gera uma comparação por programa para que o PDF mostre barras para GETEC e MCTI, por exemplo.
+    all_gps = researcher.get('graduate_programs') or []
 
-    program_comparison = None
-    if target_program_id:
+    # Deduplica por graduate_program_id (o docente pode aparecer em Mestrado + Doutorado do mesmo programa)
+    seen_prog_ids: set = set()
+    unique_gps = []
+    for gp in (all_gps if isinstance(all_gps, list) else []):
+        pid = gp.get('graduate_program_id')
+        if pid and str(pid) not in seen_prog_ids:
+            seen_prog_ids.add(str(pid))
+            unique_gps.append(gp)
+
+    program_comparisons = []
+    for gp in unique_gps:
+        prog_id = gp.get('graduate_program_id')
+        if not prog_id:
+            continue
+        prog_id_str = str(prog_id)
         comp_curr = await researcher_repository.get_situation_report_program_comparison(
-            conn, str(target_program_id), 2025, 2028
+            conn, prog_id_str, 2025, 2028
         )
         comp_prev = await researcher_repository.get_situation_report_program_comparison(
-            conn, str(target_program_id), start_year, end_year
+            conn, prog_id_str, start_year, end_year
         )
         if comp_curr:
-            program_comparison = {
-                'graduate_program_id': str(comp_curr.get('graduate_program_id') or target_program_id),
+            program_comparisons.append({
+                'graduate_program_id': prog_id_str,
                 'program_name': comp_curr.get('program_name') or '',
                 'acronym': comp_curr.get('acronym') or '',
                 'current': {
@@ -373,7 +383,10 @@ async def get_situation_report(
                     'avg_ind_prod': round(float(comp_prev.get('avg_ind_prod', 0) or 0), 2) if comp_prev else 0,
                     'total_researchers': int(comp_prev.get('total_researchers', 0) or 0) if comp_prev else 0,
                 } if comp_prev else None,
-            }
+            })
+
+    # Mantém campo singular para compatibilidade retroativa
+    program_comparison = program_comparisons[0] if program_comparisons else None
 
     def safe(row):
         return {k: (str(v) if not isinstance(v, (str, int, float, bool, list, dict, type(None))) else v)
@@ -388,7 +401,8 @@ async def get_situation_report(
         # Estruturas completas por período
         'current_period': current_period,
         'previous_period': previous_period,
-        # Comparativo com o programa de pós-graduação
+        # Comparativo com todos os programas (lista) e compatibilidade retroativa (objeto único)
+        'program_comparisons': program_comparisons,
         'program_comparison': program_comparison,
         # Compatibilidade com chaves diretas
         'quadrienal_articles': previous_period['articles'],
