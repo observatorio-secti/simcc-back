@@ -2043,6 +2043,11 @@ async def get_situation_report_program_comparison(
     Calcula as estatísticas de IndProd (Mínimo, Máximo e Média) dos docentes
     vinculados ao programa de pós-graduação no período especificado.
     Alinhado à medida DAX Barra_Comparativo_Impacto do Power BI.
+
+    FIX: O antigo "LEFT JOIN researcher_ind_scores ris ON TRUE" era um
+    produto cartesiano — retornava os scores de TODOS os pesquisadores do
+    banco, ignorando o filtro por programa. Corrigido para agregar apenas
+    o CTE (que já é filtrado por graduate_program_id).
     """
     SCRIPT_SQL = """
         WITH researcher_ind_scores AS (
@@ -2075,9 +2080,17 @@ async def get_situation_report_program_comparison(
             COALESCE(AVG(ris.ind_prod), 0) AS avg_ind_prod,
             COUNT(ris.researcher_id) AS total_researchers
         FROM graduate_program gp
-        LEFT JOIN researcher_ind_scores ris ON TRUE
+        CROSS JOIN LATERAL (
+            SELECT
+                COALESCE(MIN(s.ind_prod), 0) AS min_ind_prod,
+                COALESCE(MAX(s.ind_prod), 0) AS max_ind_prod,
+                COALESCE(AVG(s.ind_prod), 0) AS avg_ind_prod,
+                COUNT(s.researcher_id) AS total_researchers
+            FROM researcher_ind_scores s
+        ) ris
         WHERE gp.graduate_program_id = %(graduate_program_id)s
-        GROUP BY gp.graduate_program_id, gp.name, gp.acronym;
+        GROUP BY gp.graduate_program_id, gp.name, gp.acronym,
+                 ris.min_ind_prod, ris.max_ind_prod, ris.avg_ind_prod, ris.total_researchers;
     """
     return await conn.select(SCRIPT_SQL, {
         'graduate_program_id': graduate_program_id,
