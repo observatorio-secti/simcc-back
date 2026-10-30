@@ -66,7 +66,7 @@ simcc-back/
 
 ### 1. Pré-requisitos
 - Python 3.12+ e [Poetry](https://python-poetry.org/)
-- PostgreSQL (`read_db` na porta `5434` e `admin_db` na porta `5433`) e Redis (`6379`)
+- PostgreSQL unificado na raiz (porta `5432`) e Redis (`6379`)
 
 ### 2. Instalar Dependências
 ```bash
@@ -77,7 +77,7 @@ poetry install
 ```bash
 poetry run alembic upgrade head
 ```
-> **Nota**: No fluxo completo do SimCC, as migrações deste repositório devem ser aplicadas tanto no `read_db` (`5434`) quanto no `write_db` (`5435`) antes de rodar o `simcc-etl`. Veja [`Simcc/README.md`](../README.md#passo-4-executar-as-migrações-alembic-na-ordem-correta).
+> **Nota**: No fluxo completo do SimCC, as migrações deste repositório devem ser aplicadas tanto no banco `simcc` quanto no `simcc_write` (ambos na porta `5432`) antes de rodar o `simcc-etl`. Veja [`Simcc/README.md`](../README.md#passo-4-executar-as-migrações-alembic-na-ordem-correta).
 
 ### 4. Iniciar a API em Modo de Desenvolvimento
 ```bash
@@ -99,8 +99,8 @@ Principais variáveis definidas em [`src/simcc/core/settings.py`](src/simcc/core
 
 | Variável | Descrição | Padrão (Dev) |
 | :--- | :--- | :--- |
-| `DATABASE_URL` | Conexão assíncrona com o banco de leitura (`read_db`) | `postgresql+asyncpg://postgres:postgres@localhost:5434/simcc` |
-| `ADMIN_DATABASE_URL` | Conexão assíncrona com o banco administrativo (`simcc-admin`) | `postgresql+asyncpg://db_user:db_password@localhost:5433/db` |
+| `DATABASE_URL` | Conexão assíncrona com o banco de leitura (`simcc`) | `postgresql+asyncpg://postgres:postgres@localhost:5432/simcc` |
+| `ADMIN_DATABASE_URL` | Conexão assíncrona com o banco administrativo (`simcc-admin`) | `postgresql+asyncpg://db_user:db_password@localhost:5432/db` |
 | `REDIS_URL` | URL do Redis para cache das buscas V2 | `redis://localhost:6379/0` |
 | `REDIS_ENABLED` | Ativa/desativa o cache Redis | `true` |
 | `V2_SEARCH_CACHE_TTL` | Tempo de expiração (segundos) das entradas no Redis | `21600` |

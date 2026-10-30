@@ -4,6 +4,7 @@ from simcc.v1.repositories import tools
 
 class BaseProductionQuery(BaseQuery):
     SUPPORTED_FILTERS = {
+        'collection',
         'institution_id',
         'graduate_program_id',
         'researcher_id',
@@ -92,19 +93,46 @@ class BaseProductionQuery(BaseQuery):
         self.params['lattes_id'] = value
         self.filters_sql.append(' AND r.lattes_id = :lattes_id')
 
+    def _apply_collection_filter(self, value):
+        if not value or str(value).strip().lower() in ('all', '*'):
+            return
+        colls = [
+            v.strip().lower()
+            for v in str(value).replace(';', ',').split(',')
+            if v.strip()
+        ]
+        if not colls:
+            return
+        self.params['collections'] = colls
+        self.filters_sql.append(f"""
+            AND EXISTS (
+                SELECT 1 FROM researcher_collection rc
+                JOIN collection c ON c.id = rc.collection_id
+                WHERE rc.researcher_id = {self.table_alias}.{self.researcher_id_col}
+                  AND c.slug = ANY(:collections)
+            )
+        """)
+
     def _apply_institution_id_filter(self, value):
-        self.joins['institution'] = (
-            'INNER JOIN institution i ON i.id = r.institution_id'
-        )
         self.params['institution_id'] = value
-        self.filters_sql.append(' AND i.id = :institution_id')
+        self.filters_sql.append(f"""
+            AND EXISTS (
+                SELECT 1 FROM researcher_institution ri
+                WHERE ri.researcher_id = {self.table_alias}.{self.researcher_id_col}
+                  AND ri.institution_id = :institution_id
+            )
+        """)
 
     def _apply_institution_filter(self, value):
-        self.joins['institution'] = (
-            'INNER JOIN institution i ON i.id = r.institution_id'
-        )
         self.params['institution'] = value.split(';')
-        self.filters_sql.append(' AND i.name = ANY(:institution)')
+        self.filters_sql.append(f"""
+            AND EXISTS (
+                SELECT 1 FROM researcher_institution ri
+                JOIN institution i ON i.id = ri.institution_id
+                WHERE ri.researcher_id = {self.table_alias}.{self.researcher_id_col}
+                  AND i.name = ANY(:institution)
+            )
+        """)
 
     def _apply_dep_id_filter(self, value):
         pass

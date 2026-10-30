@@ -211,6 +211,19 @@ def _by_modality(
     )
 
 
+def _by_collections(
+    filters: ResearcherFilter,
+) -> Optional[ColumnElement[bool]]:
+    if not filters.collection:
+        return r.c.collection_slugs.overlap(['simcc'])
+    normalized = [
+        c.strip().lower() for c in filters.collection if c and c.strip()
+    ]
+    if not normalized or 'all' in normalized or '*' in normalized:
+        return None
+    return r.c.collection_slugs.overlap(normalized)
+
+
 _FILTER_BUILDERS: list[
     Callable[[ResearcherFilter], Optional[ColumnElement[bool]]]
 ] = [
@@ -225,6 +238,7 @@ _FILTER_BUILDERS: list[
     _by_classification,
     _by_area,
     _by_modality,
+    _by_collections,
 ]
 
 

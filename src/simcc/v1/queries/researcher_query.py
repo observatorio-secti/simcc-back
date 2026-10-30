@@ -498,6 +498,7 @@ STOPWORDS = {
 
 class ResearcherSearchQuery(BaseQuery):
     SUPPORTED_FILTERS = {
+        'collection',
         'institution_id',
         'graduate_program_id',
         'researcher_id',
@@ -535,24 +536,54 @@ class ResearcherSearchQuery(BaseQuery):
         self.distinct_value = None
         # Default joins needed for the SELECT clause
         self.joins = {
-            'institution': 'LEFT JOIN institution i ON i.id = r.institution_id',
+            'institution': """LEFT JOIN LATERAL (
+                SELECT i.id, i.name, i.image
+                FROM researcher_institution ri
+                JOIN institution i ON i.id = ri.institution_id
+                WHERE ri.researcher_id = r.id
+                LIMIT 1
+            ) i ON TRUE""",
             'researcher_production': 'LEFT JOIN researcher_production rp ON rp.researcher_id = r.id',
             'openalex_researcher': 'LEFT JOIN openalex_researcher opr ON opr.researcher_id = r.id',
         }
 
+    def _apply_collection_filter(self, value):
+        if not value or str(value).strip().lower() in ('all', '*'):
+            return
+        colls = [
+            v.strip().lower()
+            for v in str(value).replace(';', ',').split(',')
+            if v.strip()
+        ]
+        if not colls:
+            return
+        self.params['collections'] = colls
+        self.filters_sql.append("""
+            AND EXISTS (
+                SELECT 1 FROM researcher_collection rc
+                JOIN collection c ON c.id = rc.collection_id
+                WHERE rc.researcher_id = r.id AND c.slug = ANY(:collections)
+            )
+        """)
+
     def _apply_institution_id_filter(self, value):
-        self.joins['institution'] = (
-            'INNER JOIN institution i ON i.id = r.institution_id'
-        )
         self.params['institution_id'] = value
-        self.filters_sql.append(' AND i.id = :institution_id ')
+        self.filters_sql.append("""
+            AND EXISTS (
+                SELECT 1 FROM researcher_institution ri
+                WHERE ri.researcher_id = r.id AND ri.institution_id = :institution_id
+            )
+        """)
 
     def _apply_institution_filter(self, value):
-        self.joins['institution'] = (
-            'INNER JOIN institution i ON i.id = r.institution_id'
-        )
         self.params['institution'] = value.split(';')
-        self.filters_sql.append(' AND i.name = ANY(:institution) ')
+        self.filters_sql.append("""
+            AND EXISTS (
+                SELECT 1 FROM researcher_institution ri
+                JOIN institution i ON i.id = ri.institution_id
+                WHERE ri.researcher_id = r.id AND i.name = ANY(:institution)
+            )
+        """)
 
     def _apply_city_filter(self, value):
         # Keeps LEFT JOIN but adds filter
@@ -816,13 +847,12 @@ class ResearcherSearchQuery(BaseQuery):
                 COALESCE(opr.i10_index, 0) AS i10_index,
                 opr.scopus,
                 opr.openalex,
-                r.classification, r.status, r.institution_id,
+                r.classification, true AS status, i.id AS institution_id,
                 r.abstract_ai, r.stars
             FROM researcher r
                 {' '.join(self.joins.values())}
                 {inner_join}
             WHERE 1 = 1
-                AND r.status IS True
                 {filters_sql}
             ORDER BY {order_by}
             {self.pagination_sql};
@@ -898,7 +928,13 @@ class CoAuthorshipQuery(BaseQuery):
                     HAVING COUNT(bp.title) > 1
                     AND :researcher_id = ANY(ARRAY_AGG(bp.researcher_id))
                 ) co_authorship ON r.id = co_authorship.researcher_id
-                LEFT JOIN institution i ON i.id = r.institution_id
+                LEFT JOIN LATERAL (
+                    SELECT i.name
+                    FROM researcher_institution ri
+                    JOIN institution i ON i.id = ri.institution_id
+                    WHERE ri.researcher_id = r.id
+                    LIMIT 1
+                ) i ON TRUE
                 WHERE r.id != :researcher_id
                 GROUP BY r.name, i.name
 
@@ -969,12 +1005,11 @@ class ResearcherFilterQuery(BaseQuery):
 
         return f"""
             WITH matched_researchers AS (
-                SELECT DISTINCT r.id, r.graduation, r.institution_id
+                SELECT DISTINCT r.id, r.graduation
                 FROM researcher r
                     {joins_sql}
                     {inner_join}
                 WHERE 1 = 1
-                    AND r.status IS True
                     {filters_sql}
             )
             SELECT
@@ -1014,10 +1049,6 @@ class ResearcherFilterQuery(BaseQuery):
                 (SELECT COALESCE(ARRAY_AGG(DISTINCT i.name), '{{}}')
                  FROM institution i
                  WHERE i.id IN (
-                     SELECT mr.institution_id
-                     FROM matched_researchers mr
-                     WHERE mr.institution_id IS NOT NULL
-                     UNION
                      SELECT ri.institution_id
                      FROM researcher_institution ri
                      INNER JOIN matched_researchers mr
@@ -1082,18 +1113,22 @@ class OutstandingResearchersQuery(BaseQuery):
                     COALESCE(opr.i10_index, 0) AS i10_index,
                     opr.scopus,
                     opr.openalex,
-                    r.classification, r.status, r.institution_id,
+                    r.classification, true AS status, i.id AS institution_id,
                     r.abstract_ai, r.stars
                 FROM researcher r
-                    LEFT JOIN institution i
-                        ON i.id = r.institution_id
+                    LEFT JOIN LATERAL (
+                        SELECT i.id, i.name, i.image
+                        FROM researcher_institution ri
+                        JOIN institution i ON i.id = ri.institution_id
+                        WHERE ri.researcher_id = r.id
+                        LIMIT 1
+                    ) i ON TRUE
                     LEFT JOIN researcher_production rp
                         ON rp.researcher_id = r.id
                     LEFT JOIN openalex_researcher opr
                         ON opr.researcher_id = r.id
                 WHERE
-                    r.status IS True
-                    AND r.last_update IS NOT NULL
+                    r.last_update IS NOT NULL
                 ORDER BY r.last_update DESC
                 LIMIT :pool_size
             )

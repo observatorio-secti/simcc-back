@@ -36,6 +36,7 @@ mv_researcher_search = Table(
         'graduate_program_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=False
     ),
     Column('production_years', ARRAY(Integer), nullable=False),
+    Column('collection_slugs', ARRAY(String), nullable=False),
     Column('profile_vector', TSVECTOR, nullable=True),
 )
 

@@ -273,6 +273,15 @@ SETUP_MVS_STATEMENTS = [
                 AS graduate_program_ids
         FROM graduate_program_researcher
         GROUP BY researcher_id
+    ),
+    coll_agg AS (
+        SELECT
+            rc.researcher_id,
+            array_agg(DISTINCT c.slug)
+                FILTER (WHERE c.slug IS NOT NULL) AS collection_slugs
+        FROM researcher_collection rc
+        JOIN collection c ON c.id = rc.collection_id
+        GROUP BY rc.researcher_id
     )
     SELECT
         r.id AS researcher_id,
@@ -291,6 +300,7 @@ SETUP_MVS_STATEMENTS = [
         coalesce(ia.identity_territories, '{}') AS identity_territories,
         coalesce(gp.graduate_program_ids, '{}') AS graduate_program_ids,
         coalesce(ya.production_years, '{}') AS production_years,
+        coalesce(ca.collection_slugs, '{}') AS collection_slugs,
         (
             setweight(to_tsvector('pt_unaccent', coalesce(r.name, '')), 'A')
             || setweight(
@@ -301,7 +311,8 @@ SETUP_MVS_STATEMENTS = [
     LEFT JOIN researcher_production rp ON rp.researcher_id = r.id
     LEFT JOIN inst_agg ia ON ia.researcher_id = r.id
     LEFT JOIN gp_agg gp ON gp.researcher_id = r.id
-    LEFT JOIN years_agg ya ON ya.researcher_id = r.id;
+    LEFT JOIN years_agg ya ON ya.researcher_id = r.id
+    LEFT JOIN coll_agg ca ON ca.researcher_id = r.id;
     """,
     (
         'CREATE UNIQUE INDEX IF NOT EXISTS idx_mv_researcher_id '
@@ -326,6 +337,10 @@ SETUP_MVS_STATEMENTS = [
     (
         'CREATE INDEX IF NOT EXISTS idx_mv_researcher_production_years '
         'ON mv_researcher_search USING GIN (production_years);'
+    ),
+    (
+        'CREATE INDEX IF NOT EXISTS idx_mv_researcher_collection_slugs '
+        'ON mv_researcher_search USING GIN (collection_slugs);'
     ),
     """
     CREATE MATERIALIZED VIEW IF NOT EXISTS mv_canonical_articles AS

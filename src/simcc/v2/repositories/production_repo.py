@@ -164,6 +164,25 @@ def build_production_conditions(  # noqa: PLR0912
         if values:
             conds.append(table.c[field].in_(values))
 
+    if hasattr(filters, 'collection') and filters.collection is not None:
+        norm_colls = [
+            c.strip().lower() for c in filters.collection if c and c.strip()
+        ]
+        if not norm_colls:
+            norm_colls = ['simcc']
+        if 'all' not in norm_colls and '*' not in norm_colls:
+            conds.append(
+                table.c.researcher_ids.op('&&')(
+                    select(func.array_agg(mv_researcher_search.c.researcher_id))
+                    .where(
+                        mv_researcher_search.c.collection_slugs.overlap(
+                            norm_colls
+                        )
+                    )
+                    .scalar_subquery()
+                )
+            )
+
     has_open_access = getattr(filters, 'has_open_access', None)
     if has_open_access is not None:
         conds.append(table.c.has_open_access_pdf.is_(has_open_access))

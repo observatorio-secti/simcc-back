@@ -3,6 +3,10 @@ from simcc.core.db.models.ai import (
     SearchDocumentResearcher,
 )
 from simcc.core.db.models.base import table_registry
+from simcc.core.db.models.collection import (
+    Collection,
+    ResearcherCollection,
+)
 from simcc.core.db.models.expertise import (
     AreaExpertise,
     AreaSpecialty,
@@ -106,6 +110,7 @@ __all__ = [
     'BibliographicProductionWorkInEvent',
     'Brand',
     'City',
+    'Collection',
     'Country',
     'DidacticMaterial',
     'Education',
@@ -151,6 +156,7 @@ __all__ = [
     'Researcher',
     'ResearcherAddress',
     'ResearcherAreaExpertise',
+    'ResearcherCollection',
     'ResearcherIndProd',
     'ResearcherInstitution',
     'ResearcherProduction',

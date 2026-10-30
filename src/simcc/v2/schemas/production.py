@@ -132,6 +132,25 @@ class ProductionBaseFilter(BaseModel):
         default_factory=list,
         description='Grande Área do Conhecimento dos autores da plataforma',
     )
+    collection: list[str] = Field(
+        default_factory=lambda: ['simcc'],
+        description="Slugs das coleções (padrão: ['simcc']). Use 'all' ou '*' para buscar em todas as coleções",
+    )
+
+    @field_validator('collection', mode='before')
+    @classmethod
+    def _normalize_collection(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            return [item.strip() for item in v.replace(';', ',').split(',') if item.strip()]
+        if isinstance(v, (list, tuple, set)):
+            result = []
+            for item in v:
+                if isinstance(item, str):
+                    result.extend([s.strip() for s in item.replace(';', ',').split(',') if s.strip()])
+                elif item:
+                    result.append(str(item).strip())
+            return result
+        return v
 
     @field_validator('year_start', 'year_end')
     @classmethod

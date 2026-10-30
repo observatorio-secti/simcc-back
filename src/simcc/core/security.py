@@ -1,3 +1,4 @@
+from http import HTTPStatus
 from typing import Optional
 
 import httpx
@@ -6,7 +7,7 @@ from fastapi.security import OAuth2PasswordBearer
 
 from simcc.core.settings import Settings
 
-SETTINGS = Settings().ADMIN_URL
+SETTINGS = Settings()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/token', auto_error=False)
 
 

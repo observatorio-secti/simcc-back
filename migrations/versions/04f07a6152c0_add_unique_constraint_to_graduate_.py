@@ -19,6 +19,10 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
+    op.execute(
+        'ALTER TABLE graduate_program_researcher '
+        'DROP CONSTRAINT IF EXISTS graduate_program_researcher_pkey;'
+    )
     op.create_unique_constraint(
         'uq_graduate_program_researcher_program_researcher_year',
         'graduate_program_researcher',

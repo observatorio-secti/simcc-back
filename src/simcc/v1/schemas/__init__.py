@@ -32,6 +32,7 @@ class DefaultFilters(PaginationParams, BaseModel):
     dep_id: Optional[str] = None
     group_id: Optional[Union[UUID, str]] = None
     collection_id: Optional[Union[UUID, str]] = None
+    collection: Optional[str] = 'simcc'
     lattes_id: Optional[str] = None
 
     # Termos de Busca

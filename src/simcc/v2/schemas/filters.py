@@ -97,6 +97,25 @@ class ResearcherFilter(BaseTemporalFilter):
             'desses tipos'
         ),
     )
+    collection: list[str] = Field(
+        default_factory=lambda: ['simcc'],
+        description="Slugs das coleções (padrão: ['simcc']). Use 'all' ou '*' para buscar em todas as coleções",
+    )
+
+    @field_validator('collection', mode='before')
+    @classmethod
+    def _normalize_collection(cls, v: Any) -> Any:
+        if isinstance(v, str):
+            return [item.strip() for item in v.replace(';', ',').split(',') if item.strip()]
+        if isinstance(v, (list, tuple, set)):
+            result = []
+            for item in v:
+                if isinstance(item, str):
+                    result.extend([s.strip() for s in item.replace(';', ',').split(',') if s.strip()])
+                elif item:
+                    result.append(str(item).strip())
+            return result
+        return v
 
     @field_validator('source_type', mode='before')
     @classmethod
@@ -159,6 +178,10 @@ def get_researcher_filter(
         default=[],
         description='IDs dos programas de pós-graduação',
     ),
+    collection: list[str] = Query(
+        default=['simcc'],
+        description="Slugs das coleções (padrão: ['simcc'])",
+    ),
 ) -> ResearcherFilter:
     """Extrai filtros de pesquisador dos parâmetros de query string."""
     try:
@@ -168,6 +191,7 @@ def get_researcher_filter(
             year_end=year_end,
             institution_id=institution_id,
             graduate_program_id=graduate_program_id,
+            collection=collection,
         )
     except ValidationError as err:
         raise HTTPException(

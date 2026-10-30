@@ -317,12 +317,17 @@ class DimResearcherQuery(BaseQuery):
         return """
         SELECT r.name::TEXT AS researcher, r.id::TEXT AS researcher_id,
             TO_CHAR(r.last_update,'dd/mm/yyyy')::TEXT AS last_update,
-            r.graduation::TEXT AS graduation, r.institution_id::TEXT, r.docente::TEXT,
+            r.graduation::TEXT AS graduation, ri.institution_id::TEXT, r.docente::TEXT,
             regexp_replace(r.abstract, E'[\\\\n\\\\r]+', ' - ', 'g' )::TEXT AS abstract,
             :origin || 'ResearcherData/Image?researcher_id=' || r.id::TEXT AS image,
             r.orcid::TEXT
         FROM researcher r
-        WHERE r.status = True;
+        LEFT JOIN LATERAL (
+            SELECT ri.institution_id
+            FROM researcher_institution ri
+            WHERE ri.researcher_id = r.id
+            LIMIT 1
+        ) ri ON TRUE;
         """
 
 

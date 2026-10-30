@@ -9,6 +9,7 @@ from simcc.v1.repositories import tools
 
 class BaseMetricsQuery(BaseQuery):
     SUPPORTED_FILTERS = {
+        'collection',
         'researcher_id',
         'dep_id',
         'departament',
@@ -36,13 +37,37 @@ class BaseMetricsQuery(BaseQuery):
         self.type_value = None
         self.distinct_value = None
 
+    def _apply_collection_filter(self, value):
+        if not value or str(value).strip().lower() in ('all', '*'):
+            return
+        colls = [
+            v.strip().lower()
+            for v in str(value).replace(';', ',').split(',')
+            if v.strip()
+        ]
+        if not colls:
+            return
+        self.params['collections'] = colls
+        self.filters_sql.append("""
+            AND EXISTS (
+                SELECT 1 FROM researcher_collection rc
+                JOIN collection c ON c.id = rc.collection_id
+                WHERE rc.researcher_id = r.id AND c.slug = ANY(:collections)
+            )
+        """)
+
     def _apply_researcher_id_filter(self, value):
         self.params['researcher_id'] = str(value)
         self.filters_sql.append(' AND r.id = :researcher_id')
 
     def _apply_institution_id_filter(self, value):
         self.params['institution_id'] = value
-        self.filters_sql.append(' AND r.institution_id = :institution_id')
+        self.filters_sql.append("""
+            AND EXISTS (
+                SELECT 1 FROM researcher_institution ri
+                WHERE ri.researcher_id = r.id AND ri.institution_id = :institution_id
+            )
+        """)
 
     def _apply_dep_id_filter(self, value):
         pass
@@ -51,11 +76,14 @@ class BaseMetricsQuery(BaseQuery):
         pass
 
     def _apply_institution_filter(self, value):
-        self.joins['institution'] = (
-            'INNER JOIN institution i ON r.institution_id = i.id'
-        )
         self.params['institution'] = value.split(';')
-        self.filters_sql.append(' AND i.name = ANY(:institution)')
+        self.filters_sql.append("""
+            AND EXISTS (
+                SELECT 1 FROM researcher_institution ri
+                JOIN institution i ON ri.institution_id = i.id
+                WHERE ri.researcher_id = r.id AND i.name = ANY(:institution)
+            )
+        """)
 
     def _apply_graduate_program_id_filter(self, value):
         self.joins['program'] = """
@@ -253,7 +281,13 @@ class GraduateProgramProductionQuery(BaseQuery):
                 FROM public.bibliographic_production b
                 JOIN graduate_program_researcher gpr ON b.researcher_id = gpr.researcher_id
                 JOIN researcher r ON r.id = gpr.researcher_id
-                LEFT JOIN institution i ON r.institution_id = i.id
+                LEFT JOIN LATERAL (
+                    SELECT i.acronym
+                    FROM researcher_institution ri
+                    JOIN institution i ON ri.institution_id = i.id
+                    WHERE ri.researcher_id = r.id
+                    LIMIT 1
+                ) i ON TRUE
                 WHERE b.type = '{prod}' {filter_program} AND b.year_ >= :year
                   AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY b.type
@@ -266,8 +300,14 @@ class GraduateProgramProductionQuery(BaseQuery):
                 FROM patent p
                 JOIN graduate_program_researcher gpr ON gpr.researcher_id = p.researcher_id
                 JOIN researcher r ON r.id = gpr.researcher_id
-                LEFT JOIN institution i ON r.institution_id = i.id
-                WHERE p.development_year::int >= :year {filter_program} AND r.status = TRUE
+                LEFT JOIN LATERAL (
+                    SELECT i.acronym
+                    FROM researcher_institution ri
+                    JOIN institution i ON ri.institution_id = i.id
+                    WHERE ri.researcher_id = r.id
+                    LIMIT 1
+                ) i ON TRUE
+                WHERE p.development_year::int >= :year {filter_program}
                   AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY type
 
@@ -276,7 +316,13 @@ class GraduateProgramProductionQuery(BaseQuery):
                 FROM software s
                 JOIN graduate_program_researcher gpr ON gpr.researcher_id = s.researcher_id
                 JOIN researcher r ON r.id = gpr.researcher_id
-                LEFT JOIN institution i ON r.institution_id = i.id
+                LEFT JOIN LATERAL (
+                    SELECT i.acronym
+                    FROM researcher_institution ri
+                    JOIN institution i ON ri.institution_id = i.id
+                    WHERE ri.researcher_id = r.id
+                    LIMIT 1
+                ) i ON TRUE
                 WHERE s.year >= :year {filter_program}
                   AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY type
@@ -286,7 +332,13 @@ class GraduateProgramProductionQuery(BaseQuery):
                 FROM brand b
                 JOIN graduate_program_researcher gpr ON gpr.researcher_id = b.researcher_id
                 JOIN researcher r ON r.id = gpr.researcher_id
-                LEFT JOIN institution i ON r.institution_id = i.id
+                LEFT JOIN LATERAL (
+                    SELECT i.acronym
+                    FROM researcher_institution ri
+                    JOIN institution i ON ri.institution_id = i.id
+                    WHERE ri.researcher_id = r.id
+                    LIMIT 1
+                ) i ON TRUE
                 WHERE b.year >= :year {filter_program}
                   AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY type
@@ -297,7 +349,13 @@ class GraduateProgramProductionQuery(BaseQuery):
                 SELECT COUNT(*) AS qtd, r.graduation AS type
                 FROM researcher r
                 JOIN graduate_program_researcher gpr ON gpr.researcher_id = r.id
-                LEFT JOIN institution i ON r.institution_id = i.id
+                LEFT JOIN LATERAL (
+                    SELECT i.acronym
+                    FROM researcher_institution ri
+                    JOIN institution i ON ri.institution_id = i.id
+                    WHERE ri.researcher_id = r.id
+                    LIMIT 1
+                ) i ON TRUE
                 WHERE 1=1 {filter_program}
                   AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY r.graduation
@@ -306,7 +364,13 @@ class GraduateProgramProductionQuery(BaseQuery):
             researcher_sql = """
                 SELECT COUNT(*) AS qtd FROM graduate_program_researcher gpr
                 JOIN researcher r ON gpr.researcher_id = r.id
-                LEFT JOIN institution i ON r.institution_id = i.id
+                LEFT JOIN LATERAL (
+                    SELECT i.acronym
+                    FROM researcher_institution ri
+                    JOIN institution i ON ri.institution_id = i.id
+                    WHERE ri.researcher_id = r.id
+                    LIMIT 1
+                ) i ON TRUE
                 WHERE gpr.graduate_program_id = :graduate_program_id
                   AND COALESCE(i.acronym, '') <> 'EXTERNA'
                   AND gpr.graduate_program_id NOT IN (
@@ -326,7 +390,13 @@ class GraduateProgramProductionQuery(BaseQuery):
                 SELECT COUNT(DISTINCT b.title) AS qtd, '{prod}' AS type
                 FROM public.bibliographic_production b
                 JOIN researcher r ON b.researcher_id = r.id
-                LEFT JOIN institution i ON r.institution_id = i.id
+                LEFT JOIN LATERAL (
+                    SELECT i.acronym
+                    FROM researcher_institution ri
+                    JOIN institution i ON ri.institution_id = i.id
+                    WHERE ri.researcher_id = r.id
+                    LIMIT 1
+                ) i ON TRUE
                 WHERE b.type = '{prod}' AND b.year_ >= :year {dep_filter}
                   AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY b.type
@@ -338,7 +408,13 @@ class GraduateProgramProductionQuery(BaseQuery):
                 SELECT COUNT(DISTINCT p.title) AS qtd, 'PATENT' AS type
                 FROM patent p
                 JOIN researcher r ON p.researcher_id = r.id
-                LEFT JOIN institution i ON r.institution_id = i.id
+                LEFT JOIN LATERAL (
+                    SELECT i.acronym
+                    FROM researcher_institution ri
+                    JOIN institution i ON ri.institution_id = i.id
+                    WHERE ri.researcher_id = r.id
+                    LIMIT 1
+                ) i ON TRUE
                 WHERE p.development_year::int >= :year {dep_filter}
                   AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY type
@@ -347,7 +423,13 @@ class GraduateProgramProductionQuery(BaseQuery):
                 SELECT COUNT(DISTINCT s.title) AS qtd, 'SOFTWARE' AS type
                 FROM software s
                 JOIN researcher r ON s.researcher_id = r.id
-                LEFT JOIN institution i ON r.institution_id = i.id
+                LEFT JOIN LATERAL (
+                    SELECT i.acronym
+                    FROM researcher_institution ri
+                    JOIN institution i ON ri.institution_id = i.id
+                    WHERE ri.researcher_id = r.id
+                    LIMIT 1
+                ) i ON TRUE
                 WHERE s.year >= :year {dep_filter}
                   AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY type
@@ -356,7 +438,13 @@ class GraduateProgramProductionQuery(BaseQuery):
                 SELECT COUNT(DISTINCT b.title) AS qtd, 'BRAND' AS type
                 FROM brand b
                 JOIN researcher r ON b.researcher_id = r.id
-                LEFT JOIN institution i ON r.institution_id = i.id
+                LEFT JOIN LATERAL (
+                    SELECT i.acronym
+                    FROM researcher_institution ri
+                    JOIN institution i ON ri.institution_id = i.id
+                    WHERE ri.researcher_id = r.id
+                    LIMIT 1
+                ) i ON TRUE
                 WHERE b.year >= :year {dep_filter}
                   AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 GROUP BY type
@@ -366,8 +454,14 @@ class GraduateProgramProductionQuery(BaseQuery):
                 UNION
                 SELECT COUNT(*) AS qtd, UPPER(r.graduation) AS type
                 FROM researcher r
-                LEFT JOIN institution i ON r.institution_id = i.id
-                WHERE r.status = TRUE 
+                LEFT JOIN LATERAL (
+                    SELECT i.acronym
+                    FROM researcher_institution ri
+                    JOIN institution i ON ri.institution_id = i.id
+                    WHERE ri.researcher_id = r.id
+                    LIMIT 1
+                ) i ON TRUE
+                WHERE 1 = 1
                 AND r.id NOT IN (SELECT researcher_id FROM graduate_program_student)
                 AND COALESCE(i.acronym, '') <> 'EXTERNA'
                 {researcher_filter}
@@ -375,7 +469,13 @@ class GraduateProgramProductionQuery(BaseQuery):
             """
             researcher_sql = """
                 SELECT COUNT(*) AS qtd FROM researcher r
-                LEFT JOIN institution i ON r.institution_id = i.id
+                LEFT JOIN LATERAL (
+                    SELECT i.acronym
+                    FROM researcher_institution ri
+                    JOIN institution i ON ri.institution_id = i.id
+                    WHERE ri.researcher_id = r.id
+                    LIMIT 1
+                ) i ON TRUE
                 WHERE COALESCE(i.acronym, '') <> 'EXTERNA'
             """
 
@@ -1152,7 +1252,6 @@ class LattesUpdateMetricsQuery(BaseMetricsQuery):
                 {' '.join(self.joins.values())}
                 {self.join_type_specific}
             WHERE 1=1
-                AND r.status IS True
                 {filters_sql}
                 {type_specific_filters};
         """
