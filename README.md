@@ -13,9 +13,9 @@ Este repositório também é o **dono oficial do schema de banco de dados (Alemb
 - **Python 3.12+**, **FastAPI** (módulos `v1` e `v2`), **Pydantic Settings**
 - **SQLAlchemy 2.0 Assíncrono** (`asyncpg` / `psycopg`), **Alembic** e **pgvector**
 - **Visões Materializadas em Duas Camadas (`mv_*`)**:
-  - `mv_researcher_search`: perfil consolidado para busca textual e facetada de pesquisadores
+  - `mv_researcher_search`: perfil consolidado para busca textual e facetada de pesquisadores (com `collection_slugs` indexado em GIN)
   - `mv_search_*`: buscas específicas por tipo de produção com índices invertidos GIN (`tsvector`)
-  - `mv_canonical_*`: produções desduplicadas (1 linha por obra) para contagens e indicadores globais
+  - `mv_canonical_*`: produções desduplicadas (1 linha por obra) para contagens e indicadores globais, desnormalizando `collection_slugs` com índice GIN dedicado em todas as 7 views para filtragem direta por coleção sem subqueries pesadas
 - **Redis**: Cache geracional de buscas V2 invalidado atomicamente pelo `simcc-etl` via chave `simcc:v2:search:generation`
 - **OpenTelemetry** + **Structlog**: Instrumentação distribuída (FastAPI, SQLAlchemy, Redis, HTTPX) e logs estruturados
 - **MkDocs Material**: Portal de documentação técnica e conceitual

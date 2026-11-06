@@ -43,15 +43,20 @@ s
 * **Granularidade:** Exatamente uma linha por pesquisador cadastrado.
 * **Otimização:** Guarda vetores do perfil (nome e resumo) e arrays compactos com as instituições, programas de pós-graduação e anos de produção.
 
+### Camada 3: Produções Canônicas (`mv_canonical_*`)
+* **Papel:** Responder às listagens e buscas diretas por produções desduplicadas (`/v2/production/article`, `book`, `book-chapter`, `software`, `patent`, `event`, `research-project`).
+* **Granularidade:** Uma linha por obra única (desduplicada por DOI, ISBN, código ou título normalizado).
+* **Otimização de Coleções:** Todas as 7 visões `mv_canonical_*` desnormalizam os slugs das coleções dos autores na coluna `collection_slugs text[]`, indexada com GIN (`idx_mv_canonical_*_collection_slugs`). Isso permite que filtros por coleção (como o padrão `collection=['simcc']`) executem diretamente via operador de sobreposição de array (`collection_slugs && ARRAY['simcc']`) em milissegundos, dispensando subqueries ou agregações dinâmicas de pesquisadores em memória.
+
 ### Resumo Comparativo
 
-| Característica | Camada 1: Documentos | Camada 2: Pesquisador |
-|---|---|---|
-| **Nome da MV** | `mv_search_documents` | `mv_researcher_search` |
-| **Linhas** | Uma por produção acadêmica | Uma por pesquisador |
-| **Busca Textual** | Títulos e metadados das obras | Nome e resumo do currículo |
-| **Filtros Estruturais** | Ano da obra e tipo de fonte | Vínculos, programas e anos ativos |
-| **Uso Principal** | Identificar obras e extrair evidências | Paginação principal e contagem de autores |
+| Característica | Camada 1: Documentos | Camada 2: Pesquisador | Camada 3: Canônicas |
+|---|---|---|---|
+| **Nome da MV** | `mv_search_documents` | `mv_researcher_search` | `mv_canonical_*` (ex: `mv_canonical_articles`) |
+| **Linhas** | Uma por produção acadêmica | Uma por pesquisador | Uma por obra desduplicada |
+| **Busca Textual** | Títulos e metadados das obras | Nome e resumo do currículo | Título, resumo, periódico e palavras-chave |
+| **Filtros Estruturais** | Ano da obra e tipo de fonte | Vínculos, programas e anos ativos | Qualis, ano, citações, coleções (`collection_slugs`) |
+| **Uso Principal** | Identificar obras e extrair evidências | Paginação principal e contagem de autores | Listagem paginada de produções deduplicadas |
 
 ---
 

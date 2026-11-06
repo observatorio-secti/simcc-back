@@ -351,6 +351,7 @@ SETUP_MVS_STATEMENTS = [
             ARRAY_AGG(DISTINCT bp.researcher_id) AS researcher_ids,
             ARRAY_AGG(DISTINCT r.institution_id) FILTER (WHERE r.institution_id IS NOT NULL) AS institution_ids,
             ARRAY_AGG(DISTINCT gpr.graduate_program_id) FILTER (WHERE gpr.graduate_program_id IS NOT NULL) AS graduate_program_ids,
+            ARRAY_AGG(DISTINCT c.slug) FILTER (WHERE c.slug IS NOT NULL) AS collection_slugs,
             jsonb_agg(DISTINCT jsonb_build_object(
                 'id', r.id,
                 'name', r.name,
@@ -375,6 +376,8 @@ SETUP_MVS_STATEMENTS = [
         LEFT JOIN researcher r ON r.id = bp.researcher_id
         LEFT JOIN graduate_program_researcher gpr ON gpr.researcher_id = bp.researcher_id
         LEFT JOIN openalex_article oa ON oa.article_id = bp.id
+        LEFT JOIN researcher_collection rc ON rc.researcher_id = bp.researcher_id
+        LEFT JOIN collection c ON c.id = rc.collection_id
         WHERE bp.type = 'ARTICLE'
         GROUP BY 
             COALESCE(NULLIF(LOWER(TRIM(bp.doi)), ''), LOWER(UNACCENT(TRIM(bp.title)))),
@@ -388,6 +391,7 @@ SETUP_MVS_STATEMENTS = [
         researcher_ids,
         institution_ids,
         graduate_program_ids,
+        COALESCE(collection_slugs, '{}') AS collection_slugs,
         platform_authors,
         title,
         year_ AS year,
@@ -446,6 +450,10 @@ SETUP_MVS_STATEMENTS = [
         'ON mv_canonical_articles USING GIN (graduate_program_ids);'
     ),
     (
+        'CREATE INDEX IF NOT EXISTS idx_mv_canonical_articles_collection_slugs '
+        'ON mv_canonical_articles USING GIN (collection_slugs);'
+    ),
+    (
         'CREATE INDEX IF NOT EXISTS idx_mv_canonical_articles_prods '
         'ON mv_canonical_articles USING GIN (production_ids);'
     ),
@@ -462,6 +470,7 @@ SETUP_MVS_STATEMENTS = [
             ARRAY_AGG(DISTINCT bp.researcher_id) AS researcher_ids,
             ARRAY_AGG(DISTINCT r.institution_id) FILTER (WHERE r.institution_id IS NOT NULL) AS institution_ids,
             ARRAY_AGG(DISTINCT gpr.graduate_program_id) FILTER (WHERE gpr.graduate_program_id IS NOT NULL) AS graduate_program_ids,
+            ARRAY_AGG(DISTINCT c.slug) FILTER (WHERE c.slug IS NOT NULL) AS collection_slugs,
             jsonb_agg(DISTINCT jsonb_build_object('id', r.id, 'name', r.name, 'lattes_id', r.lattes_id)) FILTER (WHERE r.id IS NOT NULL) AS platform_authors,
             bp.title,
             bp.year_,
@@ -474,6 +483,8 @@ SETUP_MVS_STATEMENTS = [
         JOIN bibliographic_production_book bpb ON bpb.bibliographic_production_id = bp.id
         LEFT JOIN researcher r ON r.id = bp.researcher_id
         LEFT JOIN graduate_program_researcher gpr ON gpr.researcher_id = bp.researcher_id
+        LEFT JOIN researcher_collection rc ON rc.researcher_id = bp.researcher_id
+        LEFT JOIN collection c ON c.id = rc.collection_id
         WHERE bp.type = 'BOOK'
         GROUP BY 
             COALESCE(NULLIF(LOWER(TRIM(bpb.isbn)), ''), LOWER(UNACCENT(TRIM(bp.title)))),
@@ -487,6 +498,7 @@ SETUP_MVS_STATEMENTS = [
         researcher_ids,
         institution_ids,
         graduate_program_ids,
+        COALESCE(collection_slugs, '{}') AS collection_slugs,
         platform_authors,
         title,
         year_ AS year,
@@ -527,6 +539,10 @@ SETUP_MVS_STATEMENTS = [
         'ON mv_canonical_books USING GIN (graduate_program_ids);'
     ),
     (
+        'CREATE INDEX IF NOT EXISTS idx_mv_canonical_books_collection_slugs '
+        'ON mv_canonical_books USING GIN (collection_slugs);'
+    ),
+    (
         'CREATE INDEX IF NOT EXISTS idx_mv_canonical_books_prods '
         'ON mv_canonical_books USING GIN (production_ids);'
     ),
@@ -543,6 +559,7 @@ SETUP_MVS_STATEMENTS = [
             ARRAY_AGG(DISTINCT bp.researcher_id) AS researcher_ids,
             ARRAY_AGG(DISTINCT r.institution_id) FILTER (WHERE r.institution_id IS NOT NULL) AS institution_ids,
             ARRAY_AGG(DISTINCT gpr.graduate_program_id) FILTER (WHERE gpr.graduate_program_id IS NOT NULL) AS graduate_program_ids,
+            ARRAY_AGG(DISTINCT c.slug) FILTER (WHERE c.slug IS NOT NULL) AS collection_slugs,
             jsonb_agg(DISTINCT jsonb_build_object('id', r.id, 'name', r.name, 'lattes_id', r.lattes_id)) FILTER (WHERE r.id IS NOT NULL) AS platform_authors,
             bp.title,
             bp.year_,
@@ -558,6 +575,8 @@ SETUP_MVS_STATEMENTS = [
         JOIN bibliographic_production_book_chapter bpc ON bpc.bibliographic_production_id = bp.id
         LEFT JOIN researcher r ON r.id = bp.researcher_id
         LEFT JOIN graduate_program_researcher gpr ON gpr.researcher_id = bp.researcher_id
+        LEFT JOIN researcher_collection rc ON rc.researcher_id = bp.researcher_id
+        LEFT JOIN collection c ON c.id = rc.collection_id
         WHERE bp.type = 'BOOK_CHAPTER'
         GROUP BY 
             COALESCE(NULLIF(LOWER(TRIM(bpc.isbn)), ''), LOWER(UNACCENT(TRIM(bp.title))) || '_' || LOWER(UNACCENT(TRIM(COALESCE(bpc.book_title, ''))))),
@@ -571,6 +590,7 @@ SETUP_MVS_STATEMENTS = [
         researcher_ids,
         institution_ids,
         graduate_program_ids,
+        COALESCE(collection_slugs, '{}') AS collection_slugs,
         platform_authors,
         title,
         year_ AS year,
@@ -615,6 +635,10 @@ SETUP_MVS_STATEMENTS = [
         'ON mv_canonical_book_chapters USING GIN (graduate_program_ids);'
     ),
     (
+        'CREATE INDEX IF NOT EXISTS idx_mv_canonical_chapters_collection_slugs '
+        'ON mv_canonical_book_chapters USING GIN (collection_slugs);'
+    ),
+    (
         'CREATE INDEX IF NOT EXISTS idx_mv_canonical_chapters_prods '
         'ON mv_canonical_book_chapters USING GIN (production_ids);'
     ),
@@ -631,6 +655,7 @@ SETUP_MVS_STATEMENTS = [
             ARRAY_AGG(DISTINCT sw.researcher_id) AS researcher_ids,
             ARRAY_AGG(DISTINCT r.institution_id) FILTER (WHERE r.institution_id IS NOT NULL) AS institution_ids,
             ARRAY_AGG(DISTINCT gpr.graduate_program_id) FILTER (WHERE gpr.graduate_program_id IS NOT NULL) AS graduate_program_ids,
+            ARRAY_AGG(DISTINCT c.slug) FILTER (WHERE c.slug IS NOT NULL) AS collection_slugs,
             jsonb_agg(DISTINCT jsonb_build_object('id', r.id, 'name', r.name, 'lattes_id', r.lattes_id)) FILTER (WHERE r.id IS NOT NULL) AS platform_authors,
             sw.title,
             sw.year,
@@ -642,6 +667,8 @@ SETUP_MVS_STATEMENTS = [
         FROM software sw
         LEFT JOIN researcher r ON r.id = sw.researcher_id
         LEFT JOIN graduate_program_researcher gpr ON gpr.researcher_id = sw.researcher_id
+        LEFT JOIN researcher_collection rc ON rc.researcher_id = sw.researcher_id
+        LEFT JOIN collection c ON c.id = rc.collection_id
         GROUP BY 
             COALESCE(NULLIF(LOWER(TRIM(sw.code)), ''), LOWER(UNACCENT(TRIM(sw.title))) || '_' || COALESCE(sw.year::text, '')),
             sw.title,
@@ -653,6 +680,7 @@ SETUP_MVS_STATEMENTS = [
         researcher_ids,
         institution_ids,
         graduate_program_ids,
+        COALESCE(collection_slugs, '{}') AS collection_slugs,
         platform_authors,
         title,
         year,
@@ -693,6 +721,10 @@ SETUP_MVS_STATEMENTS = [
         'ON mv_canonical_software USING GIN (graduate_program_ids);'
     ),
     (
+        'CREATE INDEX IF NOT EXISTS idx_mv_canonical_software_collection_slugs '
+        'ON mv_canonical_software USING GIN (collection_slugs);'
+    ),
+    (
         'CREATE INDEX IF NOT EXISTS idx_mv_canonical_software_prods '
         'ON mv_canonical_software USING GIN (production_ids);'
     ),
@@ -709,6 +741,7 @@ SETUP_MVS_STATEMENTS = [
             ARRAY_AGG(DISTINCT p.researcher_id) AS researcher_ids,
             ARRAY_AGG(DISTINCT r.institution_id) FILTER (WHERE r.institution_id IS NOT NULL) AS institution_ids,
             ARRAY_AGG(DISTINCT gpr.graduate_program_id) FILTER (WHERE gpr.graduate_program_id IS NOT NULL) AS graduate_program_ids,
+            ARRAY_AGG(DISTINCT c.slug) FILTER (WHERE c.slug IS NOT NULL) AS collection_slugs,
             jsonb_agg(DISTINCT jsonb_build_object('id', r.id, 'name', r.name, 'lattes_id', r.lattes_id)) FILTER (WHERE r.id IS NOT NULL) AS platform_authors,
             p.title,
             COALESCE(MAX(NULLIF(p.development_year, '')::int), EXTRACT(YEAR FROM MAX(p.grant_date))::int) AS year,
@@ -720,6 +753,8 @@ SETUP_MVS_STATEMENTS = [
         FROM patent p
         LEFT JOIN researcher r ON r.id = p.researcher_id
         LEFT JOIN graduate_program_researcher gpr ON gpr.researcher_id = p.researcher_id
+        LEFT JOIN researcher_collection rc ON rc.researcher_id = p.researcher_id
+        LEFT JOIN collection c ON c.id = rc.collection_id
         GROUP BY 
             COALESCE(NULLIF(LOWER(TRIM(p.code)), ''), LOWER(UNACCENT(TRIM(p.title)))),
             p.title
@@ -730,6 +765,7 @@ SETUP_MVS_STATEMENTS = [
         researcher_ids,
         institution_ids,
         graduate_program_ids,
+        COALESCE(collection_slugs, '{}') AS collection_slugs,
         platform_authors,
         title,
         year,
@@ -770,6 +806,10 @@ SETUP_MVS_STATEMENTS = [
         'ON mv_canonical_patents USING GIN (graduate_program_ids);'
     ),
     (
+        'CREATE INDEX IF NOT EXISTS idx_mv_canonical_patents_collection_slugs '
+        'ON mv_canonical_patents USING GIN (collection_slugs);'
+    ),
+    (
         'CREATE INDEX IF NOT EXISTS idx_mv_canonical_patents_prods '
         'ON mv_canonical_patents USING GIN (production_ids);'
     ),
@@ -786,6 +826,7 @@ SETUP_MVS_STATEMENTS = [
             ARRAY_AGG(DISTINCT pe.researcher_id) AS researcher_ids,
             ARRAY_AGG(DISTINCT r.institution_id) FILTER (WHERE r.institution_id IS NOT NULL) AS institution_ids,
             ARRAY_AGG(DISTINCT gpr.graduate_program_id) FILTER (WHERE gpr.graduate_program_id IS NOT NULL) AS graduate_program_ids,
+            ARRAY_AGG(DISTINCT c.slug) FILTER (WHERE c.slug IS NOT NULL) AS collection_slugs,
             jsonb_agg(DISTINCT jsonb_build_object('id', r.id, 'name', r.name, 'lattes_id', r.lattes_id)) FILTER (WHERE r.id IS NOT NULL) AS platform_authors,
             pe.title,
             pe.event_name,
@@ -796,6 +837,8 @@ SETUP_MVS_STATEMENTS = [
         FROM participation_events pe
         LEFT JOIN researcher r ON r.id = pe.researcher_id
         LEFT JOIN graduate_program_researcher gpr ON gpr.researcher_id = pe.researcher_id
+        LEFT JOIN researcher_collection rc ON rc.researcher_id = pe.researcher_id
+        LEFT JOIN collection c ON c.id = rc.collection_id
         GROUP BY 
             COALESCE(NULLIF(LOWER(TRIM(pe.title)), ''), LOWER(UNACCENT(TRIM(pe.event_name)))) || '_' || COALESCE(pe.year::text, ''),
             pe.title,
@@ -808,6 +851,7 @@ SETUP_MVS_STATEMENTS = [
         researcher_ids,
         institution_ids,
         graduate_program_ids,
+        COALESCE(collection_slugs, '{}') AS collection_slugs,
         platform_authors,
         title,
         event_name,
@@ -843,6 +887,10 @@ SETUP_MVS_STATEMENTS = [
         'ON mv_canonical_events USING GIN (graduate_program_ids);'
     ),
     (
+        'CREATE INDEX IF NOT EXISTS idx_mv_canonical_events_collection_slugs '
+        'ON mv_canonical_events USING GIN (collection_slugs);'
+    ),
+    (
         'CREATE INDEX IF NOT EXISTS idx_mv_canonical_events_prods '
         'ON mv_canonical_events USING GIN (production_ids);'
     ),
@@ -859,6 +907,7 @@ SETUP_MVS_STATEMENTS = [
             ARRAY_AGG(DISTINCT rp.researcher_id) AS researcher_ids,
             ARRAY_AGG(DISTINCT r.institution_id) FILTER (WHERE r.institution_id IS NOT NULL) AS institution_ids,
             ARRAY_AGG(DISTINCT gpr.graduate_program_id) FILTER (WHERE gpr.graduate_program_id IS NOT NULL) AS graduate_program_ids,
+            ARRAY_AGG(DISTINCT c.slug) FILTER (WHERE c.slug IS NOT NULL) AS collection_slugs,
             jsonb_agg(DISTINCT jsonb_build_object(
                 'id', r.id,
                 'name', r.name,
@@ -879,6 +928,8 @@ SETUP_MVS_STATEMENTS = [
         FROM research_project rp
         LEFT JOIN researcher r ON r.id = rp.researcher_id
         LEFT JOIN graduate_program_researcher gpr ON gpr.researcher_id = rp.researcher_id
+        LEFT JOIN researcher_collection rc ON rc.researcher_id = rp.researcher_id
+        LEFT JOIN collection c ON c.id = rc.collection_id
         WHERE NULLIF(TRIM(rp.project_name), '') IS NOT NULL
         GROUP BY
             LOWER(UNACCENT(TRIM(rp.project_name))),
@@ -890,6 +941,7 @@ SETUP_MVS_STATEMENTS = [
         d.researcher_ids,
         d.institution_ids,
         d.graduate_program_ids,
+        COALESCE(d.collection_slugs, '{}') AS collection_slugs,
         d.platform_authors,
         d.title,
         d.start_year AS year,
@@ -957,6 +1009,10 @@ SETUP_MVS_STATEMENTS = [
     (
         'CREATE INDEX IF NOT EXISTS idx_mv_canonical_projects_programs '
         'ON mv_canonical_research_projects USING GIN (graduate_program_ids);'
+    ),
+    (
+        'CREATE INDEX IF NOT EXISTS idx_mv_canonical_projects_collection_slugs '
+        'ON mv_canonical_research_projects USING GIN (collection_slugs);'
     ),
     (
         'CREATE INDEX IF NOT EXISTS idx_mv_canonical_projects_prods '

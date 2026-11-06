@@ -171,17 +171,22 @@ def build_production_conditions(  # noqa: PLR0912
         if not norm_colls:
             norm_colls = ['simcc']
         if 'all' not in norm_colls and '*' not in norm_colls:
-            conds.append(
-                table.c.researcher_ids.op('&&')(
-                    select(func.array_agg(mv_researcher_search.c.researcher_id))
-                    .where(
-                        mv_researcher_search.c.collection_slugs.overlap(
-                            norm_colls
+            if 'collection_slugs' in table.c:
+                conds.append(table.c.collection_slugs.overlap(norm_colls))
+            else:
+                conds.append(
+                    table.c.researcher_ids.op('&&')(
+                        select(
+                            func.array_agg(mv_researcher_search.c.researcher_id)
                         )
+                        .where(
+                            mv_researcher_search.c.collection_slugs.overlap(
+                                norm_colls
+                            )
+                        )
+                        .scalar_subquery()
                     )
-                    .scalar_subquery()
                 )
-            )
 
     has_open_access = getattr(filters, 'has_open_access', None)
     if has_open_access is not None:

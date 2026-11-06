@@ -78,6 +78,7 @@ mv_canonical_articles = Table(
     Column('language', String, nullable=True),
     Column('has_abstract', Boolean, nullable=False),
     Column('has_open_access_pdf', Boolean, nullable=False),
+    Column('collection_slugs', ARRAY(String), nullable=False),
     Column('search_vector', TSVECTOR, nullable=True),
 )
 
@@ -91,6 +92,7 @@ mv_canonical_books = Table(
     Column(
         'graduate_program_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=True
     ),
+    Column('collection_slugs', ARRAY(String), nullable=False),
     Column('platform_authors', JSONB, nullable=True),
     Column('title', String, nullable=False),
     Column('year', Integer, nullable=True),
@@ -112,6 +114,7 @@ mv_canonical_book_chapters = Table(
     Column(
         'graduate_program_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=True
     ),
+    Column('collection_slugs', ARRAY(String), nullable=False),
     Column('platform_authors', JSONB, nullable=True),
     Column('title', String, nullable=False),
     Column('book_title', String, nullable=True),
@@ -136,6 +139,7 @@ mv_canonical_software = Table(
     Column(
         'graduate_program_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=True
     ),
+    Column('collection_slugs', ARRAY(String), nullable=False),
     Column('platform_authors', JSONB, nullable=True),
     Column('title', String, nullable=False),
     Column('year', Integer, nullable=True),
@@ -157,6 +161,7 @@ mv_canonical_patents = Table(
     Column(
         'graduate_program_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=True
     ),
+    Column('collection_slugs', ARRAY(String), nullable=False),
     Column('platform_authors', JSONB, nullable=True),
     Column('title', String, nullable=False),
     Column('year', Integer, nullable=True),
@@ -178,6 +183,7 @@ mv_canonical_events = Table(
     Column(
         'graduate_program_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=True
     ),
+    Column('collection_slugs', ARRAY(String), nullable=False),
     Column('platform_authors', JSONB, nullable=True),
     Column('title', String, nullable=False),
     Column('event_name', String, nullable=True),
@@ -198,6 +204,7 @@ mv_canonical_research_projects = Table(
     Column(
         'graduate_program_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=True
     ),
+    Column('collection_slugs', ARRAY(String), nullable=False),
     Column('platform_authors', JSONB, nullable=True),
     Column('title', Text, nullable=False),
     Column('year', Integer, nullable=True),

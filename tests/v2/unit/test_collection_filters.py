@@ -1,27 +1,33 @@
+# ruff: noqa: PLC2701
 from uuid import uuid4
-import pytest
-from sqlalchemy import Table, MetaData, Column, Integer
-from sqlalchemy.dialects.postgresql import ARRAY, UUID as PG_UUID
 
-from simcc.v1.schemas import DefaultFilters
-from simcc.v1.queries.researcher_query import (
-    ResearcherSearchQuery,
-    ResearcherFilterQuery,
-    OutstandingResearchersQuery,
-)
-from simcc.v1.queries.production_query import BaseProductionQuery
+import pytest
+
 from simcc.v1.queries.metrics_query import (
     BaseMetricsQuery,
     GraduateProgramProductionQuery,
     LattesUpdateMetricsQuery,
 )
-from simcc.v2.schemas.filters import ResearcherFilter
-from simcc.v2.schemas.production import ProductionBaseFilter, ArticleFilter
-from simcc.v2.repositories.researcher_filters import (
-    _by_collections,
-    build_researcher_conditions,
+from simcc.v1.queries.production_query import BaseProductionQuery
+from simcc.v1.queries.researcher_query import (
+    OutstandingResearchersQuery,
+    ResearcherFilterQuery,
+    ResearcherSearchQuery,
 )
+from simcc.v1.schemas import DefaultFilters
 from simcc.v2.repositories.production_repo import build_production_conditions
+from simcc.v2.repositories.researcher_filters import _by_collections
+from simcc.v2.repositories.search_tables import (
+    mv_canonical_articles,
+    mv_canonical_book_chapters,
+    mv_canonical_books,
+    mv_canonical_events,
+    mv_canonical_patents,
+    mv_canonical_research_projects,
+    mv_canonical_software,
+)
+from simcc.v2.schemas.filters import ResearcherFilter
+from simcc.v2.schemas.production import ArticleFilter, ProductionBaseFilter
 
 
 @pytest.fixture(scope='session', autouse=True)
@@ -37,6 +43,7 @@ class DummySession:
 # ---------------------------------------------------------------------------
 # V2 Tests
 # ---------------------------------------------------------------------------
+
 
 def test_v2_researcher_filter_default_collection():
     rf = ResearcherFilter()
@@ -74,33 +81,40 @@ def test_v2_production_filter_default_collection():
     assert af.collection == ['simcc']
 
 
-from simcc.v2.repositories.search_tables import mv_canonical_articles
-
-
 def test_v2_build_production_conditions_with_collection():
-    tbl = mv_canonical_articles
-
-    # 1. Default: collection=['simcc'] gera condição com subquery
+    canonical_tables = [
+        mv_canonical_articles,
+        mv_canonical_books,
+        mv_canonical_book_chapters,
+        mv_canonical_software,
+        mv_canonical_patents,
+        mv_canonical_events,
+        mv_canonical_research_projects,
+    ]
     pf_default = ProductionBaseFilter()
-    conds = build_production_conditions(tbl, pf_default)
-    assert len(conds) == 1
-    compiled = str(conds[0])
-    assert 'researcher_ids' in compiled
-    assert 'collection_slugs' in compiled
+
+    # 1. Todas as 7 MVs canônicas usam condição direta GIN em collection_slugs
+    for tbl in canonical_tables:
+        conds = build_production_conditions(tbl, pf_default)
+        assert len(conds) == 1
+        compiled = str(conds[0])
+        assert f'{tbl.name}.collection_slugs' in compiled
+        assert 'researcher_ids' not in compiled
 
     # 2. 'all' ou '*' não deve gerar condição de coleção
     pf_all = ProductionBaseFilter(collection=['all'])
-    conds_all = build_production_conditions(tbl, pf_all)
+    conds_all = build_production_conditions(mv_canonical_articles, pf_all)
     assert len(conds_all) == 0
 
     pf_star = ProductionBaseFilter(collection=['*'])
-    conds_star = build_production_conditions(tbl, pf_star)
+    conds_star = build_production_conditions(mv_canonical_articles, pf_star)
     assert len(conds_star) == 0
 
 
 # ---------------------------------------------------------------------------
 # V1 Tests
 # ---------------------------------------------------------------------------
+
 
 def test_v1_default_filters_has_collection():
     df = DefaultFilters()
@@ -137,6 +151,7 @@ def test_v1_researcher_filter_query_no_status_no_institution_id():
     sql = q.build_sql()
     assert 'r.status IS True' not in sql
     assert 'mr.institution_id' not in sql
+    assert 'researcher_institution ri' in sql
     assert 'r.institution_id' not in sql
     assert 'researcher_collection' in sql
 
@@ -155,7 +170,9 @@ def test_v1_base_production_query_collection_and_no_institution_id():
     q = BaseProductionQuery(session, table_alias='bp', year_col='year_')
     assert 'collection' in q.SUPPORTED_FILTERS
 
-    q.apply_filters(DefaultFilters(institution_id=str(uuid4()), collection='simcc'))
+    q.apply_filters(
+        DefaultFilters(institution_id=str(uuid4()), collection='simcc')
+    )
     components = q._get_base_sql_components()
     filters_sql = components['filters']
     assert 'researcher_collection' in filters_sql
@@ -168,7 +185,9 @@ def test_v1_metrics_query_collection_and_no_status():
     q = BaseMetricsQuery(session)
     assert 'collection' in q.SUPPORTED_FILTERS
 
-    q.apply_filters(DefaultFilters(institution_id=str(uuid4()), collection='simcc'))
+    q.apply_filters(
+        DefaultFilters(institution_id=str(uuid4()), collection='simcc')
+    )
     filters_sql = ' '.join(q.filters_sql)
     assert 'researcher_collection' in filters_sql
     assert 'researcher_institution ri' in filters_sql
