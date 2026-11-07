@@ -1,7 +1,6 @@
 services:
   api:
     build: .
-    image: ${COMPOSE_PROJECT_NAME}_latest
     entrypoint: [ "/bin/sh", "/app/entrypoint.sh" ]
     ports:
       - "127.0.0.1:${API_PORT}:8000"
