@@ -49,7 +49,6 @@ services:
       OTEL_ENABLED: "true"
       OTEL_EXPORTER_TYPE: "none"
     volumes:
-      - xml:/app/storage/xml
       - logs:/app/logs
       - ./google_credentials.json:/app/google_credentials.json:ro
     restart: always
@@ -59,25 +58,8 @@ services:
       redis:
         condition: service_healthy
 
-  hop:
-    image: gleidsoncosta/simcc-extrator:latest
-    profiles:
-      - tools
-    environment:
-      HOP_RUN_CONFIG: local
-      HOP_LOG_LEVEL: Basic
-      HOP_PROJECT_NAME: Jade-Extrator
-      HOP_PROJECT_FOLDER: /files/jade-extrator
-      HOP_RUN_PARAMETERS: DATABASE_URL=jdbc:postgresql://db:5432/${COMPOSE_PROJECT_NAME}?user=postgres&password=postgres,ADMIN_DATABASE_URL=jdbc:postgresql://simcc-admin-db:5432/${COMPOSE_PROJECT_NAME}_admin?user=postgres&password=postgres
-    volumes:
-      - xml:/files/jade-extrator/datasets/lattes_xml
-    depends_on:
-      db:
-        condition: service_healthy
-
 volumes:
   db:
-  xml:
   logs:
   redis_data:
 
