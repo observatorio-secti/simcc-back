@@ -1,7 +1,7 @@
 services:
   api:
     build: .
-    image: ${COMPOSE_PROJECT_NAME}
+    image: ${COMPOSE_PROJECT_NAME}_latest
     entrypoint: [ "/bin/sh", "/app/entrypoint.sh" ]
     ports:
       - "127.0.0.1:${API_PORT}:8000"
@@ -9,6 +9,7 @@ services:
       - logs:/app/logs
       - ./google_credentials.json:/app/google_credentials.json:ro
     restart: always
+    env_file: .env
 
 volumes:
   logs:
