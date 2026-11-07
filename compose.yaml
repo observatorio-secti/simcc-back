@@ -1,65 +1,14 @@
 services:
-  db:
-    image: pgvector/pgvector:pg17
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: ${COMPOSE_PROJECT_NAME}
-    ports:
-      - "127.0.0.1:${DB_PORT}:5432"
-    volumes:
-      - db:/var/lib/postgresql/data
-    restart: always
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    ports:
-      - "127.0.0.1:${REDIS_PORT}:6379"
-    volumes:
-      - redis_data:/data
-    restart: always
-    healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   api:
     build: .
     image: ${COMPOSE_PROJECT_NAME}
     entrypoint: [ "/bin/sh", "/app/entrypoint.sh" ]
     ports:
       - "127.0.0.1:${API_PORT}:8000"
-    env_file:
-      - .env
-    environment:
-      URL: ${URL}
-      ROOT_PATH: ${ROOT_PATH:-}
-      OPENAI_API_KEY: ${OPENAI_API_KEY}
-      CORS_ALLOW_ORIGINS: '["*"]'
-      ALTERNATIVE_CNPQ_SERVICE: ${ALTERNATIVE_CNPQ_SERVICE}
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/${COMPOSE_PROJECT_NAME}
-      ADMIN_DATABASE_URL: postgresql+asyncpg://postgres:postgres@simcc-admin-db:5432/${COMPOSE_PROJECT_NAME}_admin
-      REDIS_URL: redis://redis:6379/0
-      OTEL_ENABLED: "true"
-      OTEL_EXPORTER_TYPE: "none"
     volumes:
       - logs:/app/logs
       - ./google_credentials.json:/app/google_credentials.json:ro
     restart: always
-    depends_on:
-      db:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
 
 volumes:
-  db:
   logs:
-  redis_data:
-
