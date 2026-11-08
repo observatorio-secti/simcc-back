@@ -34,15 +34,6 @@ async def get_fat_openalex_researcher(session):
     return await query.execute()
 
 
-async def get_researcher_area_leader(admin_session):
-    query = powerBi_query.ResearcherAreaLeaderQuery(admin_session)
-    return await query.execute()
-
-
-async def get_researcher_area_leader_researcher(session):
-    query = powerBi_query.ResearcherAreaLeaderResearcherQuery(session)
-    return await query.execute()
-
 
 async def get_fat_openalex_article(session):
     query = powerBi_query.FatOpenalexArticleQuery(session)
@@ -374,37 +365,6 @@ async def get_fat_co_authorship(session):
     return await query.execute()
 
 
-async def get_guidance(admin_session):
-    try:
-        query = powerBi_query.GuidanceQuery(admin_session)
-        return await query.execute()
-    except Exception:
-        return []
-
-
-async def get_guidance_researcher(session):
-    try:
-        query = powerBi_query.GuidanceResearcherQuery(session)
-        return await query.execute()
-    except Exception:
-        return []
-
-
-async def get_dim_tags(admin_session):
-    try:
-        query = powerBi_query.DimTagsQuery(admin_session)
-        return await query.execute()
-    except Exception:
-        return []
-
-
-async def get_fat_tags(admin_session):
-    try:
-        query = powerBi_query.FatTagsQuery(admin_session)
-        return await query.execute()
-    except Exception:
-        return []
-
 
 async def get_dim_sdg(session):
     query = powerBi_query.DimSdgQuery(session)
@@ -421,41 +381,4 @@ async def get_fat_sdg_alignment_researcher(session):
     return await query.execute()
 
 
-async def get_ind_guidance_ori(admin_session):
-    try:
-        query = powerBi_query.IndGuidanceOriQuery(admin_session)
-        return await query.execute()
-    except Exception:
-        return []
 
-
-async def get_ind_guidance_coaut_prog(admin_session):
-    try:
-        query = powerBi_query.IndGuidanceCoautProgQuery(admin_session)
-        return await query.execute()
-    except Exception:
-        return []
-
-
-async def get_ind_guidance_coaut_prod(session):
-    try:
-        query = powerBi_query.IndGuidanceCoautProdQuery(session)
-        return await query.execute()
-    except Exception:
-        return []
-
-
-async def get_ind_guidance_distori(admin_session):
-    try:
-        query = powerBi_query.IndGuidanceDistoriQuery(admin_session)
-        return await query.execute()
-    except Exception:
-        return []
-
-
-async def get_fat_guidance_history(admin_session):
-    try:
-        query = powerBi_query.FatGuidanceHistoryQuery(admin_session)
-        return await query.execute()
-    except Exception:
-        return []

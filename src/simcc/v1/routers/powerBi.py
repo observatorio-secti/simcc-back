@@ -4,7 +4,7 @@ from pathlib import Path
 from fastapi import APIRouter
 from fastapi.responses import FileResponse
 
-from simcc.core.dependencies import AdminAsyncSession, AsyncSession
+from simcc.core.dependencies import AsyncSession
 from simcc.core.settings import Settings
 from simcc.v1.services import powerBi_service
 
@@ -58,12 +58,11 @@ async def fat_openalex_researcher_csv(session: AsyncSession):
 
 
 @router.get('/researcher_area_leader.csv')
-async def researcher_area_leader_csv(
-    session: AsyncSession, admin_session: AdminAsyncSession
-):
-    file_path = os.path.join(STORAGE_PATH, 'researcher_area_leader.csv')
-    await powerBi_service.researcher_area_leader(session, admin_session)
-    return FileResponse(file_path, filename='researcher_area_leader.csv')
+async def researcher_area_leader_csv():
+    file_name = 'researcher_area_leader.csv'
+    powerBi_service._ensure_static_file(file_name)
+    file_path = os.path.join(STORAGE_PATH, file_name)
+    return FileResponse(file_path, filename=file_name)
 
 
 @router.get('/fat_openalex_article.csv')
@@ -497,62 +496,50 @@ async def fat_co_authorship_csv(session: AsyncSession):
 
 
 @router.get('/guidance.csv')
-async def guidance_csv(
-    session: AsyncSession, admin_session: AdminAsyncSession
-):
+async def guidance_csv():
     file_name = 'guidance.csv'
+    powerBi_service._ensure_static_file(file_name)
     file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.guidance(session, admin_session)
     return FileResponse(file_path, filename=file_name)
 
 
 @router.get('/supervisor.csv')
-async def supervisor_csv(
-    session: AsyncSession, admin_session: AdminAsyncSession
-):
+async def supervisor_csv():
     file_name = 'supervisor.csv'
+    powerBi_service._ensure_static_file(file_name)
     file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.supervisor(session, admin_session)
     return FileResponse(file_path, filename=file_name)
 
 
 @router.get('/guidance_per_year.csv')
-async def guidance_per_year_csv(
-    session: AsyncSession, admin_session: AdminAsyncSession
-):
+async def guidance_per_year_csv():
     file_name = 'guidance_per_year.csv'
+    powerBi_service._ensure_static_file(file_name)
     file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.guidance_per_year(session, admin_session)
     return FileResponse(file_path, filename=file_name)
 
 
 @router.get('/in_progress_per_year.csv')
-async def in_progress_per_year_csv(
-    session: AsyncSession, admin_session: AdminAsyncSession
-):
+async def in_progress_per_year_csv():
     file_name = 'in_progress_per_year.csv'
+    powerBi_service._ensure_static_file(file_name)
     file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.in_progress_per_year(session, admin_session)
     return FileResponse(file_path, filename=file_name)
 
 
 @router.get('/dim_tags.csv')
-async def dim_tags_csv(
-    session: AsyncSession, admin_session: AdminAsyncSession
-):
+async def dim_tags_csv():
     file_name = 'dim_tags.csv'
+    powerBi_service._ensure_static_file(file_name)
     file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.dim_tags_csv(session, admin_session)
     return FileResponse(file_path, filename=file_name)
 
 
 @router.get('/fat_tags.csv')
-async def fat_tags_csv(
-    session: AsyncSession, admin_session: AdminAsyncSession
-):
+async def fat_tags_csv():
     file_name = 'fat_tags.csv'
+    powerBi_service._ensure_static_file(file_name)
     file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.fat_tags_csv(session, admin_session)
     return FileResponse(file_path, filename=file_name)
 
 
@@ -565,32 +552,26 @@ async def EtapaOrientacao(session: AsyncSession):
 
 
 @router.get('/ind_guidance_ori.csv')
-async def ind_guidance_ori_csv(
-    session: AsyncSession, admin_session: AdminAsyncSession
-):
+async def ind_guidance_ori_csv():
     file_name = 'ind_guidance_ori.csv'
+    powerBi_service._ensure_static_file(file_name)
     file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.ind_guidance_ori(session, admin_session)
     return FileResponse(file_path, filename=file_name)
 
 
 @router.get('/ind_guidance_distori.csv')
-async def ind_guidance_distori_csv(
-    session: AsyncSession, admin_session: AdminAsyncSession
-):
+async def ind_guidance_distori_csv():
     file_name = 'ind_guidance_distori.csv'
+    powerBi_service._ensure_static_file(file_name)
     file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.ind_guidance_distori(session, admin_session)
     return FileResponse(file_path, filename=file_name)
 
 
 @router.get('/ind_guidance_coaut.csv')
-async def ind_guidance_coaut_csv(
-    session: AsyncSession, admin_session: AdminAsyncSession
-):
+async def ind_guidance_coaut_csv():
     file_name = 'ind_guidance_coaut.csv'
+    powerBi_service._ensure_static_file(file_name)
     file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.ind_guidance_coaut(session, admin_session)
     return FileResponse(file_path, filename=file_name)
 
 
@@ -619,12 +600,10 @@ async def fat_sdg_alignment_researcher_csv(session: AsyncSession):
 
 
 @router.get('/fat_guidance_history.csv')
-async def fat_guidance_history_csv(
-    session: AsyncSession, admin_session: AdminAsyncSession
-):
+async def fat_guidance_history_csv():
     file_name = 'fat_guidance_history.csv'
+    powerBi_service._ensure_static_file(file_name)
     file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.fat_guidance_history(session, admin_session)
     return FileResponse(file_path, filename=file_name)
 
 

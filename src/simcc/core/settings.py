@@ -7,7 +7,6 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings, extra='ignore'):
     DATABASE_URL: str
-    ADMIN_DATABASE_URL: Optional[str] = None
 
     CORS_ALLOW_ORIGINS: list[str] = ['*']
     CORS_ALLOW_METHODS: list[str] = ['*']

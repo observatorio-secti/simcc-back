@@ -38,7 +38,6 @@ COPY --from=builder /opt/pysetup /opt/pysetup
 WORKDIR /app
 
 COPY src ./src
-COPY scripts ./scripts
 COPY migrations ./migrations
 COPY alembic.ini .
 COPY entrypoint.sh .

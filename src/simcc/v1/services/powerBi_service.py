@@ -10,6 +10,42 @@ from simcc.v1.repositories import powerBi_repo
 
 PATH = 'storage/powerBI'
 
+STATIC_HEADERS = {
+    'researcher_area_leader.csv': '"",researcher_id,area_leader,focal_point\n',
+    'guidance.csv': (
+        '"","id","student_lattes_id","supervisor_lattes_id",'
+        '"co_supervisor_lattes_id","graduate_program_id","start_date",'
+        '"planned_date_project","done_date_project","planned_date_qualification",'
+        '"done_date_qualification","planned_date_conclusion","done_date_conclusion",'
+        '"student_name","supervisor_name","co_name","student_researcher_id",'
+        '"supervisor_researcher_id","co_supervisor_researcher_id","program_type",'
+        '"peding_days","peding","type","days_offset"\n'
+    ),
+    'supervisor.csv': '"",supervisor_researcher_id,year,count\n',
+    'guidance_per_year.csv': (
+        '"","id","graduate_program_id","student_name","student_researcher_id",'
+        '"supervisor_name","supervisor_researcher_id","co_name",'
+        '"co_supervisor_researcher_id","type","status_","year","in_progress"\n'
+    ),
+    'in_progress_per_year.csv': (
+        'in_progress,year,supervisor_name,supervisor_researcher_id,graduate_program_id,count\n'
+    ),
+    'dim_tags.csv': '"","id","name","color_code"\n',
+    'fat_tags.csv': '"","guidance_tracking_id","tag_id"\n',
+    'ind_guidance_ori.csv': (
+        '"","graduate_program_id","year","masters_defenses","doctorate_defenses",'
+        '"permanent_researchers","ind_ori"\n'
+    ),
+    'ind_guidance_distori.csv': (
+        '"","graduate_program_id","year","concluding_researchers","permanent_researchers",'
+        '"ind_dist_ori"\n'
+    ),
+    'ind_guidance_coaut.csv': (
+        '"graduate_program_id","year","IndProdArtCoAut","IndProdLivCoAut","IndProdCapCoAut"\n'
+    ),
+    'fat_guidance_history.csv': '"","student_name","student_id","supervisor_id","year","type"\n',
+}
+
 
 def _ensure_static_file(filename):
     dest_path = os.path.join(PATH, filename)
@@ -18,6 +54,10 @@ def _ensure_static_file(filename):
         if os.path.exists(src_path):
             os.makedirs(os.path.dirname(dest_path), exist_ok=True)
             shutil.copy(src_path, dest_path)
+        elif filename in STATIC_HEADERS:
+            os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+            with open(dest_path, 'w', encoding='utf-8') as f:
+                f.write(STATIC_HEADERS[filename])
 
 
 def parse_date(val):
@@ -104,32 +144,8 @@ async def fat_openalex_researcher(session):
     df.write_csv(os.path.join(PATH, 'fat_openalex_researcher.csv'))
 
 
-async def researcher_area_leader(session, admin_session):
-    data_admin = await powerBi_repo.get_researcher_area_leader(admin_session)
-    data_main = await powerBi_repo.get_researcher_area_leader_researcher(
-        session
-    )
-
-    df_admin = pl.DataFrame(
-        data_admin,
-        schema={
-            'lattes_id': pl.Utf8,
-            'area_leader': pl.Utf8,
-            'focal_point': pl.Utf8,
-        },
-    )
-    df_main = pl.DataFrame(
-        data_main,
-        schema={
-            'researcher_id': pl.Utf8,
-            'lattes_id': pl.Utf8,
-        },
-    )
-
-    df = df_admin.join(df_main, on='lattes_id', how='left')
-    df = df.select(['researcher_id', 'area_leader', 'focal_point'])
-    df = df.with_row_index(name='')
-    df.write_csv(os.path.join(PATH, 'researcher_area_leader.csv'))
+async def researcher_area_leader(session=None, admin_session=None):
+    _ensure_static_file('researcher_area_leader.csv')
 
 
 async def fat_openalex_article(session):
@@ -1067,705 +1083,44 @@ async def fat_co_authorship(session):
     df.write_csv(os.path.join(PATH, 'fat_co_authorship.csv'))
 
 
-async def _guidance(session, admin_session):
-    data_guidance = await powerBi_repo.get_guidance(admin_session)
-    data_researchers = await powerBi_repo.get_guidance_researcher(session)
+async def guidance(session=None, admin_session=None):
+    _ensure_static_file('guidance.csv')
 
-    df_guidance = pl.DataFrame(
-        data_guidance,
-        schema={
-            'id': pl.Utf8,
-            'student_lattes_id': pl.Utf8,
-            'supervisor_lattes_id': pl.Utf8,
-            'co_supervisor_lattes_id': pl.Utf8,
-            'graduate_program_id': pl.Utf8,
-            'start_date': pl.Utf8,
-            'planned_date_project': pl.Utf8,
-            'done_date_project': pl.Utf8,
-            'planned_date_qualification': pl.Utf8,
-            'done_date_qualification': pl.Utf8,
-            'planned_date_conclusion': pl.Utf8,
-            'done_date_conclusion': pl.Utf8,
-            'student_name': pl.Utf8,
-            'supervisor_name': pl.Utf8,
-            'co_name': pl.Utf8,
-            'type': pl.Utf8,
-        },
-    )
 
-    df_researchers = pl.DataFrame(
-        data_researchers,
-        schema={
-            'researcher_id': pl.Utf8,
-            'lattes_id': pl.Utf8,
-        },
-    )
+async def supervisor(session=None, admin_session=None):
+    _ensure_static_file('supervisor.csv')
 
-    df = df_guidance.join(
-        df_researchers.select(['researcher_id', 'lattes_id']).rename({
-            'researcher_id': 'student_researcher_id'
-        }),
-        left_on='student_lattes_id',
-        right_on='lattes_id',
-        how='left',
-    )
-    df = df.join(
-        df_researchers.select(['researcher_id', 'lattes_id']).rename({
-            'researcher_id': 'supervisor_researcher_id'
-        }),
-        left_on='supervisor_lattes_id',
-        right_on='lattes_id',
-        how='left',
-    )
-    df = df.join(
-        df_researchers.select(['researcher_id', 'lattes_id']).rename({
-            'researcher_id': 'co_supervisor_researcher_id'
-        }),
-        left_on='co_supervisor_lattes_id',
-        right_on='lattes_id',
-        how='left',
-    )
-    return df
 
+async def guidance_per_year(session=None, admin_session=None):
+    _ensure_static_file('guidance_per_year.csv')
 
-async def supervisor(session, admin_session):
-    df_original = await _guidance(session, admin_session)
 
-    df_original = df_original.with_columns(
-        pl
-        .col('planned_date_conclusion')
-        .str.to_date(strict=False)
-        .dt.year()
-        .alias('year')
-    ).filter(pl.col('year').is_not_null())
+async def in_progress_per_year(session=None, admin_session=None):
+    _ensure_static_file('in_progress_per_year.csv')
 
-    df_original = df_original.select(['year', 'supervisor_researcher_id'])
 
-    df_min_max = (
-        df_original
-        .group_by('supervisor_researcher_id')
-        .agg(
-            pl.col('year').min().alias('min_year'),
-            pl.col('year').max().alias('max_year'),
-        )
-        .filter(
-            pl.col('min_year').is_not_null() & pl.col('max_year').is_not_null()
-        )
-    )
+async def dim_tags_csv(session=None, admin_session=None):
+    _ensure_static_file('dim_tags.csv')
 
-    df_expanded = (
-        df_min_max
-        .with_columns(
-            pl.int_ranges('min_year', pl.col('max_year') + 1).alias('year')
-        )
-        .explode('year')
-        .select(['supervisor_researcher_id', 'year'])
-    )
 
-    df_counts = df_original.group_by(['supervisor_researcher_id', 'year']).len(
-        name='ended_in_year'
-    )
+async def fat_tags_csv(session=None, admin_session=None):
+    _ensure_static_file('fat_tags.csv')
 
-    df_joined = df_expanded.join(
-        df_counts, on=['supervisor_researcher_id', 'year'], how='left'
-    ).fill_null(0)
 
-    df_sorted = df_joined.sort(
-        ['supervisor_researcher_id', 'year'], descending=[False, True]
-    )
-    df_sorted = df_sorted.with_columns(
-        pl
-        .col('ended_in_year')
-        .cum_sum()
-        .over('supervisor_researcher_id')
-        .cast(pl.Int64)
-        .alias('count')
-    )
+async def ind_guidance_ori(session=None, admin_session=None):
+    _ensure_static_file('ind_guidance_ori.csv')
 
-    df_final = df_sorted.select([
-        'supervisor_researcher_id',
-        'year',
-        'count',
-    ]).sort(['supervisor_researcher_id', 'year'])
-    df_final = df_final.with_row_index(name='')
-    df_final.write_csv(os.path.join(PATH, 'supervisor.csv'))
 
+async def ind_guidance_distori(session=None, admin_session=None):
+    _ensure_static_file('ind_guidance_distori.csv')
 
-async def guidance(session, admin_session):
-    df_polars = await _guidance(session, admin_session)
-    rows = df_polars.iter_rows(named=True)
-    today = datetime.now().date()
 
-    new_rows = []
-    for r in rows:
-        row = dict(r)
-        row['program_type'] = row.pop('type', None)
+async def ind_guidance_coaut(session=None, admin_session=None):
+    _ensure_static_file('ind_guidance_coaut.csv')
 
-        done_date_conclusion = parse_date(row['done_date_conclusion'])
-        planned_date_conclusion = parse_date(row['planned_date_conclusion'])
-        done_date_qualification = parse_date(row['done_date_qualification'])
-        planned_date_qualification = parse_date(
-            row['planned_date_qualification']
-        )
-        done_date_project = parse_date(row['done_date_project'])
-        planned_date_project = parse_date(row['planned_date_project'])
-        start_date = parse_date(row['start_date'])
 
-        delays = []
-        if done_date_conclusion is None:
-            if (
-                planned_date_conclusion is not None
-                and planned_date_conclusion < today
-            ):
-                delays.append((today - planned_date_conclusion).days)
-        if done_date_qualification is None:
-            if (
-                planned_date_qualification is not None
-                and planned_date_qualification < today
-            ):
-                delays.append((today - planned_date_qualification).days)
-        if done_date_project is None:
-            if (
-                planned_date_project is not None
-                and planned_date_project < today
-            ):
-                delays.append((today - planned_date_project).days)
-
-        ped_days = 0
-        if delays:
-            ped_days = max(delays)
-        elif planned_date_conclusion is not None:
-            ped_days = (planned_date_conclusion - today).days
-
-        ped_days_ = max(delays) if delays else 0
-        row['peding_days'] = str(ped_days)
-        row['peding'] = 'EM ATRASO' if ped_days_ > 0 else 'EM DIA'
-
-        if done_date_project is None:
-            t = 'PROJETO'
-        elif done_date_qualification is None:
-            t = 'QUALIFICAÇÃO'
-        elif done_date_conclusion is None:
-            t = 'CONCLUSÃO'
-        else:
-            t = 'FINALIZADO'
-        row['type'] = t
-
-        days_offset = None
-        if done_date_conclusion is not None and start_date is not None:
-            days_offset = (done_date_conclusion - start_date).days
-        elif planned_date_conclusion is not None and start_date is not None:
-            days_offset = (planned_date_conclusion - start_date).days
-        row['days_offset'] = (
-            str(days_offset) if days_offset is not None else ''
-        )
-
-        new_rows.append(row)
-
-    df_new = pl.DataFrame(new_rows)
-    if not df_new.is_empty():
-        df_new = df_new.with_row_index(name='')
-    df_new.write_csv(os.path.join(PATH, 'guidance.csv'), quote_style='always')
-
-
-async def guidance_per_year(session, admin_session):
-    df_polars = await _guidance(session, admin_session)
-    rows = df_polars.iter_rows(named=True)
-
-    new_rows = []
-    for r in rows:
-        row_orig = dict(r)
-        row_orig['program_type'] = row_orig.pop('type', None)
-
-        done_date_conclusion = parse_date(row_orig['done_date_conclusion'])
-        planned_date_conclusion = parse_date(
-            row_orig['planned_date_conclusion']
-        )
-        done_date_qualification = parse_date(
-            row_orig['done_date_qualification']
-        )
-        planned_date_qualification = parse_date(
-            row_orig['planned_date_qualification']
-        )
-        done_date_project = parse_date(row_orig['done_date_project'])
-        planned_date_project = parse_date(row_orig['planned_date_project'])
-
-        t_list = []
-        if done_date_project is None:
-            t_list = ['PROJETO']
-        else:
-            t_list.append('PROJETO')
-            if done_date_qualification is not None:
-                t_list.append('QUALIFICAÇÃO')
-                if done_date_conclusion is None:
-                    t_list.append('DEFESA')
-            if done_date_conclusion is not None:
-                t_list = ['FINALIZADO']
-
-        for t in t_list:
-            row = dict(row_orig)
-            row['type'] = t
-            row['status'] = 'FINALIZADO' if t == 'FINALIZADO' else 'EM CURSO'
-
-            if t == 'PROJETO':
-                row['status_'] = (
-                    'REALIZADO'
-                    if done_date_project is not None
-                    else 'EM ANDAMENTO'
-                )
-            elif t == 'QUALIFICAÇÃO':
-                row['status_'] = (
-                    'REALIZADO'
-                    if done_date_qualification is not None
-                    else 'EM ANDAMENTO'
-                )
-            elif t == 'DEFESA':
-                row['status_'] = (
-                    'REALIZADO'
-                    if done_date_conclusion is not None
-                    else 'EM ANDAMENTO'
-                )
-            elif t == 'FINALIZADO':
-                row['status_'] = 'REALIZADO'
-            else:
-                row['status_'] = 'EM ANDAMENTO'
-
-            year_val = None
-            if t == 'PROJETO':
-                dt = done_date_project or planned_date_project
-                year_val = dt.year if dt else None
-            elif t == 'QUALIFICAÇÃO':
-                dt = done_date_qualification or planned_date_qualification
-                year_val = dt.year if dt else None
-            elif t in {'DEFESA', 'FINALIZADO'}:
-                dt = done_date_conclusion or planned_date_conclusion
-                year_val = dt.year if dt else None
-            row['year'] = str(year_val) if year_val else ''
-
-            row['in_progress'] = (
-                'FINALIZADO'
-                if (t == 'FINALIZADO' and row['status_'] == 'REALIZADO')
-                else 'EM CURSO'
-            )
-
-            new_rows.append(row)
-
-    new_rows.sort(key=lambda x: x.get('student_name') or '')
-
-    columns = [
-        'id',
-        'graduate_program_id',
-        'student_name',
-        'student_researcher_id',
-        'supervisor_name',
-        'supervisor_researcher_id',
-        'co_name',
-        'co_supervisor_researcher_id',
-        'type',
-        'status_',
-        'year',
-        'in_progress',
-    ]
-    df_new = pl.DataFrame(new_rows)
-    if not df_new.is_empty():
-        df_new = df_new.select(columns)
-        df_new = df_new.with_row_index(name='')
-    df_new.write_csv(
-        os.path.join(PATH, 'guidance_per_year.csv'), quote_style='always'
-    )
-
-
-async def in_progress_per_year(session, admin_session):
-    df_polars = await _guidance(session, admin_session)
-    rows = df_polars.iter_rows(named=True)
-
-    exploded_list = []
-    for r in rows:
-        row_orig = dict(r)
-        row_orig['program_type'] = row_orig.pop('type', None)
-
-        done_date_conclusion = parse_date(row_orig['done_date_conclusion'])
-        planned_date_conclusion = parse_date(
-            row_orig['planned_date_conclusion']
-        )
-        done_date_qualification = parse_date(
-            row_orig['done_date_qualification']
-        )
-        planned_date_qualification = parse_date(
-            row_orig['planned_date_qualification']
-        )
-        done_date_project = parse_date(row_orig['done_date_project'])
-        planned_date_project = parse_date(row_orig['planned_date_project'])
-
-        t_list = []
-        if done_date_project is None:
-            t_list = ['PROJETO']
-        else:
-            t_list.append('PROJETO')
-            if done_date_qualification is not None:
-                t_list.append('QUALIFICAÇÃO')
-                if done_date_conclusion is None:
-                    t_list.append('DEFESA')
-            if done_date_conclusion is not None:
-                t_list = ['FINALIZADO']
-
-        for t in t_list:
-            row = dict(row_orig)
-            row['type'] = t
-
-            if t == 'PROJETO':
-                status_val = (
-                    'REALIZADO'
-                    if done_date_project is not None
-                    else 'EM ANDAMENTO'
-                )
-            elif t == 'QUALIFICAÇÃO':
-                status_val = (
-                    'REALIZADO'
-                    if done_date_qualification is not None
-                    else 'EM ANDAMENTO'
-                )
-            elif t == 'DEFESA':
-                status_val = (
-                    'REALIZADO'
-                    if done_date_conclusion is not None
-                    else 'EM ANDAMENTO'
-                )
-            elif t == 'FINALIZADO':
-                status_val = 'REALIZADO'
-            else:
-                status_val = 'EM ANDAMENTO'
-
-            year_val = None
-            if t == 'PROJETO':
-                dt = done_date_project or planned_date_project
-                year_val = dt.year if dt else None
-            elif t == 'QUALIFICAÇÃO':
-                dt = done_date_qualification or planned_date_qualification
-                year_val = dt.year if dt else None
-            elif t in {'DEFESA', 'FINALIZADO'}:
-                dt = done_date_conclusion or planned_date_conclusion
-                year_val = dt.year if dt else None
-
-            if year_val is not None:
-                row['year'] = int(year_val)
-                row['in_progress'] = (
-                    'FINALIZADO'
-                    if (t == 'FINALIZADO' and status_val == 'REALIZADO')
-                    else 'EM CURSO'
-                )
-                exploded_list.append(row)
-
-    if not exploded_list:
-        df_new = pl.DataFrame(
-            [],
-            schema={
-                'in_progress': pl.Utf8,
-                'year': pl.Int64,
-                'supervisor_name': pl.Utf8,
-                'supervisor_researcher_id': pl.Utf8,
-                'graduate_program_id': pl.Utf8,
-                'count': pl.Int64,
-            },
-        )
-        df_new.write_csv(os.path.join(PATH, 'in_progress_per_year.csv'))
-        return
-
-    supervisors = set()
-    years = set()
-    statuses = set()
-    programs = set()
-    for item in exploded_list:
-        supervisors.add((
-            item['supervisor_name'],
-            item['supervisor_researcher_id'],
-        ))
-        years.add(item['year'])
-        statuses.add(item['in_progress'])
-        programs.add(item['graduate_program_id'])
-
-    if years:
-        min_year = min(years)
-        max_year = max(years)
-        years_range = list(range(min_year, max_year + 1))
-    else:
-        years_range = []
-
-    counts_map = {}
-    for item in exploded_list:
-        key = (
-            item['supervisor_name'],
-            item['supervisor_researcher_id'],
-            item['year'],
-            item['in_progress'],
-            item['graduate_program_id'],
-        )
-        counts_map[key] = counts_map.get(key, 0) + 1
-
-    result_list = []
-    for sup_name, sup_id in supervisors:
-        for yr in years_range:
-            for st in statuses:
-                for prog in programs:
-                    key = (sup_name, sup_id, yr, st, prog)
-                    cnt = counts_map.get(key, 0)
-                    result_list.append({
-                        'supervisor_name': sup_name,
-                        'supervisor_researcher_id': sup_id,
-                        'year': yr,
-                        'in_progress': st,
-                        'graduate_program_id': prog,
-                        'count': cnt,
-                    })
-
-    result_list.sort(
-        key=lambda x: (
-            x.get('supervisor_name') or '',
-            x.get('year') or 0,
-            x.get('graduate_program_id') or '',
-            x.get('in_progress') or '',
-        )
-    )
-
-    df_result = pl.DataFrame(result_list)
-    df_result.write_csv(os.path.join(PATH, 'in_progress_per_year.csv'))
-
-
-async def dim_tags_csv(session, admin_session):
-    data = await powerBi_repo.get_dim_tags(admin_session)
-    df_schema = {
-        'id': pl.Utf8,
-        'name': pl.Utf8,
-        'color_code': pl.Utf8,
-    }
-    df = pl.DataFrame(data, schema=df_schema)
-    df = df.with_row_index(name='')
-    df.write_csv(os.path.join(PATH, 'dim_tags.csv'), quote_style='always')
-
-
-async def fat_tags_csv(session, admin_session):
-    data = await powerBi_repo.get_fat_tags(admin_session)
-    df_schema = {
-        'guidance_tracking_id': pl.Utf8,
-        'tag_id': pl.Utf8,
-    }
-    df = pl.DataFrame(data, schema=df_schema)
-    df = df.with_row_index(name='')
-    df.write_csv(os.path.join(PATH, 'fat_tags.csv'), quote_style='always')
-
-
-async def ind_guidance_ori(session, admin_session):
-    data = await powerBi_repo.get_ind_guidance_ori(admin_session)
-    df_schema = {
-        'graduate_program_id': pl.Utf8,
-        'year': pl.Utf8,
-        'masters_defenses': pl.Utf8,
-        'doctorate_defenses': pl.Utf8,
-        'permanent_researchers': pl.Utf8,
-        'ind_ori': pl.Utf8,
-    }
-    df = pl.DataFrame(data, schema=df_schema)
-    df = df.filter(pl.col('year').is_not_null())
-    df = df.with_columns(
-        pl.col('year').cast(pl.Int64, strict=False).cast(pl.Utf8)
-    )
-    df = df.with_columns(pl.col('ind_ori').str.replace('.', ',', literal=True))
-    df = df.with_row_index(name='')
-    df.write_csv(
-        os.path.join(PATH, 'ind_guidance_ori.csv'),
-        quote_style='always',
-    )
-
-
-async def ind_guidance_coaut(session, admin_session):
-    data_prog = await powerBi_repo.get_ind_guidance_coaut_prog(admin_session)
-    data_prod = await powerBi_repo.get_ind_guidance_coaut_prod(session)
-
-    prog_rows = [dict(r) for r in data_prog]
-    prod_rows = [dict(r) for r in data_prod]
-
-    prod_filtered = []
-    for r in prod_rows:
-        if r.get('identifier') and r.get('year'):
-            try:
-                r['year'] = int(r['year'])
-                prod_filtered.append(r)
-            except Exception:
-                pass
-
-    prog_by_res = {}
-    for pr in prog_rows:
-        res_id = pr['researcher_id']
-        prog_by_res.setdefault(res_id, []).append(pr['graduate_program_id'])
-
-    merged = []
-    for pr in prod_filtered:
-        res_id = pr['researcher_id']
-        if res_id in prog_by_res:
-            for gp_id in prog_by_res[res_id]:
-                item = dict(pr)
-                item['graduate_program_id'] = gp_id
-                merged.append(item)
-
-    coaut_count = {}
-    for item in merged:
-        key = (item['identifier'], item['type'])
-        coaut_count.setdefault(key, set()).add(item['researcher_id'])
-
-    coaut_keys = {
-        key for key, res_set in coaut_count.items() if len(res_set) > 1
-    }
-
-    df_filtered = [
-        item
-        for item in merged
-        if (item['identifier'], item['type']) in coaut_keys
-    ]
-
-    seen = set()
-    df_unique = []
-    for item in df_filtered:
-        key = (item['graduate_program_id'], item['identifier'], item['type'])
-        if key not in seen:
-            seen.add(key)
-            df_unique.append(item)
-
-    counts = {}
-    for item in df_unique:
-        key = (item['graduate_program_id'], item['type'], item['year'])
-        counts[key] = counts.get(key, 0) + 1
-
-    index_keys = sorted(list({(key[0], key[2]) for key in counts.keys()}))
-
-    pivot_rows = []
-    for gp_id, yr in index_keys:
-        art_count = counts.get((gp_id, 'ARTICLE', yr), 0)
-        book_count = counts.get((gp_id, 'BOOK', yr), 0)
-        chapter_count = counts.get((gp_id, 'BOOK_CHAPTER', yr), 0)
-        pivot_rows.append({
-            'graduate_program_id': gp_id,
-            'year': yr,
-            'IndProdArtCoAut': art_count,
-            'IndProdLivCoAut': book_count,
-            'IndProdCapCoAut': chapter_count,
-        })
-
-    df_new = pl.DataFrame(pivot_rows)
-    df_new.write_csv(
-        os.path.join(PATH, 'ind_guidance_coaut.csv'), quote_style='always'
-    )
-
-
-async def ind_guidance_distori(session, admin_session):
-    data = await powerBi_repo.get_ind_guidance_distori(admin_session)
-    df_schema = {
-        'graduate_program_id': pl.Utf8,
-        'year': pl.Utf8,
-        'concluding_researchers': pl.Utf8,
-        'permanent_researchers': pl.Utf8,
-        'ind_dist_ori': pl.Utf8,
-    }
-    df = pl.DataFrame(data, schema=df_schema)
-    df = df.filter(pl.col('year').is_not_null())
-    df = df.with_columns(
-        pl.col('year').cast(pl.Int64, strict=False).cast(pl.Utf8)
-    )
-    df = df.with_columns(
-        pl.col('ind_dist_ori').str.replace('.', ',', literal=True)
-    )
-    df = df.with_row_index(name='')
-    df.write_csv(
-        os.path.join(PATH, 'ind_guidance_distori.csv'),
-        quote_style='always',
-    )
-
-
-async def fat_guidance_history(session, admin_session):
-    data_history = await powerBi_repo.get_fat_guidance_history(admin_session)
-    df_researcher_map = await powerBi_repo.get_guidance_researcher(session)
-
-    res_map = {
-        r['lattes_id']: r['id']
-        for r in df_researcher_map
-        if r.get('lattes_id')
-    }
-
-    history_joined = []
-    for h in data_history:
-        h_dict = dict(h)
-        student_lattes = h_dict.get('student_lattes_id')
-        supervisor_lattes = h_dict.get('supervisor_lattes_id')
-
-        if student_lattes in res_map:
-            h_dict['student_id'] = res_map[student_lattes]
-            h_dict['supervisor_id'] = res_map.get(supervisor_lattes, '')
-            history_joined.append(h_dict)
-
-    history_dates = []
-    for h in history_joined:
-        start_date = parse_date(h['start_date'])
-        done_date_conclusion = parse_date(h['done_date_conclusion'])
-        planned_date_conclusion = parse_date(h['planned_date_conclusion'])
-
-        end_date = (
-            done_date_conclusion
-            if done_date_conclusion is not None
-            else planned_date_conclusion
-        )
-
-        if start_date is not None and end_date is not None:
-            h['start_year'] = start_date.year
-            h['end_year'] = end_date.year
-            h['done_year'] = (
-                done_date_conclusion.year
-                if done_date_conclusion is not None
-                else None
-            )
-            history_dates.append(h)
-
-    exploded = []
-    for h in history_dates:
-        start_yr = h['start_year']
-        end_yr = h['end_year']
-        done_yr = h['done_year']
-
-        for yr in range(start_yr, end_yr + 1):
-            exploded.append({
-                'student_name': h['student_name'],
-                'student_id': h['student_id'],
-                'supervisor_id': h['supervisor_id'],
-                'year': yr,
-                'done_year': done_yr,
-            })
-
-    current_year = datetime.now().year
-
-    final_rows = []
-    for item in exploded:
-        yr = item['year']
-        done_yr = item['done_year']
-
-        if done_yr is not None and yr == done_yr:
-            t = 'CONCLUÍDO'
-        elif yr >= current_year:
-            t = 'EXPECTATIVA'
-        else:
-            t = 'EM ANDAMENTO'
-
-        final_rows.append({
-            'student_name': item['student_name'],
-            'student_id': item['student_id'],
-            'supervisor_id': item['supervisor_id'],
-            'year': yr,
-            'type': t,
-        })
-
-    df_new = pl.DataFrame(final_rows)
-    if not df_new.is_empty():
-        df_new = df_new.with_row_index(name='')
-    df_new.write_csv(
-        os.path.join(PATH, 'fat_guidance_history.csv'), quote_style='always'
-    )
+async def fat_guidance_history(session=None, admin_session=None):
+    _ensure_static_file('fat_guidance_history.csv')
 
 
 async def dim_sdg(session):
