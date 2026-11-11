@@ -182,22 +182,28 @@ class DimDepartamentResearcherQuery(BaseQuery):
         """
 
 
-class ResearcherLattesIdQuery(BaseQuery):
+class FatGroupLeadersQuery(BaseQuery):
     @override
     def build_sql(self) -> str:
         return """
-        SELECT id::TEXT AS researcher_id, lattes_id::TEXT
-        FROM researcher
-        WHERE lattes_id IS NOT NULL;
+        SELECT id::TEXT, name::TEXT, institution::TEXT, first_leader::TEXT, first_leader_id::TEXT,
+            second_leader::TEXT, second_leader_id::TEXT, area::TEXT AS "AREA", census::TEXT,
+            start_of_collection::TEXT, end_of_collection::TEXT, group_identifier::TEXT, year::TEXT AS "YEAR",
+            institution_name::TEXT, category::TEXT
+        FROM research_group
+        WHERE 1 = 1
+            AND (first_leader_id IS NOT NULL OR second_leader_id IS NOT NULL);
         """
 
 
-class InstitutionAcronymQuery(BaseQuery):
+class DimResearchGroupQuery(BaseQuery):
     @override
     def build_sql(self) -> str:
         return """
-        SELECT id::TEXT AS institution_id, acronym::TEXT
-        FROM institution;
+        SELECT rg.id::TEXT AS group_id, TRANSLATE(rg.name, '"', '')::TEXT AS group_name,
+            rg.area::TEXT, i.id::TEXT AS institution_id
+        FROM public.research_group rg
+        RIGHT JOIN institution i ON rg.institution ILIKE '%' || i.acronym || '%';
         """
 
 
