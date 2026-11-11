@@ -1,11 +1,19 @@
 # ruff: noqa: PLR2004, PLR0913, PLR0917
 """Testes unitários para o endpoint de métricas do GA4 v2."""
 
+import re
 from http import HTTPStatus
 from unittest.mock import MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
+from google.analytics.data_v1beta.types import (
+    DimensionValue,
+    Filter,
+    MetricValue,
+    Row,
+    RunReportResponse,
+)
 
 from simcc import app
 from simcc.core.dependencies import get_settings
@@ -126,8 +134,9 @@ def test_analytics_success(mock_client_cls):
         app.dependency_overrides.pop(get_settings, None)
 
 
+@pytest.mark.parametrize('path', ['/v2/analytics', '/v2/analytics/pages'])
 @patch('simcc.v2.routers.analytics.BetaAnalyticsDataClient')
-def test_analytics_api_error(mock_client_cls):
+def test_analytics_api_error(mock_client_cls, path):
     """Retorna 502 se a chamada ao GA4 lançar exceção."""
     mock_client = MagicMock()
     mock_client.run_report.side_effect = RuntimeError('Conexão recusada')
@@ -138,8 +147,91 @@ def test_analytics_api_error(mock_client_cls):
     app.dependency_overrides[get_settings] = lambda: mock_settings
     try:
         with TestClient(app) as test_client:
-            response = test_client.get('/v2/analytics')
+            response = test_client.get(path)
             assert response.status_code == HTTPStatus.BAD_GATEWAY
             assert 'Falha na comunicação' in response.json()['detail']
     finally:
         app.dependency_overrides.pop(get_settings, None)
+
+
+@patch('simcc.v2.routers.analytics.BetaAnalyticsDataClient')
+def test_analytics_pages_success(mock_client_cls):
+    """Filtra o módulo e ordena as visualizações por caminho no GA4."""
+    mock_client = mock_client_cls.return_value
+    mock_client.run_report.return_value = RunReportResponse(
+        rows=[
+            Row(
+                dimension_values=[DimensionValue(value='/simcc/indicadores')],
+                metric_values=[MetricValue(value='42')],
+            )
+        ],
+        row_count=21,
+    )
+    settings = Settings(
+        GA4_PROPERTY_ID='123456789', GA4_SITE_URL='observatorio.example'
+    )
+
+    app.dependency_overrides[get_settings] = lambda: settings
+    try:
+        with TestClient(app) as test_client:
+            response = test_client.get(
+                '/v2/analytics/pages?limit=1&offset=15&start_date=7daysAgo'
+            )
+    finally:
+        app.dependency_overrides.pop(get_settings, None)
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        'data': [
+            {'page_path': '/simcc/indicadores', 'page_views': 42},
+        ],
+        'total': 21,
+    }
+    request = mock_client.run_report.call_args.args[0]
+    assert request.property == 'properties/123456789'
+    assert request.date_ranges[0].start_date == '7daysAgo'
+    assert request.date_ranges[0].end_date == 'today'
+    assert [dimension.name for dimension in request.dimensions] == ['pagePath']
+    assert [metric.name for metric in request.metrics] == ['screenPageViews']
+    assert (request.limit, request.offset) == (1, 15)
+    assert request.order_bys[0].metric.metric_name == 'screenPageViews'
+    assert request.order_bys[0].desc
+    assert request.order_bys[1].dimension.dimension_name == 'pagePath'
+
+    page, host = request.dimension_filter.and_group.expressions
+    assert page.filter.field_name == 'pagePath'
+    path_filter = page.filter.string_filter
+    assert path_filter.match_type == Filter.StringFilter.MatchType.FULL_REGEXP
+    assert re.fullmatch(path_filter.value, '/simcc')
+    assert re.fullmatch(path_filter.value, '/simcc/')
+    assert re.fullmatch(path_filter.value, '/simcc/indicadores')
+    assert not re.fullmatch(path_filter.value, '/outro-modulo')
+    assert not re.fullmatch(path_filter.value, '/simcc-admin')
+    assert host.filter.field_name == 'hostName'
+    assert host.filter.string_filter.value == 'observatorio.example'
+
+
+@patch('simcc.v2.routers.analytics.BetaAnalyticsDataClient')
+def test_analytics_pages_empty(mock_client_cls):
+    """A falta de visualizações é retornada como um relatório vazio."""
+    mock_client_cls.return_value.run_report.return_value = RunReportResponse()
+    settings = Settings(GA4_PROPERTY_ID='123456789', GA4_SITE_URL=None)
+
+    app.dependency_overrides[get_settings] = lambda: settings
+    try:
+        with TestClient(app) as test_client:
+            response = test_client.get('/v2/analytics/pages')
+    finally:
+        app.dependency_overrides.pop(get_settings, None)
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {'data': [], 'total': 0}
+
+
+@pytest.mark.parametrize('query', ['limit=0', 'limit=101', 'offset=-1'])
+def test_analytics_pages_invalid_pagination(query):
+    """Rejeita paginação fora dos limites antes de consultar o GA4."""
+    with TestClient(app) as test_client:
+        response = test_client.get(f'/v2/analytics/pages?{query}')
+
+    assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
