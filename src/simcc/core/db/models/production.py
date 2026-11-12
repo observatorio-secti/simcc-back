@@ -452,9 +452,13 @@ class ResearchProjectComponents:
 class ResearchProjectFoment:
     __tablename__ = 'research_project_foment'
 
-    project_id: Mapped[UUID] = mapped_column(
-        ForeignKey('research_project.id'), primary_key=True
+    id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True),
+        primary_key=True,
+        server_default=text('gen_random_uuid()'),
+        init=False,
     )
+    project_id: Mapped[UUID] = mapped_column(ForeignKey('research_project.id'))
     agency_name: Mapped[Optional[str]] = mapped_column(String, default=None)
     agency_code: Mapped[Optional[str]] = mapped_column(String, default=None)
     nature: Mapped[Optional[str]] = mapped_column(String, default=None)
