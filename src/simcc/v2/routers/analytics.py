@@ -189,9 +189,11 @@ def get_analytics_pages(
     ],
     settings: Settings = Depends(get_settings),
 ) -> AnalyticsPagesResponse:
-    """Lista os caminhos do SimCC ordenados por visualizações no GA4."""
+    """Lista os caminhos de um sistema por visualizações no GA4."""
     page_filter = _string_filter(
-        'pagePath', '/simcc(/.*)?', Filter.StringFilter.MatchType.FULL_REGEXP
+        'pagePath',
+        f'/{params.system}(/.*)?',
+        Filter.StringFilter.MatchType.FULL_REGEXP,
     )
     target_host = params.host_name or settings.GA4_SITE_URL
     dimension_filter = page_filter

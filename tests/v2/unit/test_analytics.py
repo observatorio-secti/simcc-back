@@ -154,14 +154,22 @@ def test_analytics_api_error(mock_client_cls, path):
         app.dependency_overrides.pop(get_settings, None)
 
 
+@pytest.mark.parametrize(
+    ('system', 'page_path'),
+    [
+        (None, '/simcc/indicadores'),
+        ('ictite', '/ictite/v1/web/escolas'),
+        ('licuri', '/licuri/indicadores'),
+    ],
+)
 @patch('simcc.v2.routers.analytics.BetaAnalyticsDataClient')
-def test_analytics_pages_success(mock_client_cls):
+def test_analytics_pages_success(mock_client_cls, system, page_path):
     """Filtra o módulo e ordena as visualizações por caminho no GA4."""
     mock_client = mock_client_cls.return_value
     mock_client.run_report.return_value = RunReportResponse(
         rows=[
             Row(
-                dimension_values=[DimensionValue(value='/simcc/indicadores')],
+                dimension_values=[DimensionValue(value=page_path)],
                 metric_values=[MetricValue(value='42')],
             )
         ],
@@ -174,16 +182,17 @@ def test_analytics_pages_success(mock_client_cls):
     app.dependency_overrides[get_settings] = lambda: settings
     try:
         with TestClient(app) as test_client:
-            response = test_client.get(
-                '/v2/analytics/pages?limit=1&offset=15&start_date=7daysAgo'
-            )
+            params = {'limit': 1, 'offset': 15, 'start_date': '7daysAgo'}
+            if system:
+                params['system'] = system
+            response = test_client.get('/v2/analytics/pages', params=params)
     finally:
         app.dependency_overrides.pop(get_settings, None)
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         'data': [
-            {'page_path': '/simcc/indicadores', 'page_views': 42},
+            {'page_path': page_path, 'page_views': 42},
         ],
         'total': 21,
     }
@@ -202,11 +211,12 @@ def test_analytics_pages_success(mock_client_cls):
     assert page.filter.field_name == 'pagePath'
     path_filter = page.filter.string_filter
     assert path_filter.match_type == Filter.StringFilter.MatchType.FULL_REGEXP
-    assert re.fullmatch(path_filter.value, '/simcc')
-    assert re.fullmatch(path_filter.value, '/simcc/')
-    assert re.fullmatch(path_filter.value, '/simcc/indicadores')
+    prefix = f'/{system or "simcc"}'
+    assert re.fullmatch(path_filter.value, prefix)
+    assert re.fullmatch(path_filter.value, f'{prefix}/')
+    assert re.fullmatch(path_filter.value, page_path)
     assert not re.fullmatch(path_filter.value, '/outro-modulo')
-    assert not re.fullmatch(path_filter.value, '/simcc-admin')
+    assert not re.fullmatch(path_filter.value, f'{prefix}-admin')
     assert host.filter.field_name == 'hostName'
     assert host.filter.string_filter.value == 'observatorio.example'
 
@@ -228,9 +238,11 @@ def test_analytics_pages_empty(mock_client_cls):
     assert response.json() == {'data': [], 'total': 0}
 
 
-@pytest.mark.parametrize('query', ['limit=0', 'limit=101', 'offset=-1'])
-def test_analytics_pages_invalid_pagination(query):
-    """Rejeita paginação fora dos limites antes de consultar o GA4."""
+@pytest.mark.parametrize(
+    'query', ['limit=0', 'limit=101', 'offset=-1', 'system=outro-modulo']
+)
+def test_analytics_pages_invalid_query(query):
+    """Rejeita sistemas e paginação inválidos antes de consultar o GA4."""
     with TestClient(app) as test_client:
         response = test_client.get(f'/v2/analytics/pages?{query}')
 
