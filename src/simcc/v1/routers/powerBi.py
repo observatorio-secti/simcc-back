@@ -423,14 +423,6 @@ async def dim_tecnical_production_terms_csv(session: AsyncSession):
     return FileResponse(file_path, filename=file_name)
 
 
-@router.get('/dim_logs_routine.csv')
-async def dim_logs_routine_csv(session: AsyncSession):
-    file_name = 'dim_logs_routine.csv'
-    file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.dim_logs_routine(session)
-    return FileResponse(file_path, filename=file_name)
-
-
 @router.get('/fat_event_organization.csv')
 async def fat_event_organization_csv(session: AsyncSession):
     file_name = 'fat_event_organization.csv'
@@ -612,52 +604,4 @@ async def dim_territorio_identidade_csv(session: AsyncSession):
     file_name = 'dim_territorio_identidade.csv'
     file_path = os.path.join(STORAGE_PATH, file_name)
     await powerBi_service.dim_territorio_identidade(session)
-    return FileResponse(file_path, filename=file_name)
-
-
-@router.get('/dim_log_category.csv')
-async def dim_log_category_csv(session: AsyncSession):
-    file_name = 'dim_log_category.csv'
-    file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.dim_log_category(session)
-    return FileResponse(file_path, filename=file_name)
-
-
-@router.get('/dim_log_event.csv')
-async def dim_log_event_csv(session: AsyncSession):
-    file_name = 'dim_log_event.csv'
-    file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.dim_log_event(session)
-    return FileResponse(file_path, filename=file_name)
-
-
-@router.get('/fat_logs.csv')
-async def fat_logs_csv(session: AsyncSession):
-    file_name = 'fat_logs.csv'
-    file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.fat_logs(session)
-    return FileResponse(file_path, filename=file_name)
-
-
-@router.get('/fat_logs_http.csv')
-async def fat_logs_http_csv(session: AsyncSession):
-    file_name = 'fat_logs_http.csv'
-    file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.fat_logs_http(session)
-    return FileResponse(file_path, filename=file_name)
-
-
-@router.get('/fat_logs_database.csv')
-async def fat_logs_database_csv(session: AsyncSession):
-    file_name = 'fat_logs_database.csv'
-    file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.fat_logs_database(session)
-    return FileResponse(file_path, filename=file_name)
-
-
-@router.get('/fat_logs_routine.csv')
-async def _fat_logs_routine_csv(session: AsyncSession):
-    file_name = 'fat_logs_routine.csv'
-    file_path = os.path.join(STORAGE_PATH, file_name)
-    await powerBi_service.fat_logs_routine(session)
     return FileResponse(file_path, filename=file_name)

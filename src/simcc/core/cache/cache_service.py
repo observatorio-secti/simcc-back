@@ -5,8 +5,6 @@ from typing import Any, Optional
 import redis.asyncio as aioredis
 from redis.exceptions import RedisError
 
-from simcc.core.logging import logger
-
 
 class CacheService:
     def __init__(
@@ -43,13 +41,7 @@ class CacheService:
             if val is None:
                 return None
             return json.loads(val)
-        except (RedisError, Exception) as exc:
-            logger.warning(
-                'cache.read_error',
-                message='Falha ao ler cache Redis (fallback ativado)',
-                category='system',
-                data={'key': key, 'error': str(exc)},
-            )
+        except (RedisError, Exception):
             return None
 
     async def set(
@@ -63,13 +55,7 @@ class CacheService:
             serialized = json.dumps(value, default=str)
             await self.redis.set(key, serialized, ex=expires)
             return True
-        except (RedisError, Exception) as exc:
-            logger.warning(
-                'cache.write_error',
-                message='Falha ao gravar cache Redis (fallback ativado)',
-                category='system',
-                data={'key': key, 'error': str(exc)},
-            )
+        except (RedisError, Exception):
             return False
 
     async def delete(self, key: str) -> bool:
@@ -79,13 +65,7 @@ class CacheService:
         try:
             await self.redis.delete(key)
             return True
-        except (RedisError, Exception) as exc:
-            logger.warning(
-                'cache.delete_error',
-                message='Falha ao remover chave do cache Redis',
-                category='system',
-                data={'key': key, 'error': str(exc)},
-            )
+        except (RedisError, Exception):
             return False
 
     async def exists(self, key: str) -> bool:
@@ -94,11 +74,5 @@ class CacheService:
 
         try:
             return bool(await self.redis.exists(key))
-        except (RedisError, Exception) as exc:
-            logger.warning(
-                'cache.exists_error',
-                message='Falha ao verificar existência de chave no Redis',
-                category='system',
-                data={'key': key, 'error': str(exc)},
-            )
+        except (RedisError, Exception):
             return False

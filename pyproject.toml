@@ -29,19 +29,13 @@ dependencies = [
     "docker (>=7.0)",
     "httpie (>=3.2.4,<4.0.0)",
     "polars[rtcompat] (>=1.42.0,<2.0.0)",
-    "structlog (>=26.1.0,<27.0.0)",
     "xlsxwriter (>=3.2.9,<4.0.0)",
     "pgvector (>=0.5.0,<0.6.0)",
     "redis (>=5.0.0,<6.0.0)",
-    "opentelemetry-api (>=1.30.0,<2.0.0)",
-    "opentelemetry-sdk (>=1.30.0,<2.0.0)",
-    "opentelemetry-exporter-otlp (>=1.30.0,<2.0.0)",
-    "opentelemetry-instrumentation-fastapi (>=0.51b0,<1.0.0)",
-    "opentelemetry-instrumentation-sqlalchemy (>=0.51b0,<1.0.0)",
-    "opentelemetry-instrumentation-redis (>=0.51b0,<1.0.0)",
-    "opentelemetry-instrumentation-httpx (>=0.51b0,<1.0.0)",
     "httpx2 (>=2.12.0,<3.0.0)",
     "google-analytics-data (>=0.23.3,<0.24.0)",
+    "grpcio (>=1.83.0,<2.0.0)",
+    "grpcio-status (>=1.83.0,<2.0.0)",
 ]
 
 [tool.poetry]
@@ -65,20 +59,18 @@ quote-style = 'single'
 
 [tool.pytest.ini_options]
 pythonpath = ["src", "."]
-addopts = "-m 'not ai_live' -p no:warnings"
+addopts = "-p no:warnings"
 timeout = "60"
 env_files = [".env"]
 markers = [
     "unit: testes unitários rápidos e isolados com mocks",
     "integration: testes de integração com banco de dados",
-    "ai_live: testes ponta-a-ponta reais com OpenAI (gastam tokens e exigem OPENAI_API_KEY)",
 ]
 
 [tool.taskipy.tasks]
 run = 'fastapi dev src/simcc --reload-dir "src/simcc"'
 
 test = 'pytest -s -x --cov=src/simcc'
-test_live = 'pytest -o addopts="" -s -x -v -m ai_live --cov=src/simcc'
 
 cov = 'coverage html'
 deploy = 'ssh gmcosta@172.16.0.243 -p 30507 -i ~/.ssh/id_ed25519 "cd /opt/simcc/simcc-back && git pull && cd .. && docker compose up --build -d --force-recreate api"'

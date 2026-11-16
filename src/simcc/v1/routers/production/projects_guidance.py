@@ -2,7 +2,6 @@ from fastapi import APIRouter
 
 from simcc.core.dependencies import (
     AsyncSession,
-    CurrentUser,
     Filters,
 )
 from simcc.v1.schemas.production import (
@@ -22,12 +21,10 @@ router = APIRouter(tags=['Production - Projects & Guidance'])
 @router.get('/researcher_research_project', include_in_schema=False)
 async def list_research_project(
     session: AsyncSession,
-    current_user: CurrentUser,
     filters: Filters,
     terms: str | None = None,
 ):
     filters.term = terms if terms else filters.term
-    filters.star = current_user if filters.star else None
 
     return await production_service.list_research_projects(session, filters)
 
@@ -36,12 +33,10 @@ async def list_research_project(
 @router.get('/guidance_researcher', include_in_schema=False)
 async def list_guidance(
     session: AsyncSession,
-    current_user: CurrentUser,
     filters: Filters,
     terms: str | None = None,
 ):
     filters.term = terms if terms else filters.term
-    filters.star = current_user if filters.star else None
 
     return await production_service.list_guidance_production(session, filters)
 
@@ -50,11 +45,9 @@ async def list_guidance(
 @router.get('/researcher_report', include_in_schema=False)
 async def list_report(
     session: AsyncSession,
-    current_user: CurrentUser,
     filters: Filters,
     terms: str | None = None,
 ):
     filters.term = terms if terms else filters.term
-    filters.star = current_user if filters.star else None
 
     return await production_service.list_researcher_report(session, filters)

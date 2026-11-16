@@ -26,6 +26,7 @@ def test_graduate_program_production_query_excludes_externa_general():
 
     # Verifica se a exclusão da instituição EXTERNA está presente no cálculo geral
     assert "COALESCE(i.acronym, '') <> 'EXTERNA'" in sql
-    assert "LEFT JOIN institution i ON r.institution_id = i.id" in sql
+    assert "FROM researcher_institution ri" in sql
+    assert "JOIN institution i ON ri.institution_id = i.id" in sql
     assert query.params['year'] == 2020
     assert "COALESCE(i.acronym, '') <> 'EXTERNA'" in query._researcher_sql

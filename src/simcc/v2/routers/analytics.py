@@ -32,16 +32,18 @@ from simcc.v2.schemas.query import as_query, forbid_unknown_params
 
 router = APIRouter(tags=['Analytics v2'])
 
+DEFAULT_GOOGLE_CREDENTIALS_PATH = 'google_credentials.json'
+
 
 def _get_analytics_client(
-    credentials_path: str | None,
+    credentials_path: str | None = DEFAULT_GOOGLE_CREDENTIALS_PATH,
 ) -> BetaAnalyticsDataClient:
     """Instancia o cliente do GA4 utilizando o arquivo de credenciais."""
     resolved_path = None
     if credentials_path and os.path.exists(credentials_path):
         resolved_path = credentials_path
-    elif os.path.exists('google_credentials.json'):
-        resolved_path = 'google_credentials.json'
+    elif os.path.exists(DEFAULT_GOOGLE_CREDENTIALS_PATH):
+        resolved_path = DEFAULT_GOOGLE_CREDENTIALS_PATH
 
     if resolved_path:
         os.environ.setdefault('GOOGLE_APPLICATION_CREDENTIALS', resolved_path)

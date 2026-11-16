@@ -25,7 +25,6 @@ class BaseProductionQuery(BaseQuery):
         'type',
         'distinct',
         'collection_id',
-        'star',
     }
 
     def __init__(
@@ -65,15 +64,6 @@ class BaseProductionQuery(BaseQuery):
 
     def _apply_distinct_filter(self, value):
         self.distinct_value = value
-
-    def _apply_star_filter(self, value):
-        if value:
-            self.params['star_ids'] = (
-                value if isinstance(value, list) else [value]
-            )
-            self.filters_sql.append(
-                f' AND {self.table_alias}.id = ANY(:star_ids)'
-            )
 
     def _apply_collection_id_filter(self, value):
         self.params['collection_id'] = (

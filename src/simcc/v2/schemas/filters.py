@@ -98,8 +98,8 @@ class ResearcherFilter(BaseTemporalFilter):
         ),
     )
     collection: list[str] = Field(
-        default_factory=lambda: ['simcc'],
-        description="Slugs das coleções (padrão: ['simcc']). Use 'all' ou '*' para buscar em todas as coleções",
+        default_factory=list,
+        description="Slugs das coleções (sem filtro por padrão). Use 'all' ou '*' para buscar em todas as coleções",
     )
 
     @field_validator('collection', mode='before')
@@ -179,8 +179,8 @@ def get_researcher_filter(
         description='IDs dos programas de pós-graduação',
     ),
     collection: list[str] = Query(
-        default=['simcc'],
-        description="Slugs das coleções (padrão: ['simcc'])",
+        default=[],
+        description='Slugs das coleções (sem filtro por padrão)',
     ),
 ) -> ResearcherFilter:
     """Extrai filtros de pesquisador dos parâmetros de query string."""

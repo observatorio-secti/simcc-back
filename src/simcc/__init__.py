@@ -1,5 +1,3 @@
-import sys
-from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
 
@@ -9,22 +7,11 @@ from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 
-from simcc.core.logging.cleanup import clean_old_logs
-from simcc.core.logging.middleware import LoggingMiddleware
 from simcc.core.settings import Settings
 from simcc.v1 import v1_app
 from simcc.v2 import v2_app
 
 settings = Settings()
-
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    try:
-        clean_old_logs()
-    except Exception as e:
-        sys.stderr.write(f'[Log Cleanup] Startup cleanup failed: {e}\n')
-    yield
 
 
 class EnsurePathPrefixMiddleware:
@@ -61,21 +48,24 @@ app = FastAPI(
     title='SIMCC API',
     version='4.5.0',
     description='API do SIMCC',
-    lifespan=lifespan,
     root_path=settings.ROOT_PATH,
     docs_url=None,
     redoc_url=None,
 )
 
+CORS_ALLOW_ORIGINS = ['*']
+CORS_ALLOW_METHODS = ['*']
+CORS_ALLOW_HEADERS = ['*']
+CORS_ALLOW_CREDENTIALS = True
+
 app.add_middleware(EnsurePathPrefixMiddleware, prefix=settings.ROOT_PATH)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.CORS_ALLOW_ORIGINS,
-    allow_methods=settings.CORS_ALLOW_METHODS,
-    allow_headers=settings.CORS_ALLOW_HEADERS,
-    allow_credentials=settings.CORS_ALLOW_CREDENTIALS,
+    allow_origins=CORS_ALLOW_ORIGINS,
+    allow_methods=CORS_ALLOW_METHODS,
+    allow_headers=CORS_ALLOW_HEADERS,
+    allow_credentials=CORS_ALLOW_CREDENTIALS,
 )
-app.add_middleware(LoggingMiddleware)
 
 
 def custom_openapi() -> dict[str, Any]:

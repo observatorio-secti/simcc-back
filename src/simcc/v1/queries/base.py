@@ -3,10 +3,6 @@ from typing import Any, Dict, List, Set
 
 from sqlalchemy import text
 
-from simcc.core.dependencies import get_settings
-
-settings = get_settings()
-
 
 class BaseQuery:
     SUPPORTED_FILTERS: Set[str] = set()

@@ -90,20 +90,21 @@ def test_by_year_range_with_q_returns_none_in_builder():
 @pytest.mark.parametrize(
     ('kwargs', 'expected_count'),
     [
-        ({}, 1),  # _by_collections ativo por padrão (simcc)
+        ({}, 0),  # sem filtro de coleção por padrão
+        ({'collection': ['simcc']}, 1),
         ({'collection': ['all']}, 0),
         ({'collection': ['*']}, 0),
-        ({'q': 'Ana'}, 2),
-        ({'institution_id': [uuid.uuid4()]}, 2),
-        ({'graduate_program_id': [uuid.uuid4()]}, 2),
-        ({'year_start': 2020}, 2),
-        ({'year_start': 2020, 'year_end': 2023}, 2),
+        ({'q': 'Ana'}, 1),
+        ({'institution_id': [uuid.uuid4()]}, 1),
+        ({'graduate_program_id': [uuid.uuid4()]}, 1),
+        ({'year_start': 2020}, 1),
+        ({'year_start': 2020, 'year_end': 2023}, 1),
         (
             {
                 'q': 'Ana',
                 'institution_id': [uuid.uuid4()],
             },
-            3,
+            2,
         ),
         (
             {
@@ -113,7 +114,7 @@ def test_by_year_range_with_q_returns_none_in_builder():
                 'year_start': 2020,
                 'year_end': 2023,
             },
-            4,  # q handles years, institution_id, graduate_program_id + collection
+            3,  # q handles years, institution_id, graduate_program_id
         ),
     ],
 )
@@ -129,11 +130,11 @@ def test_build_researcher_conditions_disjunctive_exclusion():
         q='Maria',
         institution_id=[inst_id],
     )
-    # Exclude institution_id for disjunctive faceting (restam q e collection)
+    # Exclude institution_id for disjunctive faceting (resta apenas q)
     conditions = build_researcher_conditions(
         filter_obj, exclude=frozenset({'institution_id'})
     )
-    assert len(conditions) == 2
+    assert len(conditions) == 1
 
 
 @pytest.mark.parametrize(
@@ -151,10 +152,9 @@ def test_new_builders_only_apply_when_set(builder, kwargs):
     assert builder(ResearcherFilter(**kwargs)) is not None
 
 
-def test_by_collections_default_simcc():
+def test_by_collections_default_returns_none():
     filter_obj = ResearcherFilter()
-    cond = _by_collections(filter_obj)
-    assert cond is not None
+    assert _by_collections(filter_obj) is None
 
 
 def test_by_collections_all_or_wildcard_returns_none():
@@ -169,22 +169,21 @@ def test_by_collections_custom_slugs():
     assert cond is not None
 
 
-def test_by_collections_empty_fallback():
+def test_by_collections_empty_returns_none():
     filter_obj = ResearcherFilter(collection=[])
-    cond = _by_collections(filter_obj)
-    assert cond is not None
+    assert _by_collections(filter_obj) is None
 
 
 def test_source_type_is_handled_by_search_query_when_q_present():
     filter_obj = ResearcherFilter(q='dengue', source_type=['ARTICLE'])
     assert _by_source_type(filter_obj) is None
-    assert len(build_researcher_conditions(filter_obj)) == 2
+    assert len(build_researcher_conditions(filter_obj)) == 1
 
 
 def test_year_range_is_handled_by_source_type_without_q():
     filter_obj = ResearcherFilter(source_type=['BOOK'], year_start=2020)
     assert _by_year_range(filter_obj) is None
-    assert len(build_researcher_conditions(filter_obj)) == 2
+    assert len(build_researcher_conditions(filter_obj)) == 1
 
 
 def test_classification_rejects_unknown_value():

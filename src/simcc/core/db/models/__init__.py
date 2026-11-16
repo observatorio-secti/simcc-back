@@ -1,7 +1,3 @@
-from simcc.core.db.models.ai import (
-    SearchDocumentProduction,
-    SearchDocumentResearcher,
-)
 from simcc.core.db.models.base import table_registry
 from simcc.core.db.models.collection import (
     Collection,
@@ -163,8 +159,6 @@ __all__ = [
     'ResearcherProfessionalExperience',
     'Sdg',
     'SdgAlignment',
-    'SearchDocumentProduction',
-    'SearchDocumentResearcher',
     'ShortCourse',
     'ShortCourseTaught',
     'SocialMediaWebsiteBlog',

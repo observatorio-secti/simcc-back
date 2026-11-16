@@ -32,7 +32,7 @@ class DefaultFilters(PaginationParams, BaseModel):
     dep_id: Optional[str] = None
     group_id: Optional[Union[UUID, str]] = None
     collection_id: Optional[Union[UUID, str]] = None
-    collection: Optional[str] = 'simcc'
+    collection: Optional[str] = None
     lattes_id: Optional[str] = None
 
     # Termos de Busca
@@ -57,6 +57,5 @@ class DefaultFilters(PaginationParams, BaseModel):
     distinct: Optional[Union[int, str]] = 1
 
     # Métricas e Flags (deprecated)
-    star: Optional[bool] = False
     has_image: Optional[bool] = False
     relevance: Optional[bool] = False

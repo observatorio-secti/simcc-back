@@ -215,7 +215,7 @@ def _by_collections(
     filters: ResearcherFilter,
 ) -> Optional[ColumnElement[bool]]:
     if not filters.collection:
-        return r.c.collection_slugs.overlap(['simcc'])
+        return None
     normalized = [
         c.strip().lower() for c in filters.collection if c and c.strip()
     ]

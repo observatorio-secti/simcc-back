@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends
 
 from simcc.core.dependencies import (
     AsyncSession,
-    CurrentUser,
     Filters,
 )
 from simcc.v1.schemas import DefaultFilters, QualisOptions
@@ -24,12 +23,10 @@ router = APIRouter(tags=['Production - Bibliographic'])
 @router.get('/book_production_researcher', include_in_schema=False)
 async def list_book_production(
     session: AsyncSession,
-    current_user: CurrentUser,
     filters: Filters,
     terms: str | None = None,
 ):
     filters.term = terms if terms else filters.term
-    filters.star = current_user if filters.star else None
 
     return await production_service.list_book(session, filters)
 
@@ -44,12 +41,10 @@ async def list_book_production(
 )
 async def list_book_chapter_production(
     session: AsyncSession,
-    current_user: CurrentUser,
     filters: Filters,
     terms: str | None = None,
 ):
     filters.term = terms if terms else filters.term
-    filters.star = current_user if filters.star else None
 
     return await production_service.list_book_chapter(session, filters)
 
@@ -73,14 +68,12 @@ async def list_outstanding_articles(
 @router.get('/bibliographic_production_researcher', include_in_schema=False)
 async def list_bibliographic_production(
     session: AsyncSession,
-    current_user: CurrentUser,
     filters: Filters,
     terms: str | None = None,
     qualis: QualisOptions | str | None = None,
 ):
     filters.term = terms if terms else filters.term
     filters.type = 'ARTICLE'
-    filters.star = current_user if filters.star else None
 
     return await production_service.list_bibliographic_production(
         session, filters, qualis
@@ -91,12 +84,10 @@ async def list_bibliographic_production(
 @router.get('/researcher_production/papers_magazine', include_in_schema=False)
 async def list_papers_magazine(
     session: AsyncSession,
-    current_user: CurrentUser,
     filters: Filters,
     terms: str | None = None,
 ):
     filters.term = terms if terms else filters.term
-    filters.star = current_user if filters.star else None
 
     return await production_service.list_papers_magazine(session, filters)
 

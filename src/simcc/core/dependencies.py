@@ -9,7 +9,6 @@ from simcc.core.db.database import (
     get_async_session,
     get_sync_session,
 )
-from simcc.core.security import get_current_user
 from simcc.core.settings import Settings
 from simcc.v1.schemas import DefaultFilters
 
@@ -21,7 +20,5 @@ def get_settings():
 
 AsyncSession = Annotated[_AsyncSession, Depends(get_async_session)]
 Session = Annotated[_Session, Depends(get_sync_session)]
-
-CurrentUser = Annotated[dict, Depends(get_current_user)]
 
 Filters = Annotated[DefaultFilters, Depends()]

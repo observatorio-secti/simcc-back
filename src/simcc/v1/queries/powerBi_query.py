@@ -182,22 +182,28 @@ class DimDepartamentResearcherQuery(BaseQuery):
         """
 
 
-class ResearcherLattesIdQuery(BaseQuery):
+class FatGroupLeadersQuery(BaseQuery):
     @override
     def build_sql(self) -> str:
         return """
-        SELECT id::TEXT AS researcher_id, lattes_id::TEXT
-        FROM researcher
-        WHERE lattes_id IS NOT NULL;
+        SELECT id::TEXT, name::TEXT, institution::TEXT, first_leader::TEXT, first_leader_id::TEXT,
+            second_leader::TEXT, second_leader_id::TEXT, area::TEXT AS "AREA", census::TEXT,
+            start_of_collection::TEXT, end_of_collection::TEXT, group_identifier::TEXT, year::TEXT AS "YEAR",
+            institution_name::TEXT, category::TEXT
+        FROM research_group
+        WHERE 1 = 1
+            AND (first_leader_id IS NOT NULL OR second_leader_id IS NOT NULL);
         """
 
 
-class InstitutionAcronymQuery(BaseQuery):
+class DimResearchGroupQuery(BaseQuery):
     @override
     def build_sql(self) -> str:
         return """
-        SELECT id::TEXT AS institution_id, acronym::TEXT
-        FROM institution;
+        SELECT rg.id::TEXT AS group_id, TRANSLATE(rg.name, '"', '')::TEXT AS group_name,
+            rg.area::TEXT, i.id::TEXT AS institution_id
+        FROM public.research_group rg
+        RIGHT JOIN institution i ON rg.institution ILIKE '%' || i.acronym || '%';
         """
 
 
@@ -775,25 +781,6 @@ WHERE 1 = 1
     AND TRIM(word) <> ALL(:stopwords)
 GROUP BY id, type_
 ORDER BY id;
-        """
-
-
-class DimLogsRoutineQuery(BaseQuery):
-    @override
-    def build_sql(self) -> str:
-        return """
-        SELECT (unnest(enum_range(NULL::routine_type)))::TEXT AS routine_type;
-        """
-
-
-class FatLogsRoutineQuery(BaseQuery):
-    @override
-    def build_sql(self) -> str:
-        return """
-        SELECT DISTINCT ON (type) type::TEXT, error::TEXT, detail::TEXT,
-            created_at::TEXT
-        FROM logs.routine
-        ORDER BY type, created_at DESC;
         """
 
 

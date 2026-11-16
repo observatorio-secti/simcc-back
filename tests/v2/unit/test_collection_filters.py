@@ -47,7 +47,7 @@ class DummySession:
 
 def test_v2_researcher_filter_default_collection():
     rf = ResearcherFilter()
-    assert rf.collection == ['simcc']
+    assert rf.collection == []
 
 
 def test_v2_researcher_filter_collection_string_normalization():
@@ -60,7 +60,9 @@ def test_v2_researcher_filter_collection_string_normalization():
 
 def test_v2_by_collections_default():
     rf = ResearcherFilter()
-    cond = _by_collections(rf)
+    assert _by_collections(rf) is None
+
+    cond = _by_collections(ResearcherFilter(collection=['simcc']))
     assert cond is not None
     compiled = str(cond)
     assert 'collection_slugs' in compiled
@@ -75,10 +77,10 @@ def test_v2_by_collections_all_and_wildcard():
 
 def test_v2_production_filter_default_collection():
     pf = ProductionBaseFilter()
-    assert pf.collection == ['simcc']
+    assert pf.collection == []
 
     af = ArticleFilter()
-    assert af.collection == ['simcc']
+    assert af.collection == []
 
 
 def test_v2_build_production_conditions_with_collection():
@@ -91,17 +93,21 @@ def test_v2_build_production_conditions_with_collection():
         mv_canonical_events,
         mv_canonical_research_projects,
     ]
+    # 1. Padrão (sem coleção) não deve gerar condição de coleção
     pf_default = ProductionBaseFilter()
-
-    # 1. Todas as 7 MVs canônicas usam condição direta GIN em collection_slugs
     for tbl in canonical_tables:
-        conds = build_production_conditions(tbl, pf_default)
+        assert build_production_conditions(tbl, pf_default) == []
+
+    # 2. Com coleção explícita, todas as 7 MVs canônicas usam condição direta GIN em collection_slugs
+    pf_simcc = ProductionBaseFilter(collection=['simcc'])
+    for tbl in canonical_tables:
+        conds = build_production_conditions(tbl, pf_simcc)
         assert len(conds) == 1
         compiled = str(conds[0])
         assert f'{tbl.name}.collection_slugs' in compiled
         assert 'researcher_ids' not in compiled
 
-    # 2. 'all' ou '*' não deve gerar condição de coleção
+    # 3. 'all' ou '*' não deve gerar condição de coleção
     pf_all = ProductionBaseFilter(collection=['all'])
     conds_all = build_production_conditions(mv_canonical_articles, pf_all)
     assert len(conds_all) == 0
@@ -118,7 +124,7 @@ def test_v2_build_production_conditions_with_collection():
 
 def test_v1_default_filters_has_collection():
     df = DefaultFilters()
-    assert df.collection == 'simcc'
+    assert df.collection is None
 
 
 def test_v1_researcher_search_query_collection_filter():
@@ -126,14 +132,21 @@ def test_v1_researcher_search_query_collection_filter():
     q = ResearcherSearchQuery(session)
     assert 'collection' in q.SUPPORTED_FILTERS
 
-    # Default 'simcc'
+    # Padrão sem filtro de coleção
     q.apply_filters(DefaultFilters())
-    sql = q.build_sql()
+    sql_default = q.build_sql()
+    assert 'researcher_collection' not in sql_default
+    assert 'collections' not in q.params
+    assert 'r.status IS True' not in sql_default
+    assert 'r.institution_id' not in sql_default
+
+    # Filtro explícito 'simcc'
+    q_explicit = ResearcherSearchQuery(session)
+    q_explicit.apply_filters(DefaultFilters(collection='simcc'))
+    sql = q_explicit.build_sql()
     assert 'researcher_collection' in sql
     assert 'c.slug = ANY(:collections)' in sql
-    assert q.params['collections'] == ['simcc']
-    assert 'r.status IS True' not in sql
-    assert 'r.institution_id' not in sql
+    assert q_explicit.params['collections'] == ['simcc']
 
 
 def test_v1_researcher_search_query_collection_all():
@@ -153,7 +166,7 @@ def test_v1_researcher_filter_query_no_status_no_institution_id():
     assert 'mr.institution_id' not in sql
     assert 'researcher_institution ri' in sql
     assert 'r.institution_id' not in sql
-    assert 'researcher_collection' in sql
+    assert 'researcher_collection' not in sql
 
 
 def test_v1_outstanding_researchers_query_no_status():

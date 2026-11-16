@@ -5,7 +5,7 @@ from uuid import UUID
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import FileResponse
 
-from simcc.core.dependencies import AsyncSession, CurrentUser, Filters
+from simcc.core.dependencies import AsyncSession, Filters
 from simcc.v1.schemas import DefaultFilters
 from simcc.v1.schemas.researcher import (
     CoAuthorship,
@@ -38,14 +38,12 @@ async def list_co_authorship(
 @router.get('/foment', include_in_schema=False)
 async def list_scholarships(
     session: AsyncSession,
-    current_user: CurrentUser,
     filters: Filters,
     institution_id: UUID | None = Query(None),
 ):
     if institution_id:
         filters.institution_id = institution_id
 
-    filters.star = current_user if filters.star else None
     return await production_service.list_researcher_scholarships(
         session, filters
     )
@@ -78,10 +76,8 @@ async def list_original_words(
 @router.get('/researcherParticipationEvent', include_in_schema=False)
 async def search_participation_event(
     session: AsyncSession,
-    current_user: CurrentUser,
     filters: Filters,
 ):
-    filters.star = current_user if filters.star else None
     return await researcher_service.search_researchers(
         session, filters, search_type='PARTICIPATION_EVENT', pagination=filters
     )
@@ -91,11 +87,9 @@ async def search_participation_event(
 @router.get('/researcherArea_specialty', include_in_schema=False)
 async def search_area_specialty(
     session: AsyncSession,
-    current_user: CurrentUser,
     filters: Filters,
     area_specialty: str | None = Query(None),
 ):
-    filters.star = current_user if filters.star else None
     if area_specialty:
         filters.term = area_specialty
 
@@ -108,10 +102,8 @@ async def search_area_specialty(
 @router.get('/researcherBook', include_in_schema=False)
 async def search_book_production(
     session: AsyncSession,
-    current_user: CurrentUser,
     filters: Filters,
 ):
-    filters.star = current_user if filters.star else None
     return await researcher_service.search_researchers(
         session, filters, search_type='BOOK', pagination=filters
     )
@@ -121,12 +113,9 @@ async def search_book_production(
 @router.get('/researcher', include_in_schema=False)
 async def search_researcher(
     session: AsyncSession,
-    current_user: CurrentUser,
     filters: Filters,
     name: str | None = Query(None),
 ):
-    filters.star = current_user if filters.star else None
-
     # Handle the duplicate logic for ARTICLE vs ABSTRACT
     search_type = 'ABSTRACT'
     if filters.type == 'ARTICLE':
@@ -145,10 +134,8 @@ async def search_researcher(
 @router.get('/researcher/foment', include_in_schema=False)
 async def search_foment(
     session: AsyncSession,
-    current_user: CurrentUser,
     filters: Filters,
 ):
-    filters.star = current_user if filters.star else None
     return await researcher_service.search_researchers(
         session, filters, search_type='FOMENT', pagination=filters
     )
@@ -159,11 +146,9 @@ async def search_foment(
 )
 async def search_researcher_name(
     session: AsyncSession,
-    current_user: CurrentUser,
     filters: Filters,
     name: str | None = Query(None),
 ):
-    filters.star = current_user if filters.star else None
     return await researcher_service.search_researchers(
         session, filters, search_type='ABSTRACT', name=name, pagination=filters
     )
@@ -181,10 +166,8 @@ async def search_outstanding(
 @router.get('/researcherPatent', include_in_schema=False)
 async def search_patent(
     session: AsyncSession,
-    current_user: CurrentUser,
     filters: Filters,
 ):
-    filters.star = current_user if filters.star else None
     return await researcher_service.search_researchers(
         session, filters, search_type='PATENT', pagination=filters
     )

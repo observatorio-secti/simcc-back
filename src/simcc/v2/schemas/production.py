@@ -133,8 +133,8 @@ class ProductionBaseFilter(BaseModel):
         description='Grande Área do Conhecimento dos autores da plataforma',
     )
     collection: list[str] = Field(
-        default_factory=lambda: ['simcc'],
-        description="Slugs das coleções (padrão: ['simcc']). Use 'all' ou '*' para buscar em todas as coleções",
+        default_factory=list,
+        description="Slugs das coleções (sem filtro por padrão). Use 'all' ou '*' para buscar em todas as coleções",
     )
 
     @field_validator('collection', mode='before')

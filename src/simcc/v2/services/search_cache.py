@@ -13,7 +13,6 @@ import redis.asyncio as aioredis
 from redis.exceptions import RedisError
 
 from simcc.core.cache import CacheService
-from simcc.core.logging import logger
 
 GENERATION_KEY = 'simcc:v2:search:generation'
 UNAVAILABLE_BACKOFF_SECONDS = 30.0
@@ -42,17 +41,9 @@ class SearchCache:
 
         try:
             generation = await self.redis.get(GENERATION_KEY) or '0'
-        except RedisError as exc:
+        except RedisError:
             SearchCache._unavailable_until = (
                 time.monotonic() + UNAVAILABLE_BACKOFF_SECONDS
-            )
-            logger.warning(
-                'cache.unavailable',
-                message=(
-                    'Redis indisponível; cache v2 desligado temporariamente'
-                ),
-                category='system',
-                data={'error': str(exc)},
             )
             return None
 
@@ -72,8 +63,8 @@ class SearchCache:
 def bump_search_generation(redis_url: str) -> Optional[int]:
     """Invalida todo o cache de busca v2. Chamado após o refresh das MVs.
 
-    Falhas são registradas e não interrompem a rotina: o cache antigo
-    continua válido até expirar pelo TTL.
+    Falhas não interrompem a rotina: o cache antigo continua válido até
+    expirar pelo TTL.
     """
     try:
         client = redis.Redis.from_url(
@@ -81,11 +72,5 @@ def bump_search_generation(redis_url: str) -> Optional[int]:
         )
         with client:
             return client.incr(GENERATION_KEY)
-    except RedisError as exc:
-        logger.warning(
-            'cache.generation_bump_failed',
-            message='Falha ao invalidar o cache de busca v2',
-            category='system',
-            data={'error': str(exc)},
-        )
+    except RedisError:
         return None

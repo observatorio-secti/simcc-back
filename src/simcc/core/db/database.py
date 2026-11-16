@@ -9,7 +9,6 @@ from sqlalchemy.orm import (
     sessionmaker,
 )
 
-from simcc.core.logging.config import register_db_logging
 from simcc.core.settings import Settings
 
 SETTINGS = Settings()
@@ -18,7 +17,6 @@ SYNC_URL = str(SETTINGS.DATABASE_URL).replace('+asyncpg', '+psycopg')
 ASYNC_URL = SETTINGS.DATABASE_URL
 
 async_engine = create_async_engine(ASYNC_URL, future=True)
-register_db_logging(async_engine)
 
 async_session = async_sessionmaker(
     async_engine,
@@ -27,7 +25,6 @@ async_session = async_sessionmaker(
 )
 
 sync_engine = create_engine(SYNC_URL, future=True)
-register_db_logging(sync_engine)
 
 sync_session = sessionmaker(
     sync_engine,

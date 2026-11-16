@@ -24,15 +24,17 @@ from simcc.v2.schemas.production import (
 from simcc.v2.schemas.query import as_query
 from simcc.v2.services.search_cache import SearchCache
 
+V2_SEARCH_CACHE_TTL = 21600
+
 
 def get_search_cache(
     settings: Settings = Depends(get_settings),
 ) -> SearchCache:
     if not settings.REDIS_ENABLED:
-        return SearchCache(redis_client=None, ttl=settings.V2_SEARCH_CACHE_TTL)
+        return SearchCache(redis_client=None, ttl=V2_SEARCH_CACHE_TTL)
     return SearchCache(
         redis_client=get_redis_client(settings.REDIS_URL),
-        ttl=settings.V2_SEARCH_CACHE_TTL,
+        ttl=V2_SEARCH_CACHE_TTL,
     )
 
 

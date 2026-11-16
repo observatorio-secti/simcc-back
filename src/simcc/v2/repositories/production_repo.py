@@ -164,13 +164,11 @@ def build_production_conditions(  # noqa: PLR0912
         if values:
             conds.append(table.c[field].in_(values))
 
-    if hasattr(filters, 'collection') and filters.collection is not None:
+    if hasattr(filters, 'collection') and filters.collection:
         norm_colls = [
             c.strip().lower() for c in filters.collection if c and c.strip()
         ]
-        if not norm_colls:
-            norm_colls = ['simcc']
-        if 'all' not in norm_colls and '*' not in norm_colls:
+        if norm_colls and 'all' not in norm_colls and '*' not in norm_colls:
             if 'collection_slugs' in table.c:
                 conds.append(table.c.collection_slugs.overlap(norm_colls))
             else:

@@ -1,39 +1,17 @@
-from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
 from sqlalchemy import (
-    Boolean,
-    DateTime,
     ForeignKey,
     Integer,
     String,
     Text,
-    UniqueConstraint,
     text,
 )
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
-from sqlalchemy.orm import Mapped, mapped_column, registry
-from sqlalchemy.sql import func
+from sqlalchemy.orm import Mapped, mapped_column
 
 from simcc.core.db.models.base import table_registry
-
-legacy_logs_registry = registry()
-
-
-@legacy_logs_registry.mapped_as_dataclass
-class Routine:
-    __tablename__ = 'routine'
-    __table_args__ = (
-        UniqueConstraint('type', name='uk_routine_type'),
-        {'schema': 'logs'},
-    )
-    type: Mapped[str] = mapped_column(String, primary_key=True)
-    error: Mapped[Optional[bool]] = mapped_column(Boolean, default=False)
-    detail: Mapped[Optional[str]] = mapped_column(Text, default=None)
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, server_default=func.now(), default=None
-    )
 
 
 @table_registry.mapped_as_dataclass

@@ -46,7 +46,7 @@ COPY storage ./storage
 RUN sed -i 's/\r$//' entrypoint.sh && \
     chmod +x entrypoint.sh && \
     useradd --create-home appuser && \
-    mkdir -p storage/xml/zip storage/xml/current storage/openalex/researcher storage/openalex/article logs && \
+    mkdir -p storage/xml/zip storage/xml/current storage/openalex/researcher storage/openalex/article && \
     chown -R appuser:appuser /app
 
 USER appuser
