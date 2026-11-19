@@ -1,11 +1,11 @@
 """Schemas para o endpoint de métricas do Google Analytics 4 v2."""
 
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
 
-class AnalyticsParams(BaseModel):
+class AnalyticsReportParams(BaseModel):
     start_date: str = Field(
         '30daysAgo',
         description=(
@@ -20,16 +20,39 @@ class AnalyticsParams(BaseModel):
             "(ex: 'today', 'yesterday')"
         ),
     )
-    event_name: Optional[str] = Field(
-        None,
-        description="Filtro opcional pelo nome do evento (ex: 'page_view')",
-    )
     host_name: Optional[str] = Field(
         None,
         description=(
             'Host/domínio a filtrar. Se omitido, utiliza a URL padrão do site'
         ),
     )
+
+
+class AnalyticsParams(AnalyticsReportParams):
+    event_name: Optional[str] = Field(
+        None,
+        description="Filtro opcional pelo nome do evento (ex: 'page_view')",
+    )
+
+
+class AnalyticsPagesParams(AnalyticsReportParams):
+    system: Literal['simcc', 'ictite', 'licuri'] = Field(
+        'simcc', description='Sistema do Observatório a consultar'
+    )
+    limit: int = Field(15, ge=1, le=100, description='Linhas por página')
+    offset: int = Field(
+        0, ge=0, le=2_147_483_647, description='Posição da primeira linha'
+    )
+
+
+class AnalyticsPageMetric(BaseModel):
+    page_path: str = Field(description='Caminho da página sem parâmetros')
+    page_views: int = Field(description='Visualizações no período')
+
+
+class AnalyticsPagesResponse(BaseModel):
+    data: list[AnalyticsPageMetric]
+    total: int = Field(description='Total de caminhos em todas as páginas')
 
 
 class AnalyticsMetricItem(BaseModel):
