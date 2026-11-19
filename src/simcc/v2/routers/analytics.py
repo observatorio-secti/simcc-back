@@ -60,11 +60,9 @@ def _get_property(settings: Settings) -> str:
     return f'properties/{settings.GA4_PROPERTY_ID}'
 
 
-def _run_report(
-    request: RunReportRequest, settings: Settings
-) -> RunReportResponse:
+def _run_report(request: RunReportRequest) -> RunReportResponse:
     try:
-        client = _get_analytics_client(settings.GOOGLE_APPLICATION_CREDENTIALS)
+        client = _get_analytics_client()
         return client.run_report(request)
     except Exception as exc:
         raise HTTPException(
@@ -140,7 +138,7 @@ def get_analytics_metrics(
         dimension_filter=dimension_filter,
     )
 
-    response = _run_report(request, settings)
+    response = _run_report(request)
 
     items: list[AnalyticsMetricItem] = []
     total_events = 0
@@ -229,7 +227,7 @@ def get_analytics_pages(
         limit=params.limit,
         offset=params.offset,
     )
-    response = _run_report(request, settings)
+    response = _run_report(request)
     return AnalyticsPagesResponse(
         data=[
             AnalyticsPageMetric(
