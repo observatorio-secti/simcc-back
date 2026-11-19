@@ -7,6 +7,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings, extra='ignore'):
     DATABASE_URL: str
+    INTERNAL_API_KEY: Optional[str] = None
 
     URL: str = 'http://localhost:0000/'
     ROOT_PATH: str = Field(
