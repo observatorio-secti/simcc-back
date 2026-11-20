@@ -19,6 +19,21 @@ FiltersApplied = ResearcherFilter
 
 
 class MatchItem(V2Model):
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'source_type': 'article',
+                    'source_id': '0b6f1c1e-2d4a-4c55-9f0e-2b7f3c9d1a11',
+                    'title': 'Redes neurais aplicadas a solos',
+                    'year': 2023,
+                    'snippet': 'Redes neurais aplicadas a solos',
+                    'highlights': [[0, 13]],
+                }
+            ]
+        }
+    }
+
     source_type: MatchSourceType
     source_id: Optional[UUID] = None
     title: Optional[str] = None
@@ -270,6 +285,26 @@ class FacetItem(BaseModel):
 
 
 class FacetResult(BaseModel):
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'param': 'institution_id',
+                    'total': 2,
+                    'items': [
+                        {
+                            'value': '3f2a9c1e-5b7d-4e8a-9c21-7d4e5f6a8b90',
+                            'label': 'Universidade Estadual de Santa Cruz',
+                            'count': 120,
+                            'acronym': 'UESC',
+                            'selected': True,
+                        }
+                    ],
+                }
+            ]
+        }
+    }
+
     param: Union[str, list[str], None] = Field(
         None,
         description=(

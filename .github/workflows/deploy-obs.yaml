@@ -5,8 +5,9 @@ on:
     branches: ["main"]
     paths-ignore:
       - "**.md"
-      - "docs/**"
       - ".gitignore"
+  pull_request:
+    branches: ["main", "develop"]
 
 env:
   REDIS_ENABLED: 'false'
@@ -36,6 +37,7 @@ jobs:
 
   deploy:
     needs: tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
       - name: Deploy via SSH

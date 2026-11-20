@@ -34,6 +34,7 @@ from simcc.v2.schemas.production import (
     ProductionBaseFilter,
     ProductionSort,
 )
+from simcc.v2.schemas.qualis import qualis_from_db, qualis_to_db
 
 
 def search_tsquery(
@@ -57,6 +58,12 @@ COLUMN_FILTERS = (
     'issn',
     'type',
 )
+
+
+# Conversão dos valores de filtro para os gravados no banco, e de volta
+# (facetas), quando diferem
+COLUMN_VALUE_TO_DB = {'qualis': qualis_to_db}
+COLUMN_VALUE_FROM_DB = {'qualis': qualis_from_db}
 
 
 def without_fields(
@@ -168,6 +175,9 @@ def build_production_conditions(  # noqa: PLR0912
     for field in COLUMN_FILTERS:
         values = getattr(filters, field, None)
         if values:
+            to_db = COLUMN_VALUE_TO_DB.get(field)
+            if to_db is not None:
+                values = [to_db(v) for v in values]
             conds.append(table.c[field].in_(values))
 
     if hasattr(filters, 'collection') and filters.collection:

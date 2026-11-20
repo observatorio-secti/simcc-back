@@ -109,7 +109,7 @@ class GraduateProgramFilter(BaseModel):
     state: list[str] = Field(default_factory=list, description='UF')
     city: list[str] = Field(default_factory=list, description='Cidade')
 
-    _split_lists = field_validator(
+    split_lists = field_validator(
         'institution_id',
         'area',
         'modality',

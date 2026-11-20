@@ -18,6 +18,21 @@ class PaginationParams(BaseModel):
 
 
 class Pagination(BaseModel):
+    model_config = {
+        'json_schema_extra': {
+            'examples': [
+                {
+                    'page': 1,
+                    'per_page': 20,
+                    'total_items': 137,
+                    'total_pages': 7,
+                    'has_next': True,
+                    'has_prev': False,
+                }
+            ]
+        }
+    }
+
     page: int
     per_page: int
     total_items: int

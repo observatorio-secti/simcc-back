@@ -1,6 +1,7 @@
 from simcc.v2.routers import (
     analytics,
     graduate_program,
+    indicators,
     institution,
     production,
     researcher,
@@ -10,6 +11,7 @@ from simcc.v2.routers import (
 __all__ = [
     'analytics',
     'graduate_program',
+    'indicators',
     'institution',
     'production',
     'researcher',

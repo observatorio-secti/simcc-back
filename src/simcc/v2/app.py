@@ -4,6 +4,7 @@ from simcc.v2.errors import register_error_handlers
 from simcc.v2.routers import (
     analytics,
     graduate_program,
+    indicators,
     institution,
     production,
     researcher,
@@ -24,3 +25,4 @@ v2_app.include_router(institution.router)
 v2_app.include_router(graduate_program.router)
 v2_app.include_router(production.router)
 v2_app.include_router(suggestion.router)
+v2_app.include_router(indicators.router)

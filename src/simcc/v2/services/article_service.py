@@ -19,6 +19,7 @@ from simcc.v2.schemas.production import (
     ArticleSummary,
     MagazineRef,
     ResearcherRef,
+    split_list,
 )
 from simcc.v2.schemas.researcher import Meta
 
@@ -138,7 +139,7 @@ async def get_article_detail(
         abstract=row_dict.get('abstract'),
         landing_page_url=row_dict.get('landing_page_url'),
         pdf_url=row_dict.get('pdf_url'),
-        keywords=row_dict.get('keywords'),
+        keywords=split_list(row_dict.get('keywords')),
         all_authors_raw=row_dict.get('all_authors_raw'),
         language=row_dict.get('language'),
     )

@@ -93,7 +93,7 @@ async def get_researcher(
 @router.get(
     '/researcher/{researcher_id}/image',
     response_class=FileResponse,
-    responses={404: ERROR_RESPONSES[404]},
+    responses=ERROR_RESPONSES,
 )
 async def get_researcher_image(
     session: AsyncSession,

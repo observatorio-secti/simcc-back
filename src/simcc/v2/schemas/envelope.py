@@ -3,12 +3,25 @@
 from datetime import datetime
 from typing import Any, Generic, Optional, TypeVar
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 T = TypeVar('T')
 
 
 class Meta(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            'examples': [
+                {
+                    'took_ms': 42,
+                    'cached': False,
+                    'timestamp': '2026-11-20T14:00:00Z',
+                    'data_as_of': '2026-11-20T03:00:00Z',
+                }
+            ]
+        }
+    )
+
     took_ms: int = Field(description='Tempo de processamento em milissegundos')
     cached: bool = Field(description='Se a resposta veio do cache')
     timestamp: datetime = Field(description='Momento da resposta (UTC)')
@@ -49,6 +62,35 @@ class ErrorBody(BaseModel):
 
 
 class ErrorResponse(BaseModel):
+    model_config = ConfigDict(
+        json_schema_extra={
+            'examples': [
+                {
+                    'error': {
+                        'code': 'unknown_parameter',
+                        'message': "Parâmetro desconhecido: 'foo'",
+                        'details': [
+                            {
+                                'field': 'foo',
+                                'message': 'Parâmetro não aceito por esta '
+                                'rota',
+                                'type': 'unknown_parameter',
+                                'input': None,
+                            }
+                        ],
+                    }
+                },
+                {
+                    'error': {
+                        'code': 'not_found',
+                        'message': 'Pesquisador não encontrado.',
+                        'details': [],
+                    }
+                },
+            ]
+        }
+    )
+
     error: ErrorBody
 
 

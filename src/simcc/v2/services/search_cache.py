@@ -17,7 +17,7 @@ from simcc.core.cache import CacheService
 GENERATION_KEY = 'simcc:v2:search:generation'
 # Versão do formato das respostas em cache. Incrementar a cada mudança de
 # schema de resposta: entradas antigas deixam de ser lidas.
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 UNAVAILABLE_BACKOFF_SECONDS = 30.0
 
 

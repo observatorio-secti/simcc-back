@@ -20,6 +20,8 @@ from simcc.core.db.models.location import City
 from simcc.core.db.models.researcher import ResearcherAreaExpertise
 from simcc.v2.repositories.production_repo import (
     COLUMN_FILTERS,
+    COLUMN_VALUE_FROM_DB,
+    COLUMN_VALUE_TO_DB,
     build_production_conditions,
 )
 from simcc.v2.repositories.researcher_facets_repo import rank_facet_values
@@ -124,9 +126,26 @@ async def _column_facet(session, table, filters, limit, field: str):
         column != '',  # noqa: PLC1901
         *build_production_conditions(table, filters, frozenset({field})),
     )
-    return await rank_facet_values(
-        session, pairs, selected=getattr(filters, field), limit=limit
+    selected = getattr(filters, field)
+    to_db = COLUMN_VALUE_TO_DB.get(field)
+    from_db = COLUMN_VALUE_FROM_DB.get(field)
+    if to_db is not None:
+        selected = [to_db(v) for v in selected]
+    facet = await rank_facet_values(
+        session, pairs, selected=selected, limit=limit
     )
+    if from_db is not None:
+        items = []
+        for item in facet.items:
+            value = from_db(item.value)
+            if value is None:
+                # Valores sem significado (ex.: 'None') ficam de fora
+                facet.total -= 1
+                continue
+            item.value = item.label = value
+            items.append(item)
+        facet.items = items
+    return facet
 
 
 async def _year_facet(session, table, filters, limit):

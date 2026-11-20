@@ -8,6 +8,13 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 
 from simcc.v2.schemas.base import V2Model
 from simcc.v2.schemas.params import Pagination
+from simcc.v2.schemas.qualis import (
+    QualisFilterValue,
+    QualisRank,
+    QualisStatus,
+    parse_jcr,
+    parse_qualis,
+)
 from simcc.v2.schemas.researcher import FacetResult, Meta, Sort
 
 MIN_VALID_YEAR = 1900
@@ -27,8 +34,78 @@ class MagazineRef(V2Model):
 
     name: Optional[str] = Field(None, description='Nome da revista/periódico')
     issn: Optional[str] = Field(None, description='ISSN da publicação')
-    qualis: Optional[str] = Field(None, description='Qualis CAPES')
-    jcr: Optional[str] = Field(None, description='Fator de impacto JCR')
+    qualis: Optional[QualisRank] = Field(
+        None, description='Estrato Qualis CAPES; null quando não houver'
+    )
+    qualis_status: Optional[QualisStatus] = Field(
+        None,
+        description=(
+            'Motivo da ausência de estrato: not_rated (sem Qualis) ou '
+            'not_applicable (não se aplica)'
+        ),
+    )
+    jcr: Optional[float] = Field(None, description='Fator de impacto JCR')
+
+    @model_validator(mode='before')
+    @classmethod
+    def _type_qualis_and_jcr(cls, data: Any) -> Any:
+        """Converte os valores textuais do banco."""
+        if not isinstance(data, dict):
+            return data
+        data = dict(data)
+        qualis = data.get('qualis')
+        if isinstance(qualis, str) and qualis not in QualisRank.__args__:
+            rank, status = parse_qualis(qualis)
+            data['qualis'] = rank
+            data.setdefault('qualis_status', status)
+        if 'jcr' in data and not isinstance(data['jcr'], (float, type(None))):
+            data['jcr'] = parse_jcr(data['jcr'])
+        return data
+
+
+def split_list(value: Any) -> Any:
+    """Texto separado por `;` (ou `,`, se não houver `;`) → lista."""
+    if value is None:
+        return []
+    if not isinstance(value, str):
+        return value
+    sep = ';' if ';' in value else ','
+    return [part.strip() for part in value.split(sep) if part.strip()]
+
+
+class AuthorName(V2Model):
+    """Autor como declarado na publicação."""
+
+    name: str = Field(description='Nome do autor')
+
+
+def split_authors(raw: Optional[str]) -> list[AuthorName]:
+    """Lista de autores a partir do texto do Lattes (separado por `;`).
+
+    É uma separação simples: nomes não são casados com pesquisadores da
+    plataforma (esses estão em `platform_authors`).
+    """
+    if not raw:
+        return []
+    return [
+        AuthorName(name=part.strip())
+        for part in raw.split(';')
+        if part.strip()
+    ]
+
+
+class _AuthorsMixin(V2Model):
+    authors: list[AuthorName] = Field(
+        default_factory=list,
+        description='Autores separados a partir de `all_authors_raw`',
+    )
+
+    @model_validator(mode='after')
+    def _fill_authors(self):
+        raw = getattr(self, 'all_authors_raw', None)
+        if not self.authors and raw:
+            self.authors = split_authors(raw)
+        return self
 
 
 class ArticleRef(V2Model):
@@ -89,7 +166,7 @@ class ArticleSummary(ArticleRef):
     )
 
 
-class ArticleDetail(ArticleSummary):
+class ArticleDetail(_AuthorsMixin, ArticleSummary):
     """Dossiê completo do artigo para página de detalhe."""
 
     abstract: Optional[str] = Field(
@@ -101,8 +178,9 @@ class ArticleDetail(ArticleSummary):
     pdf_url: Optional[str] = Field(
         None, description='URL direta do arquivo PDF em acesso aberto'
     )
-    keywords: Optional[str] = Field(
-        None, description='Palavras-chave registradas no OpenAlex'
+    keywords: list[str] = Field(
+        default_factory=list,
+        description='Palavras-chave registradas no OpenAlex',
     )
     all_authors_raw: Optional[str] = Field(
         None, description='Citação textual de todos os autores da publicação'
@@ -189,9 +267,12 @@ class ProductionBaseFilter(BaseModel):
 class ArticleFilter(ProductionBaseFilter):
     """Filtros para busca e listagem de artigos."""
 
-    qualis: list[str] = Field(
+    qualis: list[QualisFilterValue] = Field(
         default_factory=list,
-        description='Classificação Qualis (ex: A1, A2, B1)',
+        description=(
+            'Estrato Qualis (A1...C) ou ausência (not_rated, '
+            'not_applicable). Aceita também SQ e NP'
+        ),
     )
     has_open_access: Optional[bool] = Field(
         None, description='Filtrar apenas artigos com PDF em acesso aberto'
@@ -318,7 +399,7 @@ class BookSummary(V2Model):
     matches: Optional[list[ArticleMatch]] = Field(None, description='Matches')
 
 
-class BookDetail(BookSummary):
+class BookDetail(_AuthorsMixin, BookSummary):
     """Dossiê detalhado de livro."""
 
     doi: Optional[str] = Field(None, description='DOI')
@@ -360,7 +441,7 @@ class BookChapterSummary(V2Model):
     matches: Optional[list[ArticleMatch]] = Field(None, description='Matches')
 
 
-class BookChapterDetail(BookChapterSummary):
+class BookChapterDetail(_AuthorsMixin, BookChapterSummary):
     """Dossiê detalhado de capítulo de livro."""
 
     doi: Optional[str] = Field(None, description='DOI')

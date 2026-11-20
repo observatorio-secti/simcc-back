@@ -184,3 +184,6 @@ cython_debug/
 .vscode/
 
 storage/image_researcher
+
+# Contrato OpenAPI v2 versionado (verificado em tests/v2/unit/test_openapi_contract.py)
+!docs/openapi-v2.json
