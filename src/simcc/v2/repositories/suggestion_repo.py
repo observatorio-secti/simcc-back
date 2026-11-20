@@ -4,6 +4,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from simcc.core.db.models.miscellaneous import ResearchDictionary
+from simcc.v2.schemas.kinds import from_db, to_db
 from simcc.v2.schemas.suggestion import Suggestion
 
 # Maior code point Unicode: limite superior do intervalo de um prefixo
@@ -42,14 +43,18 @@ async def fetch_suggestions(
         .limit(limit)
     )
     if source_types:
-        stmt = stmt.where(ResearchDictionary.type_.in_(source_types))
+        stmt = stmt.where(
+            ResearchDictionary.type_.in_([to_db(t) for t in source_types])
+        )
 
     rows = (await session.execute(stmt)).mappings().all()
     return [
         Suggestion(
             term=row['term'],
             frequency=row['frequency'],
-            source_types=sorted([t for t in (row['source_types'] or []) if t]),
+            source_types=sorted(
+                from_db(t) for t in (row['source_types'] or []) if t
+            ),
         )
         for row in rows
     ]

@@ -1,6 +1,7 @@
 """Roteador para produções científicas v2."""
 
 import time
+from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
@@ -23,8 +24,11 @@ from simcc.v2.repositories.search_tables import (
     mv_canonical_articles,
     mv_canonical_book_chapters,
     mv_canonical_books,
+    mv_canonical_brands,
     mv_canonical_events,
+    mv_canonical_guidance,
     mv_canonical_patents,
+    mv_canonical_reports,
     mv_canonical_research_projects,
     mv_canonical_software,
 )
@@ -45,14 +49,23 @@ from simcc.v2.schemas.production import (
     BookDetail,
     BookFilter,
     BookSearchResponse,
+    BrandDetail,
+    BrandFilter,
+    BrandSearchResponse,
     EventDetail,
     EventFilter,
     EventSearchResponse,
+    GuidanceDetail,
+    GuidanceFilter,
+    GuidanceSearchResponse,
     PatentDetail,
     PatentFilter,
     PatentSearchResponse,
     ProductionOptions,
     ProductionSort,
+    ReportDetail,
+    ReportFilter,
+    ReportSearchResponse,
     ResearchProjectDetail,
     ResearchProjectFilter,
     ResearchProjectSearchResponse,
@@ -60,7 +73,7 @@ from simcc.v2.schemas.production import (
     SoftwareFilter,
     SoftwareSearchResponse,
 )
-from simcc.v2.schemas.query import forbid_unknown_params
+from simcc.v2.schemas.query import as_query, forbid_unknown_params
 from simcc.v2.services import (
     article_service,
     production_search_service,
@@ -456,3 +469,100 @@ async def get_research_project(
     return DetailResponse(
         data=item, meta=await build_meta(session, start)
     )
+
+
+# =========================================================================
+# 7-9. MARCAS, ORIENTAÇÕES E RELATÓRIOS TÉCNICOS
+# =========================================================================
+
+
+def _register_simple_kind(  # noqa: PLR0913, PLR0917
+    path: str,
+    label: str,
+    filter_cls: type,
+    response_cls: type,
+    detail_cls: type,
+    table,
+    search,
+    get_detail,
+) -> None:
+    """Registra listagem e detalhe de um tipo de produção simples."""
+
+    async def list_items(  # noqa: PLR0913, PLR0917
+        session: AsyncSession,
+        cache: SearchCacheDep,
+        filters: Annotated[filter_cls, Depends(as_query(filter_cls))],
+        pagination: PaginationDep,
+        sort: ProductionSortDep,
+        options: ProductionOptionsDep,
+    ):
+        return await production_search_service.search_production(
+            search,
+            response_cls,
+            table,
+            session=session,
+            filters=filters,
+            pagination=pagination,
+            sort=sort,
+            options=options,
+            cache=cache,
+        )
+
+    async def get_item(session: AsyncSession, item_id: str):
+        start = time.perf_counter()
+        item = await get_detail(session, item_id)
+        return DetailResponse(
+            data=item, meta=await build_meta(session, start)
+        )
+
+    router.add_api_route(
+        f'/production/{path}',
+        list_items,
+        methods=['GET'],
+        response_model=response_cls,
+        responses=LIST_ERROR_RESPONSES,
+        dependencies=[_known_params(filter_cls, ProductionSort)],
+        summary=f'Busca e listagem paginada de {label}',
+        name=f'list_{path.replace("-", "_")}',
+    )
+    router.add_api_route(
+        f'/production/{path}/{{item_id:path}}',
+        get_item,
+        methods=['GET'],
+        response_model=DetailResponse[detail_cls],
+        responses=ERROR_RESPONSES,
+        summary=f'Detalhe de {label}',
+        name=f'get_{path.replace("-", "_")}',
+    )
+
+
+_register_simple_kind(
+    'brand',
+    'marcas',
+    BrandFilter,
+    BrandSearchResponse,
+    BrandDetail,
+    mv_canonical_brands,
+    production_service.search_brands,
+    production_service.get_brand_detail,
+)
+_register_simple_kind(
+    'guidance',
+    'orientações',
+    GuidanceFilter,
+    GuidanceSearchResponse,
+    GuidanceDetail,
+    mv_canonical_guidance,
+    production_service.search_guidance,
+    production_service.get_guidance_detail,
+)
+_register_simple_kind(
+    'report',
+    'relatórios técnicos',
+    ReportFilter,
+    ReportSearchResponse,
+    ReportDetail,
+    mv_canonical_reports,
+    production_service.search_reports,
+    production_service.get_report_detail,
+)

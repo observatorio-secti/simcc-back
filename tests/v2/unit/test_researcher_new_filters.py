@@ -165,7 +165,7 @@ async def test_source_type_without_q_requires_production_of_type(
     response = client.get('/v2/researcher?source_type=BOOK&facets=source_type')
 
     assert _names(response) == {'Tem Livro'}
-    assert _facet(response, 'source_type') == {'BOOK': (1, True)}
+    assert _facet(response, 'source_type') == {'book': (1, True)}
 
 
 @pytest.mark.asyncio
@@ -189,12 +189,12 @@ async def test_source_type_with_q_ignores_profile_and_other_types(
     assert _names(response) == {'Autora Artigo'}
     # O facet de tipo é disjuntivo: mostra SOFTWARE para ampliar a busca
     assert _facet(response, 'source_type') == {
-        'ARTICLE': (1, True),
-        'SOFTWARE': (1, False),
+        'article': (1, True),
+        'software': (1, False),
     }
     matches = response.json()['data'][0]['matches']
-    assert matches['by_type'] == {'ARTICLE': 1}
-    assert {item['source_type'] for item in matches['items']} == {'ARTICLE'}
+    assert matches['by_type'] == {'article': 1}
+    assert {item['source_type'] for item in matches['items']} == {'article'}
 
 
 @pytest.mark.asyncio
@@ -233,8 +233,8 @@ async def test_source_type_participation_event(
     )
     assert _names(resp_q) == {'Palestrante Evento'}
     matches = resp_q.json()['data'][0]['matches']
-    assert matches['by_type'] == {'PARTICIPATION_EVENT': 1}
-    assert matches['items'][0]['source_type'] == 'PARTICIPATION_EVENT'
+    assert matches['by_type'] == {'event': 1}
+    assert matches['items'][0]['source_type'] == 'event'
     assert 'Congresso' in matches['items'][0]['title']
 
     # 3. Alias EVENT funciona igualmente
@@ -261,8 +261,8 @@ async def test_source_type_area_specialty(
     )
     assert _names(resp_q) == {'Especialista IA'}
     matches = resp_q.json()['data'][0]['matches']
-    assert matches['by_type'] == {'AREA_SPECIALTY': 1}
-    assert matches['items'][0]['source_type'] == 'AREA_SPECIALTY'
+    assert matches['by_type'] == {'area_specialty': 1}
+    assert matches['items'][0]['source_type'] == 'area_specialty'
     assert 'Artificial' in matches['items'][0]['title']
 
     # 3. Alias AREA funciona igualmente

@@ -11,19 +11,25 @@ from simcc.core.db.models.graduate_program import (
     GraduateProgramResearcher,
 )
 from simcc.core.db.models.openalex import OpenAlexResearcher
+from simcc.core.db.models.production import Foment as FomentModel
 from simcc.core.db.models.research_group import (
     ResearchGroup,
     ResearchGroupResearcher,
 )
+from simcc.core.db.models.researcher import Education as EducationModel
 from simcc.core.db.models.researcher import (
     Researcher,
     ResearcherProduction,
+    ResearcherProfessionalExperience,
 )
 from simcc.v2.schemas.graduate_program import GraduateProgramRef
 from simcc.v2.schemas.research_group import ResearchGroupRef
 from simcc.v2.schemas.researcher import (
     Bibliometrics,
+    Education,
+    Foment,
     GraduateProgramLink,
+    ProfessionalExperience,
     ResearcherCounts,
     ResearcherDetail,
     ResearcherIdentifiers,
@@ -134,3 +140,87 @@ async def fetch_research_groups(
     )
     rows = (await session.execute(stmt)).mappings().all()
     return [ResearchGroupRef(id=row['id'], name=row['name']) for row in rows]
+
+
+async def fetch_education(
+    session: AsyncSession, researcher_id: UUID
+) -> list[Education]:
+    e = EducationModel
+    rows = (
+        await session.execute(
+            select(e)
+            .where(e.researcher_id == researcher_id)
+            .order_by(e.education_start.desc().nulls_last(), e.degree)
+        )
+    ).scalars()
+    return [
+        Education(
+            degree=row.degree,
+            course=row.education_name,
+            institution=row.institution,
+            start_year=row.education_start,
+            end_year=row.education_end,
+            status=row.status,
+            keywords=[
+                k.strip()
+                for k in (row.key_words or '').replace(',', ';').split(';')
+                if k.strip()
+            ],
+        )
+        for row in rows
+    ]
+
+
+async def fetch_experience(
+    session: AsyncSession, researcher_id: UUID
+) -> list[ProfessionalExperience]:
+    x = ResearcherProfessionalExperience
+    rows = (
+        await session.execute(
+            select(x)
+            .where(x.researcher_id == researcher_id)
+            .order_by(x.start_year.desc())
+        )
+    ).scalars()
+    return [
+        ProfessionalExperience(
+            organization=row.enterprise,
+            start_year=row.start_year,
+            end_year=row.end_year,
+            employment_type=row.employment_type or row.other_employment_type,
+            functional_classification=(
+                row.functional_classification
+                or row.other_functional_classification
+            ),
+            workload_hours_weekly=row.workload_hours_weekly,
+            exclusive_dedication=row.exclusive_dedication,
+            additional_info=row.additional_info,
+        )
+        for row in rows
+    ]
+
+
+async def fetch_foment(
+    session: AsyncSession, researcher_id: UUID
+) -> list[Foment]:
+    f = FomentModel
+    rows = (
+        await session.execute(
+            select(f)
+            .where(f.researcher_id == researcher_id)
+            .order_by(f.sequence_code)
+        )
+    ).scalars()
+    return [
+        Foment(
+            modality_code=row.modality_code,
+            modality=row.modality_name,
+            category_level=row.category_level_code,
+            call_title=row.call_title,
+            funding_program=row.funding_program_name,
+            institute=row.institute_name,
+            aid_quantity=row.aid_quantity,
+            scholarship_quantity=row.scholarship_quantity,
+        )
+        for row in rows
+    ]

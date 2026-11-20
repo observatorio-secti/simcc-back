@@ -18,6 +18,11 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from simcc.v2.repositories.highlight import (
+    HEADLINE_ALL_OPTIONS,
+    HEADLINE_EXCERPT_OPTIONS,
+    has_highlight,
+)
 from simcc.v2.repositories.production_repo import (
     build_production_conditions,
 )
@@ -150,7 +155,7 @@ async def get_article_snippets(
     canonical_ids: list[UUID],
     q: str,
 ) -> dict[UUID, list[ArticleMatch]]:
-    """Gera snippets com termos destacados em <b> para os artigos da página."""
+    """Gera trechos com os termos destacados para os artigos da página."""
     if not canonical_ids or not q.strip():
         return {}
 
@@ -161,13 +166,13 @@ async def get_article_snippets(
             'pt_unaccent',
             a.c.title,
             tsq,
-            'StartSel=<b>, StopSel=</b>, HighlightAll=TRUE',
+            HEADLINE_ALL_OPTIONS,
         ).label('title_hl'),
         func.ts_headline(
             'pt_unaccent',
             func.coalesce(a.c.abstract, ''),
             tsq,
-            'StartSel=<b>, StopSel=</b>, MaxWords=35, MinWords=15',
+            HEADLINE_EXCERPT_OPTIONS,
         ).label('abstract_hl'),
     ).where(a.c.canonical_id.in_(canonical_ids))
 
@@ -178,10 +183,10 @@ async def get_article_snippets(
         matches: list[ArticleMatch] = []
         title_hl = row['title_hl'] or ''
         abstract_hl = row['abstract_hl'] or ''
-        if '<b>' in title_hl:
-            matches.append(ArticleMatch(field='title', snippet=title_hl))
-        if '<b>' in abstract_hl:
-            matches.append(ArticleMatch(field='abstract', snippet=abstract_hl))
+        if has_highlight(title_hl):
+            matches.append(ArticleMatch.from_marked('title', title_hl))
+        if has_highlight(abstract_hl):
+            matches.append(ArticleMatch.from_marked('abstract', abstract_hl))
         if matches:
             results[cid] = matches
 

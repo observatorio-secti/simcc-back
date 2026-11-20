@@ -21,7 +21,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from simcc.core.db.models.institution import Institution
 from simcc.core.db.models.location import City
 from simcc.core.db.models.openalex import OpenAlexArticle
+from simcc.core.db.models.production import Guidance, ResearchReport
 from simcc.core.db.models.researcher_institution import ResearcherInstitution
+from simcc.v2.repositories.highlight import (
+    HEADLINE_OPTIONS,
+    parse_highlight,
+)
 from simcc.v2.repositories.researcher_filters import (
     build_researcher_conditions,
     document_conditions,
@@ -35,8 +40,10 @@ from simcc.v2.repositories.search_tables import (
 from simcc.v2.schemas.city import CityRef
 from simcc.v2.schemas.filters import ResearcherFilter
 from simcc.v2.schemas.institution import InstitutionRef
+from simcc.v2.schemas.kinds import from_db
 from simcc.v2.schemas.params import PaginationParams, SortParams
 from simcc.v2.schemas.researcher import (
+    MV_COUNT_FIELDS,
     Affiliation,
     MatchesSummary,
     MatchItem,
@@ -158,7 +165,7 @@ async def fetch_researchers(
         r.c.graduation,
         r.c.classification,
         r.c.lattes_update,
-        *(r.c[field] for field in ResearcherCounts.model_fields),
+        *(r.c[field] for field in MV_COUNT_FIELDS),
     )
     if conditions:
         stmt = stmt.where(and_(*conditions))
@@ -297,7 +304,7 @@ async def fetch_matches(
                 literal_column("'pt_unaccent'::regconfig"),
                 snippet_source,
                 tsq,
-                literal_column("'StartSel=[[, StopSel=]]'"),
+                literal(HEADLINE_OPTIONS),
             ).label('snippet'),
         )
         .outerjoin(
@@ -317,17 +324,19 @@ async def fetch_matches(
 
     by_type_map: dict[UUID, dict[str, int]] = {pid: {} for pid in page_ids}
     for row in counts_rows:
-        by_type_map[row['researcher_id']][row['source_type']] = row['n']
+        by_type_map[row['researcher_id']][from_db(row['source_type'])] = row[
+            'n'
+        ]
 
     items_map: dict[UUID, list[MatchItem]] = {pid: [] for pid in page_ids}
     for row in items_rows:
         items_map[row['researcher_id']].append(
             MatchItem(
-                source_type=row['source_type'],
+                source_type=from_db(row['source_type']),
                 source_id=row['source_id'],
                 title=row['title'],
                 year=row['year_'],
-                snippet=row['snippet'],
+                **_snippet_fields(row['snippet']),
             )
         )
 
@@ -339,3 +348,39 @@ async def fetch_matches(
         )
         for pid in page_ids
     }
+
+
+async def fetch_extra_counts(
+    session: AsyncSession, page_ids: list[UUID]
+) -> dict[UUID, dict[str, int]]:
+    """Orientações e relatórios técnicos por pesquisador da página.
+
+    Não estão em `researcher_production`, então são contados nas tabelas
+    de origem (indexadas por `researcher_id`).
+    """
+    counts: dict[UUID, dict[str, int]] = {pid: {} for pid in page_ids}
+    if not page_ids:
+        return counts
+    parts = [
+        select(
+            model.researcher_id.label('researcher_id'),
+            literal(name).label('kind'),
+            func.count().label('n'),
+        )
+        .where(model.researcher_id.in_(page_ids))
+        .group_by(model.researcher_id)
+        for name, model in (
+            ('guidance', Guidance),
+            ('reports', ResearchReport),
+        )
+    ]
+    for row in (await session.execute(union_all(*parts))).mappings():
+        counts[row['researcher_id']][row['kind']] = row['n']
+    return counts
+
+
+def _snippet_fields(marked: str | None) -> dict:
+    if not marked:
+        return {'snippet': None, 'highlights': []}
+    snippet, highlights = parse_highlight(marked)
+    return {'snippet': snippet, 'highlights': highlights}

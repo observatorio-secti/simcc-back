@@ -95,14 +95,18 @@ async def test_full_text_search_production_document_and_matches(
     # Valida estrutura de matches
     assert item['matches'] is not None
     assert item['matches']['total'] >= 1
-    assert 'SOFTWARE' in item['matches']['by_type']
+    assert 'software' in item['matches']['by_type']
     assert len(item['matches']['items']) >= 1
     first_match = item['matches']['items'][0]
-    assert first_match['source_type'] == 'SOFTWARE'
+    assert first_match['source_type'] == 'software'
     assert 'Simulador' in first_match['title']
-    # Snippet com destaque [[...]]
-    assert '[[' in first_match['snippet']
-    assert ']]' in first_match['snippet']
+    # Snippet em texto puro + intervalos destacados
+    snippet = first_match['snippet']
+    assert '[[' not in snippet
+    assert '\ue000' not in snippet
+    assert first_match['highlights']
+    highlighted = [snippet[a:b] for a, b in first_match['highlights']]
+    assert any('Simulador' in part for part in highlighted)
 
 
 @pytest.mark.asyncio
@@ -153,38 +157,43 @@ async def test_query_count_budget(client, session, researcher_factory, engine):
 
     event.listen(engine.sync_engine, 'before_cursor_execute', count_queries)
 
+    # Aquece o cache em memória de `data_as_of`, que faz 1 query a cada
+    # 60 s. URL diferente das medidas, para não cair no cache de busca.
+    client.get('/v2/researcher?per_page=1')
+
     try:
-        # 1. Busca básica: exatamente 3 queries (count + page + vínculos)
+        # 1. Busca básica: 4 queries (count + page + vínculos + contagens
+        # de orientações e relatórios)
         query_statements.clear()
         res_basic = client.get('/v2/researcher')
         assert res_basic.status_code == HTTPStatus.OK
-        assert len(query_statements) == 3
+        assert len(query_statements) == 4
 
-        # 2. Busca com include=matches: +2 queries (total 5 queries)
+        # 2. Busca com include=matches: +2 queries (total 6 queries)
         query_statements.clear()
         res_matches = client.get('/v2/researcher?q=Budget&include=matches')
         assert res_matches.status_code == HTTPStatus.OK
-        assert len(query_statements) == 5
+        assert len(query_statements) == 6
 
-        # 3. Busca com 1 facet: +1 query (total 4 queries)
+        # 3. Busca com 1 facet: +1 query (total 5 queries)
         query_statements.clear()
         res_facet = client.get('/v2/researcher?facets=institution')
         assert res_facet.status_code == HTTPStatus.OK
-        assert len(query_statements) == 4
+        assert len(query_statements) == 5
 
-        # 4. Busca com 2 facets: +2 queries (total 5 queries)
+        # 4. Busca com 2 facets: +2 queries (total 6 queries)
         query_statements.clear()
         res_2facets = client.get('/v2/researcher?facets=institution,year')
         assert res_2facets.status_code == HTTPStatus.OK
-        assert len(query_statements) == 5
+        assert len(query_statements) == 6
 
-        # 5. Busca com 1 facet + include=matches: 3 + 1 + 2 = 6 queries
+        # 5. Busca com 1 facet + include=matches: 4 + 1 + 2 = 7 queries
         query_statements.clear()
         res_combo = client.get(
             '/v2/researcher?q=Budget&facets=institution&include=matches'
         )
         assert res_combo.status_code == HTTPStatus.OK
-        assert len(query_statements) == 6
+        assert len(query_statements) == 7
 
     finally:
         event.remove(

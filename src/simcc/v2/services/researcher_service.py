@@ -10,6 +10,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from simcc.core import utils
+from simcc.v2.errors import ApiError
 from simcc.v2.repositories import (
     researcher_facets_repo,
     researcher_profile_repo,
@@ -45,8 +46,12 @@ async def _attach_affiliations(
         session=session,
         page_ids=[r.researcher_id for r in items],
     )
+    extra_counts = await researcher_repo.fetch_extra_counts(
+        session=session, page_ids=[r.researcher_id for r in items]
+    )
     for r in items:
         r.affiliations = affiliations_map[r.researcher_id]
+        r.counts = r.counts.model_copy(update=extra_counts[r.researcher_id])
 
 
 async def search_researchers(  # noqa: PLR0913
@@ -246,16 +251,14 @@ async def _run_search(
 async def get_researcher(
     session: AsyncSession,
     researcher_id: UUID,
+    include: Optional[list[str]] = None,
 ) -> ResearcherDetail:
     """Retorna o perfil completo de um pesquisador."""
     researcher = await researcher_profile_repo.fetch_researcher_profile(
         session=session, researcher_id=researcher_id
     )
     if researcher is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail='Pesquisador não encontrado.',
-        )
+        raise ApiError(404, 'Pesquisador não encontrado.')
 
     await _attach_affiliations(session, [researcher])
     researcher.graduate_programs = (
@@ -268,6 +271,13 @@ async def get_researcher(
             session=session, researcher_id=researcher_id
         )
     )
+    sections = {
+        'education': researcher_profile_repo.fetch_education,
+        'experience': researcher_profile_repo.fetch_experience,
+        'foment': researcher_profile_repo.fetch_foment,
+    }
+    for name in include or []:
+        setattr(researcher, name, await sections[name](session, researcher_id))
     return researcher
 
 

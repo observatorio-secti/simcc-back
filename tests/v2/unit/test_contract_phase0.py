@@ -190,3 +190,69 @@ async def test_v2_openapi_declares_error_and_deprecations(client):
     assert '404' in detail['responses']
     assert '/graduate-program' in schema['paths']
     assert '/graduate_program' not in schema['paths']
+
+
+@pytest.mark.asyncio
+async def test_researcher_filter_by_id_and_legacy_kind_alias(
+    client, researcher_factory
+):
+    target = await researcher_factory(name='Alvo Filtro')
+    await researcher_factory(name='Outro Filtro')
+
+    body = client.get(f'/v2/researcher?researcher_id={target.id}').json()
+    assert [r['id'] for r in body['data']] == [str(target.id)]
+
+    for value in ('BOOK_CHAPTER', 'book_chapter', 'book-chapter'):
+        response = client.get(f'/v2/researcher?source_type={value}')
+        assert response.status_code == HTTPStatus.OK, value
+        assert response.json()['filters_applied']['source_type'] == [
+            'book_chapter'
+        ]
+
+
+@pytest.mark.asyncio
+async def test_researcher_detail_optional_sections(
+    client, session, researcher_factory
+):
+    researcher = await researcher_factory(name='Perfil Completo')
+    await session.execute(
+        text(
+            'INSERT INTO education (researcher_id, degree, education_name, '
+            'institution, education_start, education_end, key_words) '
+            "VALUES (:r, 'DOUTORADO', 'Computação', 'UFBA', 2010, 2014, "
+            "'IA; Redes')"
+        ),
+        {'r': researcher.id},
+    )
+    await session.execute(
+        text(
+            'INSERT INTO researcher_professional_experience '
+            '(researcher_id, enterprise, start_year) '
+            "VALUES (:r, 'UESC', 2015)"
+        ),
+        {'r': researcher.id},
+    )
+    await session.execute(
+        text(
+            'INSERT INTO foment (researcher_id, sequence_code, '
+            'modality_name, category_level_code) '
+            "VALUES (:r, 1, 'Produtividade em Pesquisa', '2')"
+        ),
+        {'r': researcher.id},
+    )
+    await session.commit()
+
+    plain = client.get(f'/v2/researcher/{researcher.id}').json()['data']
+    assert plain['education'] is None
+
+    full = client.get(
+        f'/v2/researcher/{researcher.id}'
+        '?include=education,experience,foment'
+    ).json()['data']
+    assert full['education'][0]['keywords'] == ['IA', 'Redes']
+    assert full['experience'][0]['organization'] == 'UESC'
+    assert full['foment'][0]['modality'] == 'Produtividade em Pesquisa'
+    assert full['counts']['guidance'] == 0
+
+    invalid = client.get(f'/v2/researcher/{researcher.id}?include=x')
+    assert invalid.status_code == HTTPStatus.UNPROCESSABLE_CONTENT

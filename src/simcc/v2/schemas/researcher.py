@@ -11,6 +11,7 @@ from simcc.v2.schemas.envelope import Meta
 from simcc.v2.schemas.filters import ResearcherFilter
 from simcc.v2.schemas.graduate_program import GraduateProgramRef
 from simcc.v2.schemas.institution import InstitutionRef
+from simcc.v2.schemas.kinds import MatchSourceType, SourceType
 from simcc.v2.schemas.params import Pagination
 from simcc.v2.schemas.research_group import ResearchGroupRef
 
@@ -18,16 +19,25 @@ FiltersApplied = ResearcherFilter
 
 
 class MatchItem(V2Model):
-    source_type: str
+    source_type: MatchSourceType
     source_id: Optional[UUID] = None
     title: Optional[str] = None
     year: Optional[int] = None
-    snippet: Optional[str] = None
+    snippet: Optional[str] = Field(
+        None, description='Trecho em texto puro, sem marcação'
+    )
+    highlights: list[tuple[int, int]] = Field(
+        default_factory=list,
+        description=(
+            'Intervalos [início, fim) destacados em `snippet`, em unidades '
+            'UTF-16 (as de String.slice no JavaScript)'
+        ),
+    )
 
 
 class MatchesSummary(BaseModel):
     total: int
-    by_type: dict[str, int]
+    by_type: dict[SourceType, int]
     items: list[MatchItem]
 
 
@@ -53,6 +63,17 @@ def researcher_absolute_image_url(researcher_id: UUID) -> str:
     return f'{base}{researcher_image_url(researcher_id)}'
 
 
+# Contadores que vêm de `mv_researcher_search`/`researcher_production`
+MV_COUNT_FIELDS = (
+    'articles',
+    'book_chapters',
+    'books',
+    'patents',
+    'software',
+    'brands',
+)
+
+
 class ResearcherCounts(BaseModel):
     articles: int = 0
     book_chapters: int = 0
@@ -60,6 +81,8 @@ class ResearcherCounts(BaseModel):
     patents: int = 0
     software: int = 0
     brands: int = 0
+    guidance: int = Field(0, description='Orientações')
+    reports: int = Field(0, description='Relatórios técnicos')
 
 
 class ResearcherBase(V2Model):
@@ -129,6 +152,91 @@ class GraduateProgramLink(V2Model):
     )
 
 
+class Education(V2Model):
+    degree: str = Field(description='Nível (ex.: Doutorado)')
+    course: Optional[str] = Field(None, description='Nome do curso')
+    institution: Optional[str] = Field(None, description='Instituição')
+    start_year: Optional[int] = Field(None, description='Ano de início')
+    end_year: Optional[int] = Field(None, description='Ano de conclusão')
+    status: Optional[str] = Field(None, description='Situação')
+    keywords: list[str] = Field(
+        default_factory=list, description='Palavras-chave'
+    )
+
+
+class ProfessionalExperience(V2Model):
+    organization: str = Field(description='Instituição ou empresa')
+    start_year: Optional[int] = Field(None, description='Ano de início')
+    end_year: Optional[int] = Field(
+        None, description='Ano de término (ausente se atual)'
+    )
+    employment_type: Optional[str] = Field(None, description='Vínculo')
+    functional_classification: Optional[str] = Field(
+        None, description='Enquadramento funcional'
+    )
+    workload_hours_weekly: Optional[int] = Field(
+        None, description='Carga horária semanal'
+    )
+    exclusive_dedication: Optional[bool] = Field(
+        None, description='Dedicação exclusiva'
+    )
+    additional_info: Optional[str] = Field(
+        None, description='Outras informações'
+    )
+
+
+class Foment(V2Model):
+    modality_code: Optional[str] = Field(None, description='Código')
+    modality: Optional[str] = Field(
+        None, description='Modalidade (ex.: Produtividade em Pesquisa)'
+    )
+    category_level: Optional[str] = Field(
+        None, description='Categoria/nível (ex.: 1A)'
+    )
+    call_title: Optional[str] = Field(None, description='Chamada')
+    funding_program: Optional[str] = Field(
+        None, description='Programa de fomento'
+    )
+    institute: Optional[str] = Field(None, description='Instituição')
+    aid_quantity: Optional[int] = Field(None, description='Auxílios')
+    scholarship_quantity: Optional[int] = Field(None, description='Bolsas')
+
+
+DETAIL_INCLUDES = ('education', 'experience', 'foment')
+
+
+class ResearcherDetailOptions(BaseModel):
+    include: list[str] = Field(
+        default=[],
+        description=(
+            f'Seções opcionais do perfil ({", ".join(DETAIL_INCLUDES)})'
+        ),
+    )
+
+    @model_validator(mode='before')
+    @classmethod
+    def _split_include(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+        raw = data.get('include') or []
+        if isinstance(raw, str):
+            raw = [raw]
+        values = [
+            part.strip()
+            for item in raw
+            if isinstance(item, str)
+            for part in item.split(',')
+            if part.strip()
+        ]
+        invalid = [v for v in values if v not in DETAIL_INCLUDES]
+        if invalid:
+            raise ValueError(
+                f'Includes desconhecidos: {invalid}. '
+                f'Permitidos: {list(DETAIL_INCLUDES)}'
+            )
+        return {**data, 'include': values}
+
+
 class ResearcherDetail(ResearcherBase):
     abstract: Optional[str] = None
     abstract_ai: Optional[str] = None
@@ -138,6 +246,15 @@ class ResearcherDetail(ResearcherBase):
     )
     graduate_programs: list[GraduateProgramLink] = []
     research_groups: list[ResearchGroupRef] = []
+    education: Optional[list[Education]] = Field(
+        None, description='Formação (com include=education)'
+    )
+    experience: Optional[list[ProfessionalExperience]] = Field(
+        None, description='Experiência profissional (com include=experience)'
+    )
+    foment: Optional[list[Foment]] = Field(
+        None, description='Bolsas e auxílios (com include=foment)'
+    )
 
 
 class FacetItem(BaseModel):

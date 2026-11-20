@@ -22,6 +22,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from simcc.core.db.models.expertise import GreatAreaExpertise
 from simcc.core.db.models.researcher import ResearcherAreaExpertise
+from simcc.v2.repositories.highlight import (
+    HEADLINE_ALL_OPTIONS,
+    HEADLINE_EXCERPT_OPTIONS,
+    has_highlight,
+)
 from simcc.v2.repositories.search_tables import mv_researcher_search
 from simcc.v2.schemas.params import PaginationParams
 from simcc.v2.schemas.production import (
@@ -50,6 +55,7 @@ COLUMN_FILTERS = (
     'form_participation',
     'magazine_name',
     'issn',
+    'type',
 )
 
 
@@ -315,7 +321,7 @@ async def get_production_snippets(
             'pt_unaccent',
             table.c.title,
             tsq,
-            'StartSel=<b>, StopSel=</b>, HighlightAll=TRUE',
+            HEADLINE_ALL_OPTIONS,
         ).label('title_hl'),
     ]
 
@@ -326,7 +332,7 @@ async def get_production_snippets(
                 'pt_unaccent',
                 func.coalesce(table.c[secondary_col], ''),
                 tsq,
-                'StartSel=<b>, StopSel=</b>, MaxWords=35, MinWords=15',
+                HEADLINE_EXCERPT_OPTIONS,
             ).label('sec_hl')
         )
 
@@ -338,14 +344,14 @@ async def get_production_snippets(
         cid = row['canonical_id']
         matches: list[ArticleMatch] = []
         title_hl = row['title_hl'] or ''
-        if '<b>' in title_hl:
-            matches.append(ArticleMatch(field='title', snippet=title_hl))
+        if has_highlight(title_hl):
+            matches.append(ArticleMatch.from_marked('title', title_hl))
 
         if has_secondary:
             sec_hl = row.get('sec_hl') or ''
-            if '<b>' in sec_hl:
+            if has_highlight(sec_hl):
                 matches.append(
-                    ArticleMatch(field=secondary_col, snippet=sec_hl)
+                    ArticleMatch.from_marked(secondary_col, sec_hl)
                 )
 
         if matches:

@@ -59,12 +59,12 @@ async def test_suggestions_sum_frequency_across_types(
         {
             'term': 'saúde',
             'frequency': 15,
-            'source_types': ['ARTICLE', 'BOOK'],
+            'source_types': ['article', 'book'],
         },
         {
             'term': 'saúde pública',
             'frequency': 12,
-            'source_types': ['ARTICLE'],
+            'source_types': ['article'],
         },
     ]
 
@@ -76,12 +76,12 @@ async def test_suggestions_filter_by_source_type(client, dictionary_factory):
     await dictionary_factory('saneamento', 7, 'PATENT')
 
     body = client.get(
-        '/v2/suggestion?q=sa&source_type=BOOK&source_type=PATENT'
+        '/v2/suggestion?q=sa&source_type=book&source_type=PATENT'
     ).json()
 
     assert body['data'] == [
-        {'term': 'saneamento', 'frequency': 7, 'source_types': ['PATENT']},
-        {'term': 'saúde', 'frequency': 5, 'source_types': ['BOOK']},
+        {'term': 'saneamento', 'frequency': 7, 'source_types': ['patent']},
+        {'term': 'saúde', 'frequency': 5, 'source_types': ['book']},
     ]
 
 

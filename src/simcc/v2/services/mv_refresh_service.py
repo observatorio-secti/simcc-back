@@ -24,6 +24,9 @@ SEARCH_MATERIALIZED_VIEWS = [
     'mv_canonical_patents',
     'mv_canonical_events',
     'mv_canonical_research_projects',
+    'mv_canonical_brands',
+    'mv_canonical_guidance',
+    'mv_canonical_reports',
 ]
 
 

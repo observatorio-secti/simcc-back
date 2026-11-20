@@ -11,6 +11,7 @@ from pydantic import (
     model_validator,
 )
 
+from simcc.v2.schemas.kinds import SourceTypeParam, normalize_kind_list
 from simcc.v2.schemas.params import PaginationParams, SearchOptions, SortParams
 
 
@@ -27,17 +28,6 @@ class BaseTemporalFilter(BaseFilter):
     )
 
 
-SourceType = Literal[
-    'ARTICLE',
-    'BOOK',
-    'BOOK_CHAPTER',
-    'PATENT',
-    'SOFTWARE',
-    'PARTICIPATION_EVENT',
-    'AREA_SPECIALTY',
-    'EVENT',
-    'AREA',
-]
 Classification = Literal['A+', 'A', 'B+', 'B', 'C+', 'C', 'D+', 'D', 'E+', 'E']
 
 
@@ -57,6 +47,9 @@ class ResearcherFilter(BaseTemporalFilter):
         None, description='Ano inicial de produção'
     )
     year_end: Optional[int] = Field(None, description='Ano final de produção')
+    researcher_id: list[UUID] = Field(
+        default_factory=list, description='IDs dos pesquisadores'
+    )
     institution_id: list[UUID] = Field(
         default_factory=list, description='IDs das instituições de vínculo'
     )
@@ -89,7 +82,7 @@ class ResearcherFilter(BaseTemporalFilter):
             'Pesquisa - 1A)'
         ),
     )
-    source_type: list[SourceType] = Field(
+    source_type: list[SourceTypeParam] = Field(
         default_factory=list,
         description=(
             'Tipos de produção considerados. Com `q`, restringe as obras '
@@ -120,15 +113,7 @@ class ResearcherFilter(BaseTemporalFilter):
     @field_validator('source_type', mode='before')
     @classmethod
     def _normalize_source_type(cls, v: Any) -> Any:
-        aliases = {
-            'EVENT': 'PARTICIPATION_EVENT',
-            'AREA': 'AREA_SPECIALTY',
-        }
-        if isinstance(v, (list, tuple, set)):
-            return [aliases.get(item, item) for item in v if item]
-        if isinstance(v, str):
-            return [aliases.get(v, v)]
-        return v
+        return normalize_kind_list(v)
 
     @model_validator(mode='after')
     def validate_year_range(self) -> 'ResearcherFilter':

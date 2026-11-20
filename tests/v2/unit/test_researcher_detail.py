@@ -50,6 +50,8 @@ async def test_list_returns_summary_card(
         'patents': 0,
         'software': 0,
         'brands': 0,
+        'guidance': 0,
+        'reports': 0,
     }
     for heavy_field in ('abstract', 'identifiers', 'graduate_programs'):
         assert heavy_field not in item
@@ -178,6 +180,8 @@ async def test_detail_query_budget(client, researcher_factory, engine):
         if statement.strip().upper().startswith('SELECT'):
             statements.append(statement)
 
+    # Aquece o cache em memória de `data_as_of`
+    client.get(f'/v2/researcher/{researcher.id}')
     event.listen(engine.sync_engine, 'before_cursor_execute', count_queries)
     try:
         response = client.get(f'/v2/researcher/{researcher.id}')
@@ -187,8 +191,8 @@ async def test_detail_query_budget(client, researcher_factory, engine):
         )
 
     assert response.status_code == HTTPStatus.OK
-    # perfil + vínculos + programas + grupos
-    assert len(statements) == 4
+    # perfil + vínculos + contagens extras + programas + grupos
+    assert len(statements) == 5
 
 
 @pytest.mark.asyncio

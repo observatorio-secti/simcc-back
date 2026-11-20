@@ -33,6 +33,7 @@ from simcc.v2.repositories.search_tables import (
     mv_search_documents,
 )
 from simcc.v2.schemas.filters import ResearcherFilter
+from simcc.v2.schemas.kinds import from_db, to_db
 from simcc.v2.schemas.params import facet_param
 from simcc.v2.schemas.researcher import FacetItem, FacetResult
 
@@ -241,9 +242,15 @@ async def fetch_source_type_facet(session, filters, limit=20):
         d.c.researcher_id.in_(matching_researcher_ids(filters, exclude)),
         *document_conditions(unfiltered),
     )
-    return await rank_facet_values(
-        session, pairs, selected=filters.source_type, limit=limit
+    facet = await rank_facet_values(
+        session,
+        pairs,
+        selected=[to_db(t) for t in filters.source_type],
+        limit=limit,
     )
+    for item in facet.items:
+        item.value = item.label = from_db(item.value)
+    return facet
 
 
 async def fetch_year_facet(session, filters, limit=20):

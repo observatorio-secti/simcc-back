@@ -1,20 +1,13 @@
 """Schemas para o endpoint de sugestão de termos v2."""
 
-from typing import Literal
-
 from pydantic import BaseModel, Field, field_validator
 
+from simcc.v2.schemas.kinds import (
+    DictionaryType,
+    DictionaryTypeParam,
+    normalize_kind_list,
+)
 from simcc.v2.schemas.researcher import Meta
-
-# Valores de `research_dictionary.type_` (rotina research_dictionaries)
-DictionaryType = Literal[
-    'ARTICLE',
-    'BOOK',
-    'BOOK_CHAPTER',
-    'PATENT',
-    'SPEAKER',
-    'ABSTRACT',
-]
 
 
 class SuggestionParams(BaseModel):
@@ -26,7 +19,7 @@ class SuggestionParams(BaseModel):
             'maiúsculas/minúsculas'
         ),
     )
-    source_type: list[DictionaryType] = Field(
+    source_type: list[DictionaryTypeParam] = Field(
         default_factory=list,
         description=(
             'Dicionários considerados. Sem valor, considera todos e soma '
@@ -36,6 +29,11 @@ class SuggestionParams(BaseModel):
     limit: int = Field(
         10, ge=1, le=100, description='Quantidade máxima de sugestões'
     )
+
+    @field_validator('source_type', mode='before')
+    @classmethod
+    def _normalize_source_type(cls, v):
+        return normalize_kind_list(v)
 
     @field_validator('q', mode='before')
     @classmethod
@@ -48,7 +46,7 @@ class Suggestion(BaseModel):
     frequency: int = Field(
         description='Quantidade de textos em que o termo aparece'
     )
-    source_types: list[str] = Field(
+    source_types: list[DictionaryType] = Field(
         default_factory=list,
         description='Dicionários de origem onde o termo ocorre',
     )

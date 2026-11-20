@@ -9,18 +9,27 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import HTTPException, status
+from pydantic import BaseModel
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from simcc.v2.errors import ApiError
 from simcc.v2.repositories import production_repo
 from simcc.v2.repositories.search_tables import (
     mv_canonical_book_chapters,
     mv_canonical_books,
+    mv_canonical_brands,
     mv_canonical_events,
+    mv_canonical_guidance,
     mv_canonical_patents,
+    mv_canonical_reports,
     mv_canonical_research_projects,
     mv_canonical_software,
 )
-from simcc.v2.schemas.params import Pagination, PaginationParams
+from simcc.v2.schemas.params import (
+    Pagination,
+    PaginationParams,
+    build_pagination,
+)
 from simcc.v2.schemas.production import (
     BookChapterDetail,
     BookChapterFilter,
@@ -30,15 +39,27 @@ from simcc.v2.schemas.production import (
     BookFilter,
     BookSearchResponse,
     BookSummary,
+    BrandDetail,
+    BrandFilter,
+    BrandSearchResponse,
+    BrandSummary,
     EventDetail,
     EventFilter,
     EventSearchResponse,
     EventSummary,
+    GuidanceDetail,
+    GuidanceFilter,
+    GuidanceSearchResponse,
+    GuidanceSummary,
     PatentDetail,
     PatentFilter,
     PatentSearchResponse,
     PatentSummary,
     ProductionSort,
+    ReportDetail,
+    ReportFilter,
+    ReportSearchResponse,
+    ReportSummary,
     ResearcherRef,
     ResearchProjectComponent,
     ResearchProjectDetail,
@@ -609,4 +630,153 @@ async def get_research_project_detail(
             ResearchProjectProduction(**p)
             for p in (r.get('productions') or [])
         ],
+    )
+
+
+# =========================================================================
+# Tipos simples (marcas, orientações, relatórios)
+# =========================================================================
+
+
+async def _search_simple(  # noqa: PLR0913, PLR0917
+    session: AsyncSession,
+    table,
+    filters,
+    pagination: PaginationParams,
+    sort: ProductionSort,
+    summary_cls: type[BaseModel],
+    response_cls: type[BaseModel],
+    secondary_col: Optional[str] = None,
+):
+    """Listagem genérica: os campos do card vêm direto das colunas da MV."""
+    total = await production_repo.count_production(session, table, filters)
+    rows = await production_repo.search_production(
+        session, table, filters, sort, pagination
+    )
+    snippets = {}
+    if filters.q and rows:
+        snippets = await production_repo.get_production_snippets(
+            session,
+            table,
+            [r['canonical_id'] for r in rows],
+            filters.q,
+            secondary_col=secondary_col,
+        )
+    data = [
+        _from_row(
+            summary_cls, dict(r), matches=snippets.get(r['canonical_id'])
+        )
+        for r in rows
+    ]
+    return response_cls(
+        data=data,
+        pagination=build_pagination(pagination, total),
+        filters_applied=filters,
+        sort=sort,
+        meta=Meta(
+            took_ms=0, cached=False, timestamp=datetime.now(timezone.utc)
+        ),
+    )
+
+
+def _from_row(model: type[BaseModel], row: dict, **extra):
+    fields = {
+        name: row[name] for name in model.model_fields if name in row
+    }
+    fields.update(
+        id=row['canonical_id'], platform_authors=_authors(row), **extra
+    )
+    return model.model_validate(fields)
+
+
+async def _get_simple(session, table, item_id, model, label: str):
+    row = await production_repo.get_production_by_id(session, table, item_id)
+    if not row:
+        raise ApiError(404, f"{label} '{item_id}' não encontrado(a)")
+    return _from_row(model, dict(row))
+
+
+async def search_brands(
+    session: AsyncSession,
+    filters: Optional[BrandFilter] = None,
+    pagination: Optional[PaginationParams] = None,
+    sort: Optional[ProductionSort] = None,
+) -> BrandSearchResponse:
+    return await _search_simple(
+        session,
+        mv_canonical_brands,
+        filters or BrandFilter(),
+        pagination or PaginationParams(),
+        sort or ProductionSort(),
+        BrandSummary,
+        BrandSearchResponse,
+        secondary_col='goal',
+    )
+
+
+async def get_brand_detail(
+    session: AsyncSession, brand_id: UUID | str
+) -> BrandDetail:
+    return await _get_simple(
+        session, mv_canonical_brands, brand_id, BrandDetail, 'Marca'
+    )
+
+
+async def search_guidance(
+    session: AsyncSession,
+    filters: Optional[GuidanceFilter] = None,
+    pagination: Optional[PaginationParams] = None,
+    sort: Optional[ProductionSort] = None,
+) -> GuidanceSearchResponse:
+    return await _search_simple(
+        session,
+        mv_canonical_guidance,
+        filters or GuidanceFilter(),
+        pagination or PaginationParams(),
+        sort or ProductionSort(),
+        GuidanceSummary,
+        GuidanceSearchResponse,
+        secondary_col='oriented',
+    )
+
+
+async def get_guidance_detail(
+    session: AsyncSession, guidance_id: UUID | str
+) -> GuidanceDetail:
+    return await _get_simple(
+        session,
+        mv_canonical_guidance,
+        guidance_id,
+        GuidanceDetail,
+        'Orientação',
+    )
+
+
+async def search_reports(
+    session: AsyncSession,
+    filters: Optional[ReportFilter] = None,
+    pagination: Optional[PaginationParams] = None,
+    sort: Optional[ProductionSort] = None,
+) -> ReportSearchResponse:
+    return await _search_simple(
+        session,
+        mv_canonical_reports,
+        filters or ReportFilter(),
+        pagination or PaginationParams(),
+        sort or ProductionSort(),
+        ReportSummary,
+        ReportSearchResponse,
+        secondary_col='project_name',
+    )
+
+
+async def get_report_detail(
+    session: AsyncSession, report_id: UUID | str
+) -> ReportDetail:
+    return await _get_simple(
+        session,
+        mv_canonical_reports,
+        report_id,
+        ReportDetail,
+        'Relatório técnico',
     )

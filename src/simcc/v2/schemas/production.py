@@ -6,6 +6,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from simcc.v2.schemas.base import V2Model
 from simcc.v2.schemas.params import Pagination
 from simcc.v2.schemas.researcher import FacetResult, Meta, Sort
 
@@ -13,7 +14,7 @@ MIN_VALID_YEAR = 1900
 MAX_VALID_YEAR = 2100
 
 
-class ResearcherRef(BaseModel):
+class ResearcherRef(V2Model):
     """Referência enxuta a um pesquisador cadastrado na plataforma."""
 
     id: UUID = Field(description='Identificador do pesquisador')
@@ -21,7 +22,7 @@ class ResearcherRef(BaseModel):
     lattes_id: Optional[str] = Field(None, description='ID Lattes')
 
 
-class MagazineRef(BaseModel):
+class MagazineRef(V2Model):
     """Informações do periódico/revista onde o artigo foi publicado."""
 
     name: Optional[str] = Field(None, description='Nome da revista/periódico')
@@ -30,7 +31,7 @@ class MagazineRef(BaseModel):
     jcr: Optional[str] = Field(None, description='Fator de impacto JCR')
 
 
-class ArticleRef(BaseModel):
+class ArticleRef(V2Model):
     """Referência básica a um artigo científico."""
 
     id: UUID = Field(description='Identificador único canônico do artigo')
@@ -39,15 +40,30 @@ class ArticleRef(BaseModel):
     doi: Optional[str] = Field(None, description='DOI do artigo')
 
 
-class ArticleMatch(BaseModel):
-    """Trecho destacado onde o termo de busca casou no artigo."""
+class ArticleMatch(V2Model):
+    """Trecho onde o termo de busca casou na produção."""
 
     field: str = Field(
-        description='Campo onde casou (title, abstract, keywords, magazine)'
+        description='Campo onde casou (title, abstract, ...)'
     )
-    snippet: str = Field(
-        description='Trecho contendo os termos destacados em <b>...</b>'
+    snippet: str = Field(description='Trecho em texto puro, sem marcação')
+    highlights: list[tuple[int, int]] = Field(
+        default_factory=list,
+        description=(
+            'Intervalos [início, fim) destacados em `snippet`, em unidades '
+            'UTF-16 (as de String.slice no JavaScript)'
+        ),
     )
+
+    @classmethod
+    def from_marked(cls, field: str, marked: str) -> 'ArticleMatch':
+        """Monta a partir da saída do `ts_headline` com marcadores."""
+        from simcc.v2.repositories.highlight import (  # noqa: PLC0415
+            parse_highlight,
+        )
+
+        snippet, highlights = parse_highlight(marked)
+        return cls(field=field, snippet=snippet, highlights=highlights)
 
 
 class ArticleSummary(ArticleRef):
@@ -288,7 +304,7 @@ class ArticleSearchResponse(BaseModel):
 # 1. LIVROS
 # =========================================================================
 
-class BookSummary(BaseModel):
+class BookSummary(V2Model):
     """Card resumido de livro."""
 
     id: UUID = Field(description='ID canônico do livro')
@@ -329,7 +345,7 @@ class BookSearchResponse(BaseModel):
 # 2. CAPÍTULOS DE LIVROS
 # =========================================================================
 
-class BookChapterSummary(BaseModel):
+class BookChapterSummary(V2Model):
     """Card resumido de capítulo de livro."""
 
     id: UUID = Field(description='ID canônico do capítulo')
@@ -373,7 +389,7 @@ class BookChapterSearchResponse(BaseModel):
 # 3. SOFTWARES
 # =========================================================================
 
-class SoftwareSummary(BaseModel):
+class SoftwareSummary(V2Model):
     """Card resumido de software."""
 
     id: UUID = Field(description='ID canônico do software')
@@ -414,7 +430,7 @@ class SoftwareSearchResponse(BaseModel):
 # 4. PATENTES
 # =========================================================================
 
-class PatentSummary(BaseModel):
+class PatentSummary(V2Model):
     """Card resumido de patente."""
 
     id: UUID = Field(description='ID canônico da patente')
@@ -469,7 +485,7 @@ class PatentSearchResponse(BaseModel):
 # 5. PARTICIPAÇÃO EM EVENTOS
 # =========================================================================
 
-class EventSummary(BaseModel):
+class EventSummary(V2Model):
     """Card resumido de participação em evento."""
 
     id: UUID = Field(description='ID canônico da participação')
@@ -532,7 +548,7 @@ class EventSearchResponse(BaseModel):
 # 6. PROJETOS DE PESQUISA
 # =========================================================================
 
-class ResearchProjectFoment(BaseModel):
+class ResearchProjectFoment(V2Model):
     """Agência financiadora de um projeto de pesquisa."""
 
     agency_name: Optional[str] = Field(None, description='Nome da agência')
@@ -542,7 +558,7 @@ class ResearchProjectFoment(BaseModel):
     )
 
 
-class ResearchProjectComponent(BaseModel):
+class ResearchProjectComponent(V2Model):
     """Integrante de um projeto de pesquisa, conforme declarado no Lattes."""
 
     name: Optional[str] = Field(None, description='Nome do integrante')
@@ -555,14 +571,14 @@ class ResearchProjectComponent(BaseModel):
     )
 
 
-class ResearchProjectProduction(BaseModel):
+class ResearchProjectProduction(V2Model):
     """Produção declarada como resultado do projeto."""
 
     title: Optional[str] = Field(None, description='Título da produção')
     type: Optional[str] = Field(None, description='Tipo da produção')
 
 
-class ResearchProjectSummary(BaseModel):
+class ResearchProjectSummary(V2Model):
     """Card resumido de projeto de pesquisa."""
 
     id: UUID = Field(description='ID canônico do projeto')
@@ -640,6 +656,148 @@ class ResearchProjectSearchResponse(BaseModel):
     data: list[ResearchProjectSummary]
     pagination: Pagination
     filters_applied: ResearchProjectFilter
+    sort: Sort
+    meta: Meta
+    facets: Optional[dict[str, FacetResult]] = None
+
+
+# =========================================================================
+# 7. MARCAS
+# =========================================================================
+
+
+class BrandSummary(V2Model):
+    """Card resumido de marca registrada."""
+
+    id: UUID = Field(description='ID canônico da marca')
+    title: str = Field(description='Nome da marca')
+    year: Optional[int] = Field(None, description='Ano')
+    nature: Optional[str] = Field(None, description='Natureza da marca')
+    platform_authors: list[ResearcherRef] = Field(
+        default_factory=list, description='Titulares da plataforma'
+    )
+    matches: Optional[list[ArticleMatch]] = Field(None, description='Matches')
+
+
+class BrandDetail(BrandSummary):
+    """Dossiê detalhado de marca."""
+
+    goal: Optional[str] = Field(None, description='Finalidade da marca')
+
+
+class BrandFilter(ProductionBaseFilter):
+    """Filtros para busca de marcas."""
+
+    nature: list[str] = Field(
+        default_factory=list, description='Natureza da marca'
+    )
+
+
+class BrandSearchResponse(BaseModel):
+    """Resposta paginada da busca de marcas."""
+
+    data: list[BrandSummary]
+    pagination: Pagination
+    filters_applied: BrandFilter
+    sort: Sort
+    meta: Meta
+    facets: Optional[dict[str, FacetResult]] = None
+
+
+# =========================================================================
+# 8. ORIENTAÇÕES
+# =========================================================================
+
+
+class GuidanceSummary(V2Model):
+    """Card resumido de orientação."""
+
+    id: UUID = Field(description='ID canônico da orientação')
+    title: str = Field(description='Título do trabalho orientado')
+    year: Optional[int] = Field(None, description='Ano')
+    nature: Optional[str] = Field(
+        None, description='Natureza (ex.: Dissertação de mestrado)'
+    )
+    type: Optional[str] = Field(
+        None, description='Tipo (ex.: Orientador principal)'
+    )
+    status: Optional[str] = Field(
+        None, description='Situação (ex.: Concluída, Em andamento)'
+    )
+    oriented: Optional[str] = Field(None, description='Nome do orientando')
+    platform_authors: list[ResearcherRef] = Field(
+        default_factory=list, description='Orientadores da plataforma'
+    )
+    matches: Optional[list[ArticleMatch]] = Field(None, description='Matches')
+
+
+class GuidanceDetail(GuidanceSummary):
+    """Dossiê detalhado de orientação."""
+
+
+class GuidanceFilter(ProductionBaseFilter):
+    """Filtros para busca de orientações."""
+
+    nature: list[str] = Field(
+        default_factory=list, description='Natureza da orientação'
+    )
+    type: list[str] = Field(
+        default_factory=list, description='Tipo de orientação'
+    )
+    status: list[str] = Field(
+        default_factory=list, description='Situação da orientação'
+    )
+
+
+class GuidanceSearchResponse(BaseModel):
+    """Resposta paginada da busca de orientações."""
+
+    data: list[GuidanceSummary]
+    pagination: Pagination
+    filters_applied: GuidanceFilter
+    sort: Sort
+    meta: Meta
+    facets: Optional[dict[str, FacetResult]] = None
+
+
+# =========================================================================
+# 9. RELATÓRIOS TÉCNICOS
+# =========================================================================
+
+
+class ReportSummary(V2Model):
+    """Card resumido de relatório técnico."""
+
+    id: UUID = Field(description='ID canônico do relatório')
+    title: str = Field(description='Título do relatório')
+    year: Optional[int] = Field(None, description='Ano')
+    project_name: Optional[str] = Field(
+        None, description='Projeto relacionado'
+    )
+    platform_authors: list[ResearcherRef] = Field(
+        default_factory=list, description='Autores da plataforma'
+    )
+    matches: Optional[list[ArticleMatch]] = Field(None, description='Matches')
+
+
+class ReportDetail(ReportSummary):
+    """Dossiê detalhado de relatório técnico."""
+
+    financing: Optional[str] = Field(
+        None, description='Instituição financiadora'
+    )
+
+
+class ReportFilter(ProductionBaseFilter):
+    """Filtros para busca de relatórios técnicos."""
+
+
+class ReportSearchResponse(BaseModel):
+    """Resposta paginada da busca de relatórios técnicos."""
+
+    data: list[ReportSummary]
+    pagination: Pagination
+    filters_applied: ReportFilter
     sort: Sort
     meta: Meta
     facets: Optional[dict[str, FacetResult]] = None

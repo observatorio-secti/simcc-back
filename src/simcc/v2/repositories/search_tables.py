@@ -224,3 +224,56 @@ mv_canonical_research_projects = Table(
     Column('productions', JSONB, nullable=True),
     Column('search_vector', TSVECTOR, nullable=True),
 )
+
+
+def _canonical_columns() -> list[Column]:
+    """Colunas comuns às MVs canônicas de produção."""
+    return [
+        Column('canonical_id', PG_UUID(as_uuid=True), primary_key=True),
+        Column(
+            'production_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=False
+        ),
+        Column(
+            'researcher_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=False
+        ),
+        Column(
+            'institution_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=True
+        ),
+        Column(
+            'graduate_program_ids',
+            ARRAY(PG_UUID(as_uuid=True)),
+            nullable=True,
+        ),
+        Column('collection_slugs', ARRAY(String), nullable=False),
+        Column('platform_authors', JSONB, nullable=True),
+        Column('title', String, nullable=False),
+        Column('year', Integer, nullable=True),
+        Column('search_vector', TSVECTOR, nullable=True),
+    ]
+
+
+mv_canonical_brands = Table(
+    'mv_canonical_brands',
+    search_metadata,
+    *_canonical_columns(),
+    Column('nature', String, nullable=True),
+    Column('goal', String, nullable=True),
+)
+
+mv_canonical_guidance = Table(
+    'mv_canonical_guidance',
+    search_metadata,
+    *_canonical_columns(),
+    Column('nature', String, nullable=True),
+    Column('type', String, nullable=True),
+    Column('status', String, nullable=True),
+    Column('oriented', String, nullable=True),
+)
+
+mv_canonical_reports = Table(
+    'mv_canonical_reports',
+    search_metadata,
+    *_canonical_columns(),
+    Column('project_name', String, nullable=True),
+    Column('financing', String, nullable=True),
+)

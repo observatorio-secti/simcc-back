@@ -25,8 +25,12 @@ from simcc.v2.schemas.params import (
     SearchOptions,
     SortParams,
 )
-from simcc.v2.schemas.query import as_query
-from simcc.v2.schemas.researcher import ResearcherDetail, SearchResponse
+from simcc.v2.schemas.query import as_query, forbid_unknown_params
+from simcc.v2.schemas.researcher import (
+    ResearcherDetail,
+    ResearcherDetailOptions,
+    SearchResponse,
+)
 from simcc.v2.services import researcher_service
 from simcc.v2.services.meta import build_meta
 
@@ -64,15 +68,22 @@ async def list_researchers(  # noqa: PLR0913, PLR0917
     '/researcher/{researcher_id}',
     response_model=DetailResponse[ResearcherDetail],
     responses=ERROR_RESPONSES,
+    dependencies=[Depends(forbid_unknown_params(ResearcherDetailOptions))],
 )
 async def get_researcher(
     session: AsyncSession,
     researcher_id: UUID,
+    options: Annotated[
+        ResearcherDetailOptions, Depends(as_query(ResearcherDetailOptions))
+    ],
 ) -> DetailResponse[ResearcherDetail]:
-    """Retorna o perfil completo de um pesquisador."""
+    """Retorna o perfil de um pesquisador. Formação, experiência e fomento
+    vêm com `include=education,experience,foment`."""
     start = time.perf_counter()
     researcher = await researcher_service.get_researcher(
-        session=session, researcher_id=researcher_id
+        session=session,
+        researcher_id=researcher_id,
+        include=options.include,
     )
     return DetailResponse(
         data=researcher, meta=await build_meta(session, start)

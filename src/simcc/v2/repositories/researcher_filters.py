@@ -38,6 +38,7 @@ from simcc.v2.repositories.search_tables import (
     mv_search_documents,
 )
 from simcc.v2.schemas.filters import ResearcherFilter
+from simcc.v2.schemas.kinds import to_db
 
 r = mv_researcher_search
 d = mv_search_documents
@@ -65,7 +66,9 @@ def document_conditions(
     if filters.year_end is not None:
         conds.append(d.c.year_ <= filters.year_end)
     if filters.source_type:
-        conds.append(d.c.source_type.in_(filters.source_type))
+        conds.append(
+            d.c.source_type.in_([to_db(t) for t in filters.source_type])
+        )
     return conds
 
 
@@ -123,6 +126,14 @@ def _by_year_range(
     start = filters.year_start if filters.year_start is not None else 1950
     end = filters.year_end if filters.year_end is not None else current_year
     return r.c.production_years.overlap(list(range(start, end + 1)))
+
+
+def _by_researcher_ids(
+    filters: ResearcherFilter,
+) -> Optional[ColumnElement[bool]]:
+    if not filters.researcher_id:
+        return None
+    return r.c.researcher_id.in_(filters.researcher_id)
 
 
 def _by_institutions(
@@ -230,6 +241,7 @@ _FILTER_BUILDERS: list[
     _by_search_query,
     _by_source_type,
     _by_year_range,
+    _by_researcher_ids,
     _by_institutions,
     _by_graduate_programs,
     _by_cities,
