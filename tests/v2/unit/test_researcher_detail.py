@@ -78,7 +78,7 @@ async def test_detail_minimal_profile(client, researcher_factory):
         name='Perfil Minimo', lattes_10_id='K1234567A8'
     )
 
-    body = client.get(f'/v2/researcher/{researcher.id}').json()
+    body = client.get(f'/v2/researcher/{researcher.id}').json()['data']
 
     assert body['researcher_id'] == str(researcher.id)
     assert body['identifiers'] == {
@@ -137,7 +137,7 @@ async def test_detail_full_profile(  # noqa: PLR0913, PLR0917
     ])
     await session.commit()
 
-    body = client.get(f'/v2/researcher/{researcher.id}').json()
+    body = client.get(f'/v2/researcher/{researcher.id}').json()['data']
 
     assert body['abstract'] == 'Resumo do Lattes'
     assert body['abstract_ai'] == 'Resumo por IA'

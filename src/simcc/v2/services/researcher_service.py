@@ -2,7 +2,6 @@
 
 import math
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 from uuid import UUID
@@ -25,13 +24,12 @@ from simcc.v2.schemas.params import (
     SortParams,
 )
 from simcc.v2.schemas.researcher import (
-    Meta,
     ResearcherBase,
     ResearcherDetail,
     SearchResponse,
     Sort,
 )
-from simcc.v2.services import mv_refresh_service
+from simcc.v2.services.meta import build_meta
 from simcc.v2.services.search_cache import SearchCache
 
 MAX_MATCHES_PER_PAGE = 50
@@ -122,7 +120,7 @@ async def search_researchers(  # noqa: PLR0913
             return SearchResponse.model_validate({
                 **cached,
                 'filters_applied': resolved_filters,
-                'meta': _build_meta(start_time, cached=True),
+                'meta': await build_meta(session, start_time, cached=True),
             })
 
     response = await _run_search(
@@ -132,7 +130,7 @@ async def search_researchers(  # noqa: PLR0913
         resolved_sort,
         resolved_options,
     )
-    response.meta = _build_meta(start_time, cached=False)
+    response.meta = await build_meta(session, start_time, cached=False)
 
     if cache_key is not None:
         await cache.set(
@@ -166,15 +164,6 @@ def _sort_lists(dump: dict) -> dict:
         key: sorted(value) if isinstance(value, list) else value
         for key, value in dump.items()
     }
-
-
-def _build_meta(start_time: float, cached: bool) -> Meta:
-    return Meta(
-        took_ms=int((time.perf_counter() - start_time) * 1000),
-        cached=cached,
-        timestamp=datetime.now(timezone.utc),
-        data_as_of=mv_refresh_service.get_last_refresh_timestamp(),
-    )
 
 
 async def _run_search(
@@ -248,7 +237,7 @@ async def _run_search(
             by=resolved_sort.sort_by,
             order=resolved_sort.sort_order,
         ),
-        meta=_build_meta(time.perf_counter(), cached=False),
+        meta=await build_meta(session, time.perf_counter()),
         facets=facets,
         summary=None,
     )

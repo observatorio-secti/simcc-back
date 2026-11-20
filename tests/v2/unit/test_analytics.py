@@ -46,7 +46,7 @@ def test_analytics_missing_property_id():
         with TestClient(app) as test_client:
             response = test_client.get('/v2/analytics')
             assert response.status_code == HTTPStatus.INTERNAL_SERVER_ERROR
-            assert 'GA4_PROPERTY_ID' in response.json()['detail']
+            assert 'GA4_PROPERTY_ID' in response.json()['error']['message']
     finally:
         app.dependency_overrides.pop(get_settings, None)
 
@@ -110,7 +110,8 @@ def test_analytics_success(mock_client_cls):
             assert len(body['data']) == 2
 
             first_item = body['data'][0]
-            assert first_item['date'] == '20241010'
+            assert first_item['date'] == '2024-10-10'
+            assert 'meta' in body
             assert first_item['event_name'] == 'page_view'
             assert first_item['country'] == 'Brazil'
             assert first_item['host_name'] == 'simcc.uesc.br'
@@ -140,6 +141,7 @@ def test_analytics_api_error(mock_client_cls):
         with TestClient(app) as test_client:
             response = test_client.get('/v2/analytics')
             assert response.status_code == HTTPStatus.BAD_GATEWAY
-            assert 'Falha na comunicação' in response.json()['detail']
+            message = response.json()['error']['message']
+            assert 'Falha na comunicação' in message
     finally:
         app.dependency_overrides.pop(get_settings, None)

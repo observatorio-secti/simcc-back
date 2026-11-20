@@ -1,15 +1,13 @@
 """Serviço para sugestão de termos v2."""
 
 import time
-from datetime import datetime, timezone
 from typing import Optional
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from simcc.v2.repositories import suggestion_repo
-from simcc.v2.schemas.researcher import Meta
 from simcc.v2.schemas.suggestion import SuggestionParams, SuggestionResponse
-from simcc.v2.services import mv_refresh_service
+from simcc.v2.services.meta import build_meta
 from simcc.v2.services.search_cache import SearchCache
 
 
@@ -42,7 +40,7 @@ async def suggest_terms(
         if cached is not None:
             return SuggestionResponse.model_validate({
                 **cached,
-                'meta': _build_meta(start_time, cached=True),
+                'meta': await build_meta(session, start_time, cached=True),
             })
 
     data = await suggestion_repo.fetch_suggestions(
@@ -52,7 +50,7 @@ async def suggest_terms(
         limit=params.limit,
     )
     response = SuggestionResponse(
-        data=data, meta=_build_meta(start_time, cached=False)
+        data=data, meta=await build_meta(session, start_time, cached=False)
     )
 
     if cache_key is not None:
@@ -60,12 +58,3 @@ async def suggest_terms(
             cache_key, response.model_dump(mode='json', exclude={'meta'})
         )
     return response
-
-
-def _build_meta(start_time: float, cached: bool) -> Meta:
-    return Meta(
-        took_ms=int((time.perf_counter() - start_time) * 1000),
-        cached=cached,
-        timestamp=datetime.now(timezone.utc),
-        data_as_of=mv_refresh_service.get_last_refresh_timestamp(),
-    )

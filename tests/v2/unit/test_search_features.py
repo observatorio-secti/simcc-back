@@ -12,21 +12,21 @@ from tests.factories.production import next_sequence_code
 async def test_validation_sort_by_relevance_requires_q(client):
     response = client.get('/v2/researcher?sort_by=relevance')
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    assert 'relevance' in response.json()['detail']
+    assert 'relevance' in response.json()['error']['message']
 
 
 @pytest.mark.asyncio
 async def test_validation_include_matches_requires_q(client):
     response = client.get('/v2/researcher?include=matches')
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    assert 'matches' in response.json()['detail']
+    assert 'matches' in response.json()['error']['message']
 
 
 @pytest.mark.asyncio
 async def test_validation_include_matches_per_page_limit(client):
     response = client.get('/v2/researcher?q=AI&include=matches&per_page=51')
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    assert 'per_page <= 50' in response.json()['detail']
+    assert 'per_page <= 50' in response.json()['error']['message']
 
 
 @pytest.mark.asyncio
@@ -237,7 +237,7 @@ async def test_relevance_ranking_by_production_volume(
 async def test_validation_sort_by_matches_requires_q(client):
     response = client.get('/v2/researcher?sort_by=matches')
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
-    assert 'matches' in response.json()['detail']
+    assert 'matches' in response.json()['error']['message']
 
 
 @pytest.mark.asyncio

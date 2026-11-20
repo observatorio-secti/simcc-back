@@ -33,6 +33,7 @@ from simcc.v2.repositories.search_tables import (
     mv_search_documents,
 )
 from simcc.v2.schemas.filters import ResearcherFilter
+from simcc.v2.schemas.params import facet_param
 from simcc.v2.schemas.researcher import FacetItem, FacetResult
 
 r = mv_researcher_search
@@ -362,7 +363,9 @@ async def fetch_requested_facets(
     limit: int = 20,
 ) -> dict[str, FacetResult]:
     """Calcula os facets pedidos, um por consulta."""
-    return {
-        name: await FACET_BUILDERS[name](session, filters, limit)
-        for name in requested_facets
-    }
+    facets = {}
+    for name in requested_facets:
+        facet = await FACET_BUILDERS[name](session, filters, limit)
+        facet.param = facet_param(name)
+        facets[name] = facet
+    return facets

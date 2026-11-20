@@ -1,13 +1,13 @@
 """Schemas V2 para produções científicas (Artigos, Livros, etc.)."""
 
 from datetime import datetime
-from typing import Any, Literal, Optional
+from typing import Any, ClassVar, Literal, Optional
 from uuid import UUID
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
 from simcc.v2.schemas.params import Pagination
-from simcc.v2.schemas.researcher import FacetResult, Meta
+from simcc.v2.schemas.researcher import FacetResult, Meta, Sort
 
 MIN_VALID_YEAR = 1900
 MAX_VALID_YEAR = 2100
@@ -190,25 +190,33 @@ class ArticleFilter(ProductionBaseFilter):
     )
 
 
+# Nomes antigos dos parâmetros de ordenação, ainda aceitos na query
+SORT_QUERY_ALIASES = {'by': 'sort_by', 'order': 'sort_order'}
+
+
 class ArticleSort(BaseModel):
     """Critério e direção de ordenação para artigos."""
 
-    by: Literal['relevance', 'year', 'citations', 'title'] = Field(
-        'relevance', description='Critério de ordenação'
+    QUERY_ALIASES: ClassVar[dict[str, str]] = SORT_QUERY_ALIASES
+
+    sort_by: Literal['relevance', 'year', 'citations', 'title'] = Field(
+        'relevance', description='Campo para ordenação'
     )
-    order: Literal['asc', 'desc'] = Field(
-        'desc', description='Direção da ordenação'
+    sort_order: Literal['asc', 'desc'] = Field(
+        'desc', description='Direção da ordenação (asc/desc)'
     )
 
 
 class ProductionSort(BaseModel):
     """Critério e direção de ordenação padrão para produções."""
 
-    by: Literal['relevance', 'year', 'title'] = Field(
-        'relevance', description='Critério de ordenação'
+    QUERY_ALIASES: ClassVar[dict[str, str]] = SORT_QUERY_ALIASES
+
+    sort_by: Literal['relevance', 'year', 'title'] = Field(
+        'relevance', description='Campo para ordenação'
     )
-    order: Literal['asc', 'desc'] = Field(
-        'desc', description='Direção da ordenação'
+    sort_order: Literal['asc', 'desc'] = Field(
+        'desc', description='Direção da ordenação (asc/desc)'
     )
 
 
@@ -269,7 +277,7 @@ class ArticleSearchResponse(BaseModel):
     filters_applied: ArticleFilter = Field(
         description='Filtros aplicados na busca'
     )
-    sort: ArticleSort = Field(description='Critério e direção de ordenação')
+    sort: Sort = Field(description='Critério e direção de ordenação')
     meta: Meta = Field(description='Metadados de performance e cache')
     facets: Optional[dict[str, FacetResult]] = Field(
         None, description='Facets solicitados em `facets`'
@@ -312,7 +320,7 @@ class BookSearchResponse(BaseModel):
     data: list[BookSummary]
     pagination: Pagination
     filters_applied: BookFilter
-    sort: ProductionSort
+    sort: Sort
     meta: Meta
     facets: Optional[dict[str, FacetResult]] = None
 
@@ -356,7 +364,7 @@ class BookChapterSearchResponse(BaseModel):
     data: list[BookChapterSummary]
     pagination: Pagination
     filters_applied: BookChapterFilter
-    sort: ProductionSort
+    sort: Sort
     meta: Meta
     facets: Optional[dict[str, FacetResult]] = None
 
@@ -397,7 +405,7 @@ class SoftwareSearchResponse(BaseModel):
     data: list[SoftwareSummary]
     pagination: Pagination
     filters_applied: SoftwareFilter
-    sort: ProductionSort
+    sort: Sort
     meta: Meta
     facets: Optional[dict[str, FacetResult]] = None
 
@@ -452,7 +460,7 @@ class PatentSearchResponse(BaseModel):
     data: list[PatentSummary]
     pagination: Pagination
     filters_applied: PatentFilter
-    sort: ProductionSort
+    sort: Sort
     meta: Meta
     facets: Optional[dict[str, FacetResult]] = None
 
@@ -515,7 +523,7 @@ class EventSearchResponse(BaseModel):
     data: list[EventSummary]
     pagination: Pagination
     filters_applied: EventFilter
-    sort: ProductionSort
+    sort: Sort
     meta: Meta
     facets: Optional[dict[str, FacetResult]] = None
 
@@ -632,6 +640,6 @@ class ResearchProjectSearchResponse(BaseModel):
     data: list[ResearchProjectSummary]
     pagination: Pagination
     filters_applied: ResearchProjectFilter
-    sort: ProductionSort
+    sort: Sort
     meta: Meta
     facets: Optional[dict[str, FacetResult]] = None

@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends
 
 from simcc.core.dependencies import AsyncSession
 from simcc.v2.dependencies import SearchCacheDep
+from simcc.v2.schemas.envelope import LIST_ERROR_RESPONSES
 from simcc.v2.schemas.query import as_query, forbid_unknown_params
 from simcc.v2.schemas.suggestion import SuggestionParams, SuggestionResponse
 from simcc.v2.services import suggestion_service
@@ -16,6 +17,7 @@ router = APIRouter(tags=['Suggestion v2'])
 @router.get(
     '/suggestion',
     response_model=SuggestionResponse,
+    responses=LIST_ERROR_RESPONSES,
     dependencies=[Depends(forbid_unknown_params(SuggestionParams))],
 )
 async def list_suggestions(

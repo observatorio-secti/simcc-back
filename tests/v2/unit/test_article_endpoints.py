@@ -169,7 +169,7 @@ async def test_article_deduplication_and_detail(
     # 2. Detalhe pelo ID canônico
     res_detail = client.get(f"/v2/production/article/{art['id']}")
     assert res_detail.status_code == HTTPStatus.OK
-    detail_body = res_detail.json()
+    detail_body = res_detail.json()['data']
     assert detail_body['title'] == title
     assert detail_body['abstract'] is not None
     assert 'redes complexas' in detail_body['abstract']
@@ -179,4 +179,4 @@ async def test_article_deduplication_and_detail(
     # 3. Detalhe pelo DOI
     res_doi = client.get(f'/v2/production/article/{doi}')
     assert res_doi.status_code == HTTPStatus.OK
-    assert res_doi.json()['id'] == art['id']
+    assert res_doi.json()['data']['id'] == art['id']

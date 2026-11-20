@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 
+from simcc.v2.errors import register_error_handlers
 from simcc.v2.routers import (
     analytics,
     graduate_program,
@@ -14,6 +15,8 @@ v2_app = FastAPI(
     version='2.0.0',
     description='API do SIMCC versão 2',
 )
+
+register_error_handlers(v2_app)
 
 v2_app.include_router(analytics.router)
 v2_app.include_router(researcher.router)

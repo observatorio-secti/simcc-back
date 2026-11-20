@@ -3,16 +3,16 @@
 from typing import Any, Mapping, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import Field
 
 from simcc.core.utils import (
     get_institution_cover_url,
     get_institution_logo_url,
 )
-from simcc.v2.schemas.params import Pagination
+from simcc.v2.schemas.base import V2Model
 
 
-class InstitutionRef(BaseModel):
+class InstitutionRef(V2Model):
     id: UUID = Field(description='Identificador da instituição')
     name: str = Field(description='Nome da instituição')
     acronym: Optional[str] = Field(None, description='Sigla da instituição')
@@ -33,8 +33,3 @@ class InstitutionRef(BaseModel):
             image=get_institution_logo_url(acronym) or row['image'],
             cover=get_institution_cover_url(acronym),
         )
-
-
-class InstitutionListResponse(BaseModel):
-    data: list[InstitutionRef] = Field(description='Lista de instituições')
-    pagination: Pagination = Field(description='Metadados de paginação')

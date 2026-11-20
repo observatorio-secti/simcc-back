@@ -111,14 +111,14 @@ async def test_book_deduplication_and_detail(
     # Detalhe por ID
     res_id = client.get(f"/v2/production/book/{book['id']}")
     assert res_id.status_code == HTTPStatus.OK
-    detail_body = res_id.json()
+    detail_body = res_id.json()['data']
     assert detail_body['title'] == title
     assert detail_body['publishing_company_city'] == 'Rio de Janeiro'
 
     # Detalhe por ISBN
     res_isbn = client.get(f'/v2/production/book/{isbn}')
     assert res_isbn.status_code == HTTPStatus.OK
-    assert res_isbn.json()['id'] == book['id']
+    assert res_isbn.json()['data']['id'] == book['id']
 
 
 # ============================================================================
@@ -220,7 +220,7 @@ async def test_book_chapter_deduplication_and_detail(
     # Detalhe por ID
     res_id = client.get(f"/v2/production/book-chapter/{chapter['id']}")
     assert res_id.status_code == HTTPStatus.OK
-    detail_body = res_id.json()
+    detail_body = res_id.json()['data']
     assert detail_body['title'] == title
     assert detail_body['organizers'] == 'Silva et al'
     assert detail_body['start_page'] == '10'
@@ -228,7 +228,7 @@ async def test_book_chapter_deduplication_and_detail(
     # Detalhe por ISBN
     res_isbn = client.get(f'/v2/production/book-chapter/{isbn}')
     assert res_isbn.status_code == HTTPStatus.OK
-    assert res_isbn.json()['id'] == chapter['id']
+    assert res_isbn.json()['data']['id'] == chapter['id']
 
 
 # ============================================================================
@@ -309,7 +309,7 @@ async def test_software_deduplication_and_detail(
     # Detalhe por ID
     res_id = client.get(f"/v2/production/software/{sw['id']}")
     assert res_id.status_code == HTTPStatus.OK
-    detail_body = res_id.json()
+    detail_body = res_id.json()['data']
     assert detail_body['title'] == title
     assert detail_body['financing'] == 'FAPEMIG'
     assert detail_body['availability'] == 'Restrita'
@@ -317,7 +317,7 @@ async def test_software_deduplication_and_detail(
     # Detalhe por Código
     res_code = client.get(f'/v2/production/software/{code}')
     assert res_code.status_code == HTTPStatus.OK
-    assert res_code.json()['id'] == sw['id']
+    assert res_code.json()['data']['id'] == sw['id']
 
 
 # ============================================================================
@@ -398,14 +398,14 @@ async def test_patent_deduplication_and_detail(
     # Detalhe por ID
     res_id = client.get(f"/v2/production/patent/{pat['id']}")
     assert res_id.status_code == HTTPStatus.OK
-    detail_body = res_id.json()
+    detail_body = res_id.json()['data']
     assert detail_body['title'] == title
     assert detail_body['details'] == 'Detalhes tecnicos do microcontrolador'
 
     # Detalhe por Código
     res_code = client.get(f'/v2/production/patent/{code}')
     assert res_code.status_code == HTTPStatus.OK
-    assert res_code.json()['id'] == pat['id']
+    assert res_code.json()['data']['id'] == pat['id']
 
 
 # ============================================================================
@@ -486,7 +486,7 @@ async def test_event_deduplication_and_detail(
     # Detalhe por ID
     res_id = client.get(f"/v2/production/event/{ev['id']}")
     assert res_id.status_code == HTTPStatus.OK
-    detail_body = res_id.json()
+    detail_body = res_id.json()['data']
     assert detail_body['title'] == title
     assert detail_body['nature'] == 'Nacional'
     assert detail_body['form_participation'] == 'Oral'
@@ -616,7 +616,7 @@ async def test_research_project_deduplication_and_detail(
     # Detalhe pelo ID de qualquer cópia
     res_id = client.get(f'/v2/production/research-project/{rp_id2}')
     assert res_id.status_code == HTTPStatus.OK
-    detail = res_id.json()
+    detail = res_id.json()['data']
     assert detail['id'] == project['id']
     assert detail['number_phd'] == 2
     assert len(detail['foment']) == 1

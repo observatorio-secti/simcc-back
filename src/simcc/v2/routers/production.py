@@ -1,5 +1,7 @@
 """Roteador para produções científicas v2."""
 
+import time
+
 from fastapi import APIRouter, Depends
 
 from simcc.core.dependencies import AsyncSession
@@ -25,6 +27,11 @@ from simcc.v2.repositories.search_tables import (
     mv_canonical_patents,
     mv_canonical_research_projects,
     mv_canonical_software,
+)
+from simcc.v2.schemas.envelope import (
+    ERROR_RESPONSES,
+    LIST_ERROR_RESPONSES,
+    DetailResponse,
 )
 from simcc.v2.schemas.params import PaginationParams
 from simcc.v2.schemas.production import (
@@ -59,6 +66,7 @@ from simcc.v2.services import (
     production_search_service,
     production_service,
 )
+from simcc.v2.services.meta import build_meta
 
 router = APIRouter(tags=['Produções v2'])
 
@@ -79,6 +87,7 @@ def _known_params(filters: type, sort: type):
 @router.get(
     '/production/article',
     response_model=ArticleSearchResponse,
+    responses=LIST_ERROR_RESPONSES,
     dependencies=[_known_params(ArticleFilter, ArticleSort)],
     summary='Busca e listagem paginada de artigos científicos',
 )
@@ -106,17 +115,22 @@ async def list_articles(  # noqa: PLR0913, PLR0917
 
 @router.get(
     '/production/article/{article_id:path}',
-    response_model=ArticleDetail,
+    response_model=DetailResponse[ArticleDetail],
+    responses=ERROR_RESPONSES,
     summary='Dossiê detalhado de um artigo científico',
 )
 async def get_article(
     session: AsyncSession,
     article_id: str,
-) -> ArticleDetail:
+) -> DetailResponse[ArticleDetail]:
     """Retorna o detalhe do artigo pelo ID canônico (UUID) ou DOI."""
-    return await article_service.get_article_detail(
+    start = time.perf_counter()
+    item = await article_service.get_article_detail(
         session=session,
         article_id=article_id,
+    )
+    return DetailResponse(
+        data=item, meta=await build_meta(session, start)
     )
 
 
@@ -127,6 +141,7 @@ async def get_article(
 @router.get(
     '/production/book',
     response_model=BookSearchResponse,
+    responses=LIST_ERROR_RESPONSES,
     dependencies=[_known_params(BookFilter, ProductionSort)],
     summary='Busca e listagem paginada de livros',
 )
@@ -154,17 +169,22 @@ async def list_books(  # noqa: PLR0913, PLR0917
 
 @router.get(
     '/production/book/{book_id:path}',
-    response_model=BookDetail,
+    response_model=DetailResponse[BookDetail],
+    responses=ERROR_RESPONSES,
     summary='Dossiê detalhado de livro',
 )
 async def get_book(
     session: AsyncSession,
     book_id: str,
-) -> BookDetail:
+) -> DetailResponse[BookDetail]:
     """Retorna detalhes de um livro pelo ID canônico ou ISBN."""
-    return await production_service.get_book_detail(
+    start = time.perf_counter()
+    item = await production_service.get_book_detail(
         session=session,
         book_id=book_id,
+    )
+    return DetailResponse(
+        data=item, meta=await build_meta(session, start)
     )
 
 
@@ -175,6 +195,7 @@ async def get_book(
 @router.get(
     '/production/book-chapter',
     response_model=BookChapterSearchResponse,
+    responses=LIST_ERROR_RESPONSES,
     dependencies=[_known_params(BookChapterFilter, ProductionSort)],
     summary='Busca e listagem paginada de capítulos de livros',
 )
@@ -202,17 +223,22 @@ async def list_book_chapters(  # noqa: PLR0913, PLR0917
 
 @router.get(
     '/production/book-chapter/{chapter_id:path}',
-    response_model=BookChapterDetail,
+    response_model=DetailResponse[BookChapterDetail],
+    responses=ERROR_RESPONSES,
     summary='Dossiê detalhado de capítulo de livro',
 )
 async def get_book_chapter(
     session: AsyncSession,
     chapter_id: str,
-) -> BookChapterDetail:
+) -> DetailResponse[BookChapterDetail]:
     """Retorna detalhes de um capítulo pelo ID canônico ou ISBN."""
-    return await production_service.get_book_chapter_detail(
+    start = time.perf_counter()
+    item = await production_service.get_book_chapter_detail(
         session=session,
         chapter_id=chapter_id,
+    )
+    return DetailResponse(
+        data=item, meta=await build_meta(session, start)
     )
 
 
@@ -223,6 +249,7 @@ async def get_book_chapter(
 @router.get(
     '/production/software',
     response_model=SoftwareSearchResponse,
+    responses=LIST_ERROR_RESPONSES,
     dependencies=[_known_params(SoftwareFilter, ProductionSort)],
     summary='Busca e listagem paginada de softwares',
 )
@@ -250,17 +277,22 @@ async def list_software(  # noqa: PLR0913, PLR0917
 
 @router.get(
     '/production/software/{software_id:path}',
-    response_model=SoftwareDetail,
+    response_model=DetailResponse[SoftwareDetail],
+    responses=ERROR_RESPONSES,
     summary='Dossiê detalhado de software',
 )
 async def get_software(
     session: AsyncSession,
     software_id: str,
-) -> SoftwareDetail:
+) -> DetailResponse[SoftwareDetail]:
     """Retorna detalhes de um software pelo ID canônico ou código."""
-    return await production_service.get_software_detail(
+    start = time.perf_counter()
+    item = await production_service.get_software_detail(
         session=session,
         software_id=software_id,
+    )
+    return DetailResponse(
+        data=item, meta=await build_meta(session, start)
     )
 
 
@@ -271,6 +303,7 @@ async def get_software(
 @router.get(
     '/production/patent',
     response_model=PatentSearchResponse,
+    responses=LIST_ERROR_RESPONSES,
     dependencies=[_known_params(PatentFilter, ProductionSort)],
     summary='Busca e listagem paginada de patentes',
 )
@@ -298,17 +331,22 @@ async def list_patents(  # noqa: PLR0913, PLR0917
 
 @router.get(
     '/production/patent/{patent_id:path}',
-    response_model=PatentDetail,
+    response_model=DetailResponse[PatentDetail],
+    responses=ERROR_RESPONSES,
     summary='Dossiê detalhado de patente',
 )
 async def get_patent(
     session: AsyncSession,
     patent_id: str,
-) -> PatentDetail:
+) -> DetailResponse[PatentDetail]:
     """Retorna detalhes de uma patente pelo ID canônico ou código."""
-    return await production_service.get_patent_detail(
+    start = time.perf_counter()
+    item = await production_service.get_patent_detail(
         session=session,
         patent_id=patent_id,
+    )
+    return DetailResponse(
+        data=item, meta=await build_meta(session, start)
     )
 
 
@@ -319,6 +357,7 @@ async def get_patent(
 @router.get(
     '/production/event',
     response_model=EventSearchResponse,
+    responses=LIST_ERROR_RESPONSES,
     dependencies=[_known_params(EventFilter, ProductionSort)],
     summary='Busca e listagem paginada de participação em eventos',
 )
@@ -346,17 +385,22 @@ async def list_events(  # noqa: PLR0913, PLR0917
 
 @router.get(
     '/production/event/{event_id:path}',
-    response_model=EventDetail,
+    response_model=DetailResponse[EventDetail],
+    responses=ERROR_RESPONSES,
     summary='Dossiê detalhado de participação em evento',
 )
 async def get_event(
     session: AsyncSession,
     event_id: str,
-) -> EventDetail:
+) -> DetailResponse[EventDetail]:
     """Retorna detalhes de uma participação em evento pelo ID canônico."""
-    return await production_service.get_event_detail(
+    start = time.perf_counter()
+    item = await production_service.get_event_detail(
         session=session,
         event_id=event_id,
+    )
+    return DetailResponse(
+        data=item, meta=await build_meta(session, start)
     )
 
 
@@ -367,6 +411,7 @@ async def get_event(
 @router.get(
     '/production/research-project',
     response_model=ResearchProjectSearchResponse,
+    responses=LIST_ERROR_RESPONSES,
     dependencies=[_known_params(ResearchProjectFilter, ProductionSort)],
     summary='Busca e listagem paginada de projetos de pesquisa',
 )
@@ -394,15 +439,20 @@ async def list_research_projects(  # noqa: PLR0913, PLR0917
 
 @router.get(
     '/production/research-project/{project_id:path}',
-    response_model=ResearchProjectDetail,
+    response_model=DetailResponse[ResearchProjectDetail],
+    responses=ERROR_RESPONSES,
     summary='Dossiê detalhado de projeto de pesquisa',
 )
 async def get_research_project(
     session: AsyncSession,
     project_id: str,
-) -> ResearchProjectDetail:
+) -> DetailResponse[ResearchProjectDetail]:
     """Retorna detalhes de um projeto de pesquisa pelo ID canônico."""
-    return await production_service.get_research_project_detail(
+    start = time.perf_counter()
+    item = await production_service.get_research_project_detail(
         session=session,
         project_id=project_id,
+    )
+    return DetailResponse(
+        data=item, meta=await build_meta(session, start)
     )

@@ -58,6 +58,7 @@ async def test_graduate_program_facet(
 
     assert response.status_code == HTTPStatus.OK
     assert response.json()['facets']['graduate_program'] == {
+        'param': 'graduate_program_id',
         'total': 1,
         'items': [
             {
@@ -85,6 +86,7 @@ async def test_facet_items_ordered_by_count_then_name(
     facet = client.get('/v2/researcher?facets=institution').json()['facets']
 
     assert facet['institution'] == {
+        'param': 'institution_id',
         'total': 3,
         'items': [
             {
@@ -219,7 +221,11 @@ async def test_year_facet_shape(client, researcher_factory):
 
     facet = client.get('/v2/researcher?facets=year').json()['facets']['year']
 
-    assert facet == {'total': 0, 'items': []}
+    assert facet == {
+        'param': ['year_start', 'year_end'],
+        'total': 0,
+        'items': [],
+    }
 
 
 @pytest.mark.asyncio

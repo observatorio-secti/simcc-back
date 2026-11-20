@@ -15,6 +15,9 @@ from redis.exceptions import RedisError
 from simcc.core.cache import CacheService
 
 GENERATION_KEY = 'simcc:v2:search:generation'
+# Versão do formato das respostas em cache. Incrementar a cada mudança de
+# schema de resposta: entradas antigas deixam de ser lidas.
+SCHEMA_VERSION = 2
 UNAVAILABLE_BACKOFF_SECONDS = 30.0
 
 
@@ -49,7 +52,7 @@ class SearchCache:
 
         return self.cache.build_key(
             'v2',
-            f'{context}:{generation}',
+            f'{context}:s{SCHEMA_VERSION}:{generation}',
             self.cache.hash_payload(params),
         )
 

@@ -1,6 +1,8 @@
 """Router para métricas do Google Analytics 4 v2."""
 
 import os
+import time
+from datetime import date, datetime, timezone
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -24,6 +26,7 @@ from simcc.v2.schemas.analytics import (
     AnalyticsResponse,
     AnalyticsSummary,
 )
+from simcc.v2.schemas.envelope import LIST_ERROR_RESPONSES, Meta
 from simcc.v2.schemas.query import as_query, forbid_unknown_params
 
 router = APIRouter(tags=['Analytics v2'])
@@ -50,13 +53,15 @@ def _get_analytics_client(
 @router.get(
     '/analytics',
     response_model=AnalyticsResponse,
+    responses=LIST_ERROR_RESPONSES,
     dependencies=[Depends(forbid_unknown_params(AnalyticsParams))],
 )
-def get_analytics_metrics(
+def get_analytics_metrics(  # noqa: PLR0914
     params: Annotated[AnalyticsParams, Depends(as_query(AnalyticsParams))],
     settings: Settings = Depends(get_settings),
 ) -> AnalyticsResponse:
     """Consulta métricas consolidadas do GA4."""
+    start_time = time.perf_counter()
     if not settings.GA4_PROPERTY_ID:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -149,7 +154,7 @@ def get_analytics_metrics(
 
         items.append(
             AnalyticsMetricItem(
-                date=date_val,
+                date=_parse_ga_date(date_val),
                 event_name=event_name_val,
                 country=country_val,
                 host_name=host_val,
@@ -166,4 +171,14 @@ def get_analytics_metrics(
             start_date=params.start_date,
             end_date=params.end_date,
         ),
+        meta=Meta(
+            took_ms=int((time.perf_counter() - start_time) * 1000),
+            cached=False,
+            timestamp=datetime.now(timezone.utc),
+        ),
     )
+
+
+def _parse_ga_date(value: str) -> date:
+    """O GA4 devolve datas como YYYYMMDD."""
+    return datetime.strptime(value, '%Y%m%d').date()

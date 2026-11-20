@@ -1,8 +1,11 @@
 """Schemas para o endpoint de métricas do Google Analytics 4 v2."""
 
+from datetime import date as date_type
 from typing import Optional
 
 from pydantic import BaseModel, Field
+
+from simcc.v2.schemas.envelope import Meta
 
 
 class AnalyticsParams(BaseModel):
@@ -33,7 +36,7 @@ class AnalyticsParams(BaseModel):
 
 
 class AnalyticsMetricItem(BaseModel):
-    date: str = Field(description='Data da ocorrência (formato YYYYMMDD)')
+    date: date_type = Field(description='Data da ocorrência (ISO 8601)')
     event_name: str = Field(description='Nome do evento registrado no GA4')
     country: str = Field(description='País de origem do acesso')
     host_name: str = Field(description='Host do site acessado')
@@ -57,3 +60,4 @@ class AnalyticsResponse(BaseModel):
         description='Lista de métricas detalhadas'
     )
     summary: AnalyticsSummary = Field(description='Resumo do período')
+    meta: Meta

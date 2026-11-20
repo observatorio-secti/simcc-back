@@ -54,29 +54,31 @@ def _order_clauses(
     """Define a ordenação dos artigos."""
     clauses: list[ColumnElement] = []
 
-    if sort.by == 'relevance' and tsq is not None:
+    if sort.sort_by == 'relevance' and tsq is not None:
         rank = func.ts_rank(a.c.search_vector, tsq)
-        clauses.append(rank.desc() if sort.order == 'desc' else rank.asc())
+        desc = sort.sort_order == 'desc'
+        clauses.append(rank.desc() if desc else rank.asc())
         clauses.append(a.c.citations_count.desc())
         clauses.append(a.c.year.desc().nulls_last())
-    elif sort.by == 'year':
+    elif sort.sort_by == 'year':
         col = (
             a.c.year.desc().nulls_last()
-            if sort.order == 'desc'
+            if sort.sort_order == 'desc'
             else a.c.year.asc().nulls_last()
         )
         clauses.append(col)
         clauses.append(a.c.citations_count.desc())
-    elif sort.by == 'citations':
+    elif sort.sort_by == 'citations':
         col = (
             a.c.citations_count.desc()
-            if sort.order == 'desc'
+            if sort.sort_order == 'desc'
             else a.c.citations_count.asc()
         )
         clauses.append(col)
         clauses.append(a.c.year.desc().nulls_last())
-    elif sort.by == 'title':
-        col = a.c.title.desc() if sort.order == 'desc' else a.c.title.asc()
+    elif sort.sort_by == 'title':
+        desc = sort.sort_order == 'desc'
+        col = a.c.title.desc() if desc else a.c.title.asc()
         clauses.append(col)
     else:
         # Fallback default

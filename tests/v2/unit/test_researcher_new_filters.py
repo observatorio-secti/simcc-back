@@ -61,6 +61,7 @@ async def test_identity_territory_selected_without_results_is_kept(
     assert response.json()['data'] == []
     facet = response.json()['facets']['identity_territory']
     assert facet == {
+        'param': 'identity_territory',
         'total': 0,
         'items': [
             {

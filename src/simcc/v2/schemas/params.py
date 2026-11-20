@@ -1,3 +1,4 @@
+import math
 from typing import Any, Literal, Optional
 
 from fastapi import HTTPException, Query, status
@@ -23,6 +24,23 @@ class Pagination(BaseModel):
     total_pages: int
     has_next: bool
     has_prev: bool
+
+
+def build_pagination(
+    params: 'PaginationParams', total_items: int
+) -> Pagination:
+    """Metadados de paginação a partir dos parâmetros e do total."""
+    total_pages = (
+        math.ceil(total_items / params.per_page) if total_items > 0 else 0
+    )
+    return Pagination(
+        page=params.page,
+        per_page=params.per_page,
+        total_items=total_items,
+        total_pages=total_pages,
+        has_next=params.page < total_pages,
+        has_prev=total_pages > 0 and 1 < params.page <= total_pages + 1,
+    )
 
 
 # Ordenações por pontuação da busca textual: exigem `q` e são `desc` por
@@ -57,6 +75,20 @@ ALLOWED_FACETS = {
     'area',
     'modality',
 }
+# Parâmetro de filtro de cada faceta, quando o nome difere. As demais
+# facetas usam o próprio nome como parâmetro.
+FACET_PARAMS: dict[str, str | list[str]] = {
+    'institution': 'institution_id',
+    'graduate_program': 'graduate_program_id',
+    'city': 'city_id',
+    'year': ['year_start', 'year_end'],
+}
+
+
+def facet_param(name: str) -> str | list[str]:
+    return FACET_PARAMS.get(name, name)
+
+
 FACETS_DESCRIPTION = (
     f'Lista de facets opt-in ({", ".join(sorted(ALLOWED_FACETS))})'
 )

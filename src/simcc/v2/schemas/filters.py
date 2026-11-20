@@ -153,12 +153,11 @@ KNOWN_RESEARCHER_PARAMS = frozenset().union(
 
 def validate_unknown_researcher_params(request: Request) -> None:
     """Valida se há parâmetros desconhecidos na query string."""
+    from simcc.v2.errors import unknown_parameter  # noqa: PLC0415
+
     for param_name in request.query_params:
         if param_name not in KNOWN_RESEARCHER_PARAMS:
-            raise HTTPException(
-                status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
-                detail=f"Parâmetro desconhecido: '{param_name}'",
-            )
+            raise unknown_parameter(param_name)
 
 
 def get_researcher_filter(
@@ -207,16 +206,3 @@ class ProductionFilter(BaseTemporalFilter):
     type: Optional[str] = None
     qualis: Optional[str] = None
     magazine: Optional[str] = None
-
-
-class InstitutionFilter(BaseFilter):
-    institution_id: Optional[UUID] = None
-    state: Optional[str] = None
-    city: Optional[str] = None
-
-
-class GraduateProgramFilter(BaseFilter):
-    institution_id: Optional[UUID] = None
-    area: Optional[str] = None
-    modality: Optional[str] = None
-    rating: Optional[str] = None

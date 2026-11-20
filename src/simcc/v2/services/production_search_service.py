@@ -2,7 +2,6 @@
 
 import time
 from collections.abc import Awaitable, Callable
-from datetime import datetime, timezone
 from typing import Optional, TypeVar
 
 from fastapi import HTTPException, status
@@ -13,8 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from simcc.v2.repositories import production_facets_repo
 from simcc.v2.schemas.params import PaginationParams
 from simcc.v2.schemas.production import ProductionBaseFilter, ProductionOptions
-from simcc.v2.schemas.researcher import Meta
-from simcc.v2.services import mv_refresh_service
+from simcc.v2.services.meta import build_meta
 from simcc.v2.services.search_cache import SearchCache
 
 ResponseT = TypeVar('ResponseT', bound=BaseModel)
@@ -66,7 +64,7 @@ async def search_production(  # noqa: PLR0913
             return response_model.model_validate({
                 **cached,
                 'filters_applied': filters,
-                'meta': _build_meta(start_time, cached=True),
+                'meta': await build_meta(session, start_time, cached=True),
             })
 
     response = await search(
@@ -80,7 +78,7 @@ async def search_production(  # noqa: PLR0913
             requested_facets=options.facets,
             limit=options.facet_limit,
         )
-    response.meta = _build_meta(start_time, cached=False)
+    response.meta = await build_meta(session, start_time, cached=False)
 
     if cache_key is not None:
         await cache.set(
@@ -97,12 +95,3 @@ def _sort_lists(dump: dict) -> dict:
         key: sorted(value) if isinstance(value, list) else value
         for key, value in dump.items()
     }
-
-
-def _build_meta(start_time: float, cached: bool) -> Meta:
-    return Meta(
-        took_ms=int((time.perf_counter() - start_time) * 1000),
-        cached=cached,
-        timestamp=datetime.now(timezone.utc),
-        data_as_of=mv_refresh_service.get_last_refresh_timestamp(),
-    )

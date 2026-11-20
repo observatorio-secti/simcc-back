@@ -207,21 +207,22 @@ def _order_clauses(
     """Define a ordenação dos registros."""
     clauses: list[ColumnElement] = []
 
-    if sort.by == 'relevance' and tsq is not None:
+    if sort.sort_by == 'relevance' and tsq is not None:
         rank = func.ts_rank(table.c.search_vector, tsq)
-        clauses.append(rank.desc() if sort.order == 'desc' else rank.asc())
+        desc = sort.sort_order == 'desc'
+        clauses.append(rank.desc() if desc else rank.asc())
         clauses.append(table.c.year.desc().nulls_last())
-    elif sort.by == 'year':
+    elif sort.sort_by == 'year':
         col = (
             table.c.year.desc().nulls_last()
-            if sort.order == 'desc'
+            if sort.sort_order == 'desc'
             else table.c.year.asc().nulls_last()
         )
         clauses.append(col)
-    elif sort.by == 'title':
+    elif sort.sort_by == 'title':
         col = (
             table.c.title.desc()
-            if sort.order == 'desc'
+            if sort.sort_order == 'desc'
             else table.c.title.asc()
         )
         clauses.append(col)

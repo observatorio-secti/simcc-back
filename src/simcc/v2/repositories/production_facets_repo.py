@@ -24,6 +24,7 @@ from simcc.v2.repositories.production_repo import (
 )
 from simcc.v2.repositories.researcher_facets_repo import rank_facet_values
 from simcc.v2.repositories.search_tables import mv_researcher_search
+from simcc.v2.schemas.params import facet_param
 from simcc.v2.schemas.production import (
     COMMON_PRODUCTION_FACETS,
     ProductionBaseFilter,
@@ -222,4 +223,5 @@ async def fetch_requested_facets(
             facets[name] = await _column_facet(
                 session, table, filters, limit, name
             )
+        facets[name].param = facet_param(name)
     return facets
