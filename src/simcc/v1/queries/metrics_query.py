@@ -275,11 +275,17 @@ class GraduateProgramProductionQuery(BaseQuery):
                 )
             """
 
+            gpr_distinct = """(
+                SELECT DISTINCT graduate_program_id, researcher_id
+                FROM graduate_program_researcher
+                WHERE graduate_program_id = :graduate_program_id
+            ) gpr"""
+
             bibliographic_queries = [
                 f"""
                 SELECT COUNT(gpr.graduate_program_id) AS qtd, '{prod}' AS type
                 FROM public.bibliographic_production b
-                JOIN graduate_program_researcher gpr ON b.researcher_id = gpr.researcher_id
+                JOIN {gpr_distinct} ON b.researcher_id = gpr.researcher_id
                 JOIN researcher r ON r.id = gpr.researcher_id
                 LEFT JOIN LATERAL (
                     SELECT i.acronym
@@ -298,7 +304,7 @@ class GraduateProgramProductionQuery(BaseQuery):
             SCRIPT_SQL = f"""
                 SELECT COUNT(gpr.graduate_program_id) AS qtd, 'PATENT' AS type
                 FROM patent p
-                JOIN graduate_program_researcher gpr ON gpr.researcher_id = p.researcher_id
+                JOIN {gpr_distinct} ON gpr.researcher_id = p.researcher_id
                 JOIN researcher r ON r.id = gpr.researcher_id
                 LEFT JOIN LATERAL (
                     SELECT i.acronym
@@ -314,7 +320,7 @@ class GraduateProgramProductionQuery(BaseQuery):
                 UNION
                 SELECT COUNT(gpr.graduate_program_id) AS qtd, 'SOFTWARE' AS type
                 FROM software s
-                JOIN graduate_program_researcher gpr ON gpr.researcher_id = s.researcher_id
+                JOIN {gpr_distinct} ON gpr.researcher_id = s.researcher_id
                 JOIN researcher r ON r.id = gpr.researcher_id
                 LEFT JOIN LATERAL (
                     SELECT i.acronym
@@ -330,7 +336,7 @@ class GraduateProgramProductionQuery(BaseQuery):
                 UNION
                 SELECT COUNT(gpr.graduate_program_id) AS qtd, 'BRAND' AS type
                 FROM brand b
-                JOIN graduate_program_researcher gpr ON gpr.researcher_id = b.researcher_id
+                JOIN {gpr_distinct} ON gpr.researcher_id = b.researcher_id
                 JOIN researcher r ON r.id = gpr.researcher_id
                 LEFT JOIN LATERAL (
                     SELECT i.acronym
@@ -348,7 +354,7 @@ class GraduateProgramProductionQuery(BaseQuery):
                 UNION
                 SELECT COUNT(*) AS qtd, r.graduation AS type
                 FROM researcher r
-                JOIN graduate_program_researcher gpr ON gpr.researcher_id = r.id
+                JOIN {gpr_distinct} ON gpr.researcher_id = r.id
                 LEFT JOIN LATERAL (
                     SELECT i.acronym
                     FROM researcher_institution ri
@@ -361,8 +367,8 @@ class GraduateProgramProductionQuery(BaseQuery):
                 GROUP BY r.graduation
             """
 
-            researcher_sql = """
-                SELECT COUNT(*) AS qtd FROM graduate_program_researcher gpr
+            researcher_sql = f"""
+                SELECT COUNT(*) AS qtd FROM {gpr_distinct}
                 JOIN researcher r ON gpr.researcher_id = r.id
                 LEFT JOIN LATERAL (
                     SELECT i.acronym

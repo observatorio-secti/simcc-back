@@ -30,3 +30,17 @@ def test_graduate_program_production_query_excludes_externa_general():
     assert "JOIN institution i ON ri.institution_id = i.id" in sql
     assert query.params['year'] == 2020
     assert "COALESCE(i.acronym, '') <> 'EXTERNA'" in query._researcher_sql
+
+
+def test_graduate_program_production_query_deduplicates_gpr_years():
+    query = GraduateProgramProductionQuery(session=None)
+    gp_id = uuid4()
+    filters = DefaultFilters(graduate_program_id=gp_id, year=1900)
+    query.apply_filters(filters)
+    sql = query.build_sql()
+
+    expected_distinct = 'SELECT DISTINCT graduate_program_id, researcher_id'
+    assert expected_distinct in sql
+    assert expected_distinct in query._researcher_sql
+    assert 'JOIN graduate_program_researcher gpr' not in sql
+    assert 'FROM graduate_program_researcher gpr' not in query._researcher_sql
