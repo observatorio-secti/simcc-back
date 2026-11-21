@@ -69,7 +69,7 @@ class BibliographicProductionArticle:
         init=False,
     )
     bibliographic_production_id: Mapped[UUID] = mapped_column(
-        ForeignKey('bibliographic_production.id'),
+        ForeignKey('bibliographic_production.id', ondelete='CASCADE'),
         unique=True,
     )
     periodical_magazine_id: Mapped[UUID] = mapped_column(
@@ -105,7 +105,7 @@ class BibliographicProductionBook:
         init=False,
     )
     bibliographic_production_id: Mapped[UUID] = mapped_column(
-        ForeignKey('bibliographic_production.id'),
+        ForeignKey('bibliographic_production.id', ondelete='CASCADE'),
         unique=True,
     )
     isbn: Mapped[Optional[str]] = mapped_column(String, default=None)
@@ -135,7 +135,7 @@ class BibliographicProductionBookChapter:
         init=False,
     )
     bibliographic_production_id: Mapped[UUID] = mapped_column(
-        ForeignKey('bibliographic_production.id'),
+        ForeignKey('bibliographic_production.id', ondelete='CASCADE'),
         unique=True,
     )
     book_title: Mapped[Optional[str]] = mapped_column(String, default=None)
@@ -439,7 +439,9 @@ class ResearchProjectComponents:
         server_default=text('gen_random_uuid()'),
         init=False,
     )
-    project_id: Mapped[UUID] = mapped_column(ForeignKey('research_project.id'))
+    project_id: Mapped[UUID] = mapped_column(
+        ForeignKey('research_project.id', ondelete='CASCADE')
+    )
     name: Mapped[Optional[str]] = mapped_column(String, default=None)
     lattes_id: Mapped[Optional[str]] = mapped_column(String, default=None)
     citations: Mapped[Optional[str]] = mapped_column(String, default=None)
@@ -458,7 +460,9 @@ class ResearchProjectFoment:
         server_default=text('gen_random_uuid()'),
         init=False,
     )
-    project_id: Mapped[UUID] = mapped_column(ForeignKey('research_project.id'))
+    project_id: Mapped[UUID] = mapped_column(
+        ForeignKey('research_project.id', ondelete='CASCADE')
+    )
     agency_name: Mapped[Optional[str]] = mapped_column(String, default=None)
     agency_code: Mapped[Optional[str]] = mapped_column(String, default=None)
     nature: Mapped[Optional[str]] = mapped_column(String, default=None)
@@ -469,7 +473,7 @@ class ResearchProjectProduction:
     __tablename__ = 'research_project_production'
 
     project_id: Mapped[UUID] = mapped_column(
-        ForeignKey('research_project.id'), primary_key=True
+        ForeignKey('research_project.id', ondelete='CASCADE'), primary_key=True
     )
     title: Mapped[Optional[str]] = mapped_column(Text, default=None)
     type: Mapped[Optional[str]] = mapped_column(String, default=None)
@@ -570,7 +574,8 @@ class BibliographicProductionWorkInEvent:
     __tablename__ = 'bibliographic_production_work_in_event'
 
     bibliographic_production_id: Mapped[UUID] = mapped_column(
-        ForeignKey('bibliographic_production.id'), primary_key=True
+        ForeignKey('bibliographic_production.id', ondelete='CASCADE'),
+        primary_key=True,
     )
     event_classification: Mapped[Optional[str]] = mapped_column(
         String, default=None
@@ -1057,7 +1062,7 @@ class ProcessAuthor:
         init=False,
     )
     process_id: Mapped[UUID] = mapped_column(
-        ForeignKey('process_or_technique.id')
+        ForeignKey('process_or_technique.id', ondelete='CASCADE')
     )
     full_name: Mapped[str] = mapped_column(String)
     citation_name: Mapped[Optional[str]] = mapped_column(String, default=None)
@@ -1076,7 +1081,7 @@ class ProcessKeyword:
         init=False,
     )
     process_id: Mapped[UUID] = mapped_column(
-        ForeignKey('process_or_technique.id')
+        ForeignKey('process_or_technique.id', ondelete='CASCADE')
     )
     keyword: Mapped[str] = mapped_column(Text)
     order: Mapped[Optional[int]] = mapped_column(Integer, default=None)
@@ -1093,7 +1098,7 @@ class ProcessKnowledgeArea:
         init=False,
     )
     process_id: Mapped[UUID] = mapped_column(
-        ForeignKey('process_or_technique.id')
+        ForeignKey('process_or_technique.id', ondelete='CASCADE')
     )
     major_area: Mapped[Optional[str]] = mapped_column(String, default=None)
     area_name: Mapped[Optional[str]] = mapped_column(String, default=None)
