@@ -200,3 +200,17 @@ def test_without_fields_resets_to_defaults():
     assert cleared.city_id == []
     assert cleared.year_end == 2022
     assert filter_obj.year_start == 2020  # original intacto
+
+
+def test_by_search_query_uses_decorrelated_union():
+    cond = _by_search_query(ResearcherFilter(q='saúde coletiva'))
+    sql = str(cond)
+    assert 'UNION' in sql
+    assert 'EXISTS' not in sql
+
+
+def test_by_source_type_uses_decorrelated_in():
+    cond = _by_source_type(ResearcherFilter(source_type=['ARTICLE']))
+    sql = str(cond)
+    assert 'IN (' in sql
+    assert 'EXISTS' not in sql
