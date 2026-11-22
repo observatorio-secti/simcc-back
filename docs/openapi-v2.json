@@ -93,6 +93,48 @@
         "title": "AnalyticsMetricItem",
         "type": "object"
       },
+      "AnalyticsPageMetric": {
+        "properties": {
+          "page_path": {
+            "description": "Caminho da página sem parâmetros",
+            "title": "Page Path",
+            "type": "string"
+          },
+          "page_views": {
+            "description": "Visualizações no período",
+            "title": "Page Views",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "page_path",
+          "page_views"
+        ],
+        "title": "AnalyticsPageMetric",
+        "type": "object"
+      },
+      "AnalyticsPagesResponse": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsPageMetric"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "total": {
+            "description": "Total de caminhos em todas as páginas",
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "total"
+        ],
+        "title": "AnalyticsPagesResponse",
+        "type": "object"
+      },
       "AnalyticsResponse": {
         "properties": {
           "data": {
@@ -7477,24 +7519,6 @@
             }
           },
           {
-            "description": "Filtro opcional pelo nome do evento (ex: 'page_view')",
-            "in": "query",
-            "name": "event_name",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Filtro opcional pelo nome do evento (ex: 'page_view')",
-              "title": "Event Name"
-            }
-          },
-          {
             "description": "Host/domínio a filtrar. Se omitido, utiliza a URL padrão do site",
             "in": "query",
             "name": "host_name",
@@ -7510,6 +7534,24 @@
               ],
               "description": "Host/domínio a filtrar. Se omitido, utiliza a URL padrão do site",
               "title": "Host Name"
+            }
+          },
+          {
+            "description": "Filtro opcional pelo nome do evento (ex: 'page_view')",
+            "in": "query",
+            "name": "event_name",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtro opcional pelo nome do evento (ex: 'page_view')",
+              "title": "Event Name"
             }
           }
         ],
@@ -7536,6 +7578,123 @@
           }
         },
         "summary": "Get Analytics Metrics",
+        "tags": [
+          "Analytics v2"
+        ]
+      }
+    },
+    "/analytics/pages": {
+      "get": {
+        "description": "Lista os caminhos de um sistema por visualizações no GA4.",
+        "operationId": "get_analytics_pages_analytics_pages_get",
+        "parameters": [
+          {
+            "description": "Data de início no formato YYYY-MM-DD ou relativo (ex: '30daysAgo', '7daysAgo')",
+            "in": "query",
+            "name": "start_date",
+            "required": false,
+            "schema": {
+              "default": "30daysAgo",
+              "description": "Data de início no formato YYYY-MM-DD ou relativo (ex: '30daysAgo', '7daysAgo')",
+              "title": "Start Date",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Data de término no formato YYYY-MM-DD ou relativo (ex: 'today', 'yesterday')",
+            "in": "query",
+            "name": "end_date",
+            "required": false,
+            "schema": {
+              "default": "today",
+              "description": "Data de término no formato YYYY-MM-DD ou relativo (ex: 'today', 'yesterday')",
+              "title": "End Date",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Host/domínio a filtrar. Se omitido, utiliza a URL padrão do site",
+            "in": "query",
+            "name": "host_name",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Host/domínio a filtrar. Se omitido, utiliza a URL padrão do site",
+              "title": "Host Name"
+            }
+          },
+          {
+            "description": "Sistema do Observatório a consultar",
+            "in": "query",
+            "name": "system",
+            "required": false,
+            "schema": {
+              "default": "simcc",
+              "description": "Sistema do Observatório a consultar",
+              "enum": [
+                "simcc",
+                "ictite",
+                "licuri"
+              ],
+              "title": "System",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Linhas por página",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 15,
+              "description": "Linhas por página",
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Posição da primeira linha",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "description": "Posição da primeira linha",
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsPagesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Parâmetros inválidos"
+          }
+        },
+        "summary": "Get Analytics Pages",
         "tags": [
           "Analytics v2"
         ]
