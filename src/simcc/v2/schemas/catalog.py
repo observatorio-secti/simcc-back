@@ -52,6 +52,23 @@ class InstitutionCounts(BaseModel):
     graduate_programs: int = Field(
         0, description='Programas de pós-graduação da instituição'
     )
+    scholarship_holders: int = Field(
+        0, description='Pesquisadores bolsistas vinculados à instituição'
+    )
+    research_groups: int = Field(
+        0, description='Grupos de pesquisa vinculados à instituição'
+    )
+    labs: int = Field(0, description='Laboratórios vinculados à instituição')
+
+
+class ScholarshipBreakdownItem(BaseModel):
+    modality: Optional[str] = Field(None, description='Modalidade da bolsa')
+    category_level: Optional[str] = Field(
+        None, description='Categoria/nível (ex.: 1A, 1B, 2)'
+    )
+    researchers: int = Field(
+        description='Quantidade distinta de pesquisadores bolsistas'
+    )
 
 
 class InstitutionDetail(InstitutionRef):
@@ -60,6 +77,10 @@ class InstitutionDetail(InstitutionRef):
     latitude: Optional[float] = Field(None, description='Latitude')
     longitude: Optional[float] = Field(None, description='Longitude')
     counts: InstitutionCounts = Field(default_factory=InstitutionCounts)
+    scholarships: list[ScholarshipBreakdownItem] = Field(
+        default_factory=list,
+        description='Detalhamento de bolsistas por modalidade e nível',
+    )
 
 
 class InstitutionListResponse(BaseModel):

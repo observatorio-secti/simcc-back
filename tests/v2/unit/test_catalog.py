@@ -4,6 +4,9 @@ from http import HTTPStatus
 import pytest
 
 from simcc.core import utils
+from simcc.core.db.models.miscellaneous import Labs
+from simcc.core.db.models.production import Foment
+from simcc.core.db.models.research_group import ResearchGroup
 from simcc.core.settings import Settings, get_settings
 
 
@@ -250,3 +253,141 @@ async def test_graduate_program_facets_including_city(
         item['value'] for item in filtered_body['facets']['city']['items']
     }
     assert {'Salvador', 'Feira de Santana'} <= filtered_cities
+
+
+@pytest.mark.asyncio
+async def test_institution_detail_scholarships_groups_and_labs(
+    client,
+    session,
+    institution_factory,
+    researcher_factory,
+    researcher_institution_factory,
+):
+    inst = await institution_factory(
+        name='Universidade Completa', acronym='UCOM'
+    )
+    other_inst = await institution_factory(
+        name='Outra Universidade', acronym='OUTR'
+    )
+
+    r1 = await researcher_factory(name='Pesquisadora PQ1A')
+    r2 = await researcher_factory(name='Pesquisador PQ2')
+    r3 = await researcher_factory(name='Pesquisador Sem Bolsa')
+    r_other = await researcher_factory(name='Pesquisador Externo')
+
+    await researcher_institution_factory(
+        researcher_id=r1.id, institution_id=inst.id
+    )
+    await researcher_institution_factory(
+        researcher_id=r2.id, institution_id=inst.id
+    )
+    await researcher_institution_factory(
+        researcher_id=r3.id, institution_id=inst.id
+    )
+    await researcher_institution_factory(
+        researcher_id=r_other.id, institution_id=other_inst.id
+    )
+
+    session.add_all([
+        # r1 tem duas bolsas em modalidades diferentes -> 1 bolsista único
+        Foment(
+            researcher_id=r1.id,
+            sequence_code=1,
+            modality_name='Produtividade em Pesquisa',
+            category_level_code='1A',
+        ),
+        Foment(
+            researcher_id=r1.id,
+            sequence_code=2,
+            modality_name='Desenvolvimento Tecnológico',
+            category_level_code='2',
+        ),
+        Foment(
+            researcher_id=r2.id,
+            sequence_code=1,
+            modality_name='Produtividade em Pesquisa',
+            category_level_code='2',
+        ),
+        # Bolsa de outra instituição não deve entrar
+        Foment(
+            researcher_id=r_other.id,
+            sequence_code=1,
+            modality_name='Produtividade em Pesquisa',
+            category_level_code='1A',
+        ),
+        # Grupos: 1º líder, 2º líder, ambos na inst (dedup), e outro fora
+        ResearchGroup(
+            name='Grupo A',
+            institution='UCOM',
+            first_leader_id=r1.id,
+        ),
+        ResearchGroup(
+            name='Grupo B',
+            institution='UCOM',
+            first_leader_id=r_other.id,
+            second_leader_id=r2.id,
+        ),
+        ResearchGroup(
+            name='Grupo C',
+            institution='UCOM',
+            first_leader_id=r1.id,
+            second_leader_id=r3.id,
+        ),
+        ResearchGroup(
+            name='Grupo Externo',
+            institution='OUTR',
+            first_leader_id=r_other.id,
+        ),
+        # Laboratórios
+        Labs(
+            hashed_id='lab-1',
+            type='Pesquisa',
+            name='Lab 1',
+            researcher_id=r1.id,
+            institution_id=inst.id,
+        ),
+        Labs(
+            hashed_id='lab-2',
+            type='Ensino',
+            name='Lab 2',
+            researcher_id=r2.id,
+            institution_id=inst.id,
+        ),
+        Labs(
+            hashed_id='lab-other',
+            type='Pesquisa',
+            name='Lab Externo',
+            researcher_id=r_other.id,
+            institution_id=other_inst.id,
+        ),
+    ])
+    await session.commit()
+
+    response = client.get(f'/v2/institution/{inst.id}')
+    assert response.status_code == HTTPStatus.OK
+    data = response.json()['data']
+
+    assert data['counts'] == {
+        'researchers': 3,
+        'graduate_programs': 0,
+        'scholarship_holders': 2,
+        'research_groups': 3,
+        'labs': 2,
+    }
+    assert data['scholarships'] == [
+        {
+            'modality': 'Desenvolvimento Tecnológico',
+            'category_level': '2',
+            'researchers': 1,
+        },
+        {
+            'modality': 'Produtividade em Pesquisa',
+            'category_level': '1A',
+            'researchers': 1,
+        },
+        {
+            'modality': 'Produtividade em Pesquisa',
+            'category_level': '2',
+            'researchers': 1,
+        },
+    ]

@@ -3,7 +3,7 @@
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, Select, func, or_, select
+from sqlalchemy import ColumnElement, Select, func, or_, select, union
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from simcc.core.db.models.graduate_program import (
@@ -12,6 +12,9 @@ from simcc.core.db.models.graduate_program import (
     ResearchLinesPrograms,
 )
 from simcc.core.db.models.institution import Institution
+from simcc.core.db.models.miscellaneous import Labs
+from simcc.core.db.models.production import Foment
+from simcc.core.db.models.research_group import ResearchGroup
 from simcc.core.db.models.researcher_institution import ResearcherInstitution
 from simcc.v2.repositories.researcher_facets_repo import rank_facet_values
 from simcc.v2.schemas.catalog import (
@@ -23,6 +26,7 @@ from simcc.v2.schemas.catalog import (
     InstitutionDetail,
     InstitutionFilter,
     ResearchLine,
+    ScholarshipBreakdownItem,
 )
 from simcc.v2.schemas.institution import InstitutionRef
 from simcc.v2.schemas.params import PaginationParams
@@ -104,10 +108,98 @@ async def fetch_institutions(
     return [InstitutionRef.from_row(row) for row in rows], total
 
 
+async def _fetch_institution_scholarships(
+    session: AsyncSession, institution_id: UUID
+) -> tuple[int, list[ScholarshipBreakdownItem]]:
+    """Total distinto de bolsistas e detalhamento por modalidade/nível."""
+    total_holders = (
+        await session.execute(
+            select(func.count(func.distinct(Foment.researcher_id)))
+            .join(
+                ResearcherInstitution,
+                ResearcherInstitution.researcher_id == Foment.researcher_id,
+            )
+            .where(ResearcherInstitution.institution_id == institution_id)
+        )
+    ).scalar() or 0
+
+    if total_holders == 0:
+        return 0, []
+
+    count_expr = func.count(func.distinct(Foment.researcher_id))
+    ri_join_cond = ResearcherInstitution.researcher_id == Foment.researcher_id
+    rows = (
+        (
+            await session.execute(
+                select(
+                    Foment.modality_name.label('modality'),
+                    Foment.category_level_code.label('category_level'),
+                    count_expr.label('researchers'),
+                )
+                .join(ResearcherInstitution, ri_join_cond)
+                .where(ResearcherInstitution.institution_id == institution_id)
+                .group_by(Foment.modality_name, Foment.category_level_code)
+                .order_by(
+                    count_expr.desc(),
+                    Foment.modality_name.asc().nulls_last(),
+                    Foment.category_level_code.asc().nulls_last(),
+                )
+            )
+        )
+        .mappings()
+        .all()
+    )
+    breakdown = [
+        ScholarshipBreakdownItem(
+            modality=row['modality'],
+            category_level=row['category_level'],
+            researchers=row['researchers'],
+        )
+        for row in rows
+    ]
+    return total_holders, breakdown
+
+
+async def _fetch_institution_research_groups_count(
+    session: AsyncSession, institution_id: UUID
+) -> int:
+    """Conta grupos de pesquisa cujos líderes são vinculados à instituição."""
+    inst_researchers = (
+        select(ResearcherInstitution.researcher_id)
+        .where(ResearcherInstitution.institution_id == institution_id)
+        .cte('inst_researchers')
+    )
+    by_first = select(ResearchGroup.id).join(
+        inst_researchers,
+        ResearchGroup.first_leader_id == inst_researchers.c.researcher_id,
+    )
+    by_second = select(ResearchGroup.id).join(
+        inst_researchers,
+        ResearchGroup.second_leader_id == inst_researchers.c.researcher_id,
+    )
+    groups_union = union(by_first, by_second).subquery()
+    return (
+        await session.execute(select(func.count()).select_from(groups_union))
+    ).scalar() or 0
+
+
+async def _fetch_institution_labs_count(
+    session: AsyncSession, institution_id: UUID
+) -> int:
+    """Conta laboratórios vinculados diretamente à instituição."""
+    return (
+        await session.execute(
+            select(func.count(Labs.id)).where(
+                Labs.institution_id == institution_id
+            )
+        )
+    ).scalar() or 0
+
+
 async def fetch_institution(
     session: AsyncSession, institution_id: UUID
 ) -> Optional[InstitutionDetail]:
-    """Detalhe da instituição com contagens, ou None."""
+    """Detalhe da instituição com contagens e bolsistas, ou None."""
     row = (
         (
             await session.execute(
@@ -143,6 +235,13 @@ async def fetch_institution(
             )
         )
     ).scalar() or 0
+    scholarship_holders, scholarships = await _fetch_institution_scholarships(
+        session, institution_id
+    )
+    research_groups = await _fetch_institution_research_groups_count(
+        session, institution_id
+    )
+    labs = await _fetch_institution_labs_count(session, institution_id)
 
     ref = InstitutionRef.from_row(row)
     return InstitutionDetail(
@@ -152,8 +251,13 @@ async def fetch_institution(
         latitude=row['latitude'],
         longitude=row['longitude'],
         counts=InstitutionCounts(
-            researchers=researchers, graduate_programs=programs
+            researchers=researchers,
+            graduate_programs=programs,
+            scholarship_holders=scholarship_holders,
+            research_groups=research_groups,
+            labs=labs,
         ),
+        scholarships=scholarships,
     )
 
 
