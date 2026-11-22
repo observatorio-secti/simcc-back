@@ -3,6 +3,9 @@ from http import HTTPStatus
 
 import pytest
 
+from simcc.core import utils
+from simcc.core.settings import Settings, get_settings
+
 
 @pytest.mark.asyncio
 async def test_list_institutions_pagination(client, institution_factory):
@@ -115,16 +118,61 @@ async def test_list_institutions_returns_institution_ref(
     body = client.get('/v2/institution?q=Catalogo').json()
     items = {item['acronym']: item for item in body['data']}
 
+    base_url = get_settings().storage_base_url
     assert items['CIMG'] == {
         'id': str(with_images.id),
         'name': 'Catalogo Com Imagem',
         'acronym': 'CIMG',
-        'image': '/storage/institutions/picture/CIMG.png',
-        'cover': '/storage/institutions/covers/CIMG.jpg',
+        'image': f'{base_url}/storage/institutions/picture/CIMG.png',
+        'cover': f'{base_url}/storage/institutions/covers/CIMG.jpg',
     }
     # Sem arquivo em disco, o logo cai para a coluna `institution.image`
     assert items['ISI']['image'] == 'https://example.com/isi.png'
     assert items['ISI']['cover'] is None
+
+
+@pytest.mark.asyncio
+async def test_institution_urls_use_configured_public_base(
+    client, institution_factory, institution_storage, monkeypatch
+):
+    institution_storage('UFRB')
+    inst = await institution_factory(name='UFRB', acronym='UFRB')
+
+    # Fallback para URL quando STORAGE_URL não está definida
+    dev_settings = Settings(
+        DATABASE_URL='postgresql+psycopg://u:p@localhost/db',
+        URL='http://localhost:8088/',
+        STORAGE_URL=None,
+    )
+    monkeypatch.setattr(utils, 'get_settings', lambda: dev_settings)
+    utils.get_institution_logo_url.cache_clear()
+    utils.get_institution_cover_url.cache_clear()
+
+    detail_dev = client.get(f'/v2/institution/{inst.id}').json()['data']
+    assert detail_dev['image'] == (
+        'http://localhost:8088/storage/institutions/picture/UFRB.png'
+    )
+    assert detail_dev['cover'] == (
+        'http://localhost:8088/storage/institutions/covers/UFRB.jpg'
+    )
+
+    # Sobrescrita via STORAGE_URL (CDN/S3 em produção)
+    prod_settings = Settings(
+        DATABASE_URL='postgresql+psycopg://u:p@localhost/db',
+        URL='https://api.observatorio.example/',
+        STORAGE_URL='https://cdn.observatorio.example/',
+    )
+    monkeypatch.setattr(utils, 'get_settings', lambda: prod_settings)
+    utils.get_institution_logo_url.cache_clear()
+    utils.get_institution_cover_url.cache_clear()
+
+    list_prod = client.get('/v2/institution?q=UFRB').json()['data']
+    assert list_prod[0]['image'] == (
+        'https://cdn.observatorio.example/storage/institutions/picture/UFRB.png'
+    )
+    assert list_prod[0]['cover'] == (
+        'https://cdn.observatorio.example/storage/institutions/covers/UFRB.jpg'
+    )
 
 
 @pytest.mark.asyncio

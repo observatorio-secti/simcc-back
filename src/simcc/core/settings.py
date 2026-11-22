@@ -1,3 +1,4 @@
+from functools import lru_cache
 from typing import Optional
 from urllib.parse import urlparse
 
@@ -9,6 +10,7 @@ class Settings(BaseSettings, extra='ignore'):
     DATABASE_URL: str
 
     URL: str = 'http://localhost:0000/'
+    STORAGE_URL: Optional[str] = None
     ROOT_PATH: str = Field(
         default='',
         validation_alias=AliasChoices(
@@ -50,6 +52,17 @@ class Settings(BaseSettings, extra='ignore'):
                 self.ROOT_PATH = path
         return self
 
+    @property
+    def storage_base_url(self) -> str:
+        """Base pública usada para compor URLs de arquivos em storage."""
+        base = self.STORAGE_URL or self.URL
+        return base.strip().rstrip('/')
+
     class Config:
         env_file = '.env'
         env_file_encoding = 'utf-8'
+
+
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()

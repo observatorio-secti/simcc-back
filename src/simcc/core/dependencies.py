@@ -1,4 +1,3 @@
-from functools import lru_cache
 from typing import Annotated
 
 from fastapi import Depends
@@ -9,14 +8,10 @@ from simcc.core.db.database import (
     get_async_session,
     get_sync_session,
 )
-from simcc.core.settings import Settings
+from simcc.core.settings import get_settings
 from simcc.v1.schemas import DefaultFilters
 
-
-@lru_cache
-def get_settings():
-    return Settings()
-
+__all__ = ['AsyncSession', 'Filters', 'Session', 'get_settings']
 
 AsyncSession = Annotated[_AsyncSession, Depends(get_async_session)]
 Session = Annotated[_Session, Depends(get_sync_session)]

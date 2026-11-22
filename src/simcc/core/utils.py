@@ -7,6 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from simcc.core.db.model import Researcher
+from simcc.core.settings import get_settings
 
 CNPQ_IMAGE_URL = (
     'http://servicosweb.cnpq.br/wspessoa/servletrecuperafoto?tipo=1&id='
@@ -88,19 +89,34 @@ def get_institution_cover_path(acronym: str | None) -> Path | None:
     return None
 
 
+def _build_institution_storage_url(
+    path: Path | None, subdir: str, base_url: str | None = None
+) -> str | None:
+    if not path:
+        return None
+    resolved_base = (
+        base_url.strip().rstrip('/')
+        if base_url is not None
+        else get_settings().storage_base_url
+    )
+    rel_path = f'/storage/institutions/{subdir}/{path.name}'
+    return f'{resolved_base}{rel_path}' if resolved_base else rel_path
+
+
 # Cacheado por processo: arquivos novos exigem reinício do servidor.
 @lru_cache(maxsize=256)
-def get_institution_logo_url(acronym: str | None) -> str | None:
-    path = get_institution_logo_path(acronym)
-    if path:
-        return f'/storage/institutions/picture/{path.name}'
-    return None
+def get_institution_logo_url(
+    acronym: str | None, base_url: str | None = None
+) -> str | None:
+    return _build_institution_storage_url(
+        get_institution_logo_path(acronym), 'picture', base_url
+    )
 
 
 @lru_cache(maxsize=256)
-def get_institution_cover_url(acronym: str | None) -> str | None:
-    path = get_institution_cover_path(acronym)
-    if path:
-        return f'/storage/institutions/covers/{path.name}'
-    return None
-
+def get_institution_cover_url(
+    acronym: str | None, base_url: str | None = None
+) -> str | None:
+    return _build_institution_storage_url(
+        get_institution_cover_path(acronym), 'covers', base_url
+    )
