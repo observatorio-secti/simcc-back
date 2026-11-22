@@ -72,10 +72,41 @@ def document_conditions(
     return conds
 
 
+_SEARCH_IN_WEIGHTS = {
+    'name': "'{a}'::\"char\"[]",
+    'abstract': "'{c}'::\"char\"[]",
+}
+
+
 def profile_counts(filters: ResearcherFilter) -> bool:
-    """O perfil (nome e resumo) só conta quando a busca não foi restrita a
-    tipos de obra."""
+    """O perfil (nome e resumo) conta quando `search_in` não é `all` ou
+    quando a busca não foi restrita a tipos de obra."""
+    if filters.search_in != 'all':
+        return True
     return not filters.source_type
+
+
+def documents_count(filters: ResearcherFilter) -> bool:
+    """Obras só contam na busca textual quando `search_in` é `all`."""
+    return filters.search_in == 'all'
+
+
+def profile_vector_for(filters: ResearcherFilter) -> ColumnElement:
+    """Vetor do perfil filtrado pelo peso correspondente a `search_in`."""
+    weight = _SEARCH_IN_WEIGHTS.get(filters.search_in)
+    if weight is None:
+        return r.c.profile_vector
+    return func.ts_filter(r.c.profile_vector, literal_column(weight))
+
+
+def profile_match(
+    filters: ResearcherFilter, tsq: ColumnElement
+) -> ColumnElement[bool]:
+    """Condição de casamento no perfil respeitando `search_in`."""
+    base = r.c.profile_vector.op('@@')(tsq)
+    if filters.search_in == 'all':
+        return base
+    return and_(base, profile_vector_for(filters).op('@@')(tsq))
 
 
 def _documents_exist(filters: ResearcherFilter) -> ColumnElement[bool]:
@@ -93,14 +124,17 @@ def _documents_exist(filters: ResearcherFilter) -> ColumnElement[bool]:
 def _by_search_query(
     filters: ResearcherFilter,
 ) -> Optional[ColumnElement[bool]]:
-    """Pesquisadores cujo perfil ou alguma obra casa com o termo."""
+    """Pesquisadores cujo perfil (ou alguma obra, se `search_in == 'all'`)
+    casa com o termo."""
     tsq = search_tsquery(filters)
     if tsq is None:
         return None
+    if not documents_count(filters):
+        return profile_match(filters, tsq)
     docs_match = _documents_exist(filters)
     if not profile_counts(filters):
         return docs_match
-    return or_(r.c.profile_vector.op('@@')(tsq), docs_match)
+    return or_(profile_match(filters, tsq), docs_match)
 
 
 def _by_source_type(

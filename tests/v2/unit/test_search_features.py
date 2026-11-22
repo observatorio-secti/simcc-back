@@ -90,7 +90,7 @@ async def test_full_text_search_production_document_and_matches(
     body = res.json()
     assert len(body['data']) == 1
     item = body['data'][0]
-    assert item['researcher_id'] == str(r1.id)
+    assert item['id'] == str(r1.id)
 
     # Valida estrutura de matches
     assert item['matches'] is not None
@@ -236,7 +236,7 @@ async def test_relevance_ranking_by_production_volume(
     assert body['sort']['by'] == 'relevance'
     assert body['sort']['order'] == 'desc'
 
-    ids = [item['researcher_id'] for item in body['data']]
+    ids = [item['id'] for item in body['data']]
     assert str(r_many.id) in ids
     assert str(r_few.id) in ids
     assert ids.index(str(r_many.id)) < ids.index(str(r_few.id))
@@ -280,7 +280,7 @@ async def test_matches_ranking_by_document_count(
     body = res.json()
     assert body['sort'] == {'by': 'matches', 'order': 'desc'}
 
-    ids = [item['researcher_id'] for item in body['data']]
+    ids = [item['id'] for item in body['data']]
     assert ids == [
         str(r_many.id),
         str(r_one_a.id),

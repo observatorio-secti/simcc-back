@@ -100,9 +100,9 @@ async def test_deterministic_pagination_with_duplicate_names(
     assert len(items_p3) == 1
 
     all_ids = (
-        [item['researcher_id'] for item in items_p1]
-        + [item['researcher_id'] for item in items_p2]
-        + [item['researcher_id'] for item in items_p3]
+        [item['id'] for item in items_p1]
+        + [item['id'] for item in items_p2]
+        + [item['id'] for item in items_p3]
     )
     # Ensure no duplicates and all 5 unique researchers are returned
     assert len(all_ids) == total
@@ -122,7 +122,7 @@ async def test_sort_by_id(client, researcher_factory):
     body_asc = res_asc.json()
     assert body_asc['sort']['by'] == 'id'
     assert body_asc['sort']['order'] == 'asc'
-    asc_ids = [item['researcher_id'] for item in body_asc['data']]
+    asc_ids = [item['id'] for item in body_asc['data']]
     expected_asc = sorted([str(r1.id), str(r2.id)])
     assert asc_ids == expected_asc
 
@@ -133,7 +133,7 @@ async def test_sort_by_id(client, researcher_factory):
     body_desc = res_desc.json()
     assert body_desc['sort']['by'] == 'id'
     assert body_desc['sort']['order'] == 'desc'
-    desc_ids = [item['researcher_id'] for item in body_desc['data']]
+    desc_ids = [item['id'] for item in body_desc['data']]
     expected_desc = sorted([str(r1.id), str(r2.id)], reverse=True)
     assert desc_ids == expected_desc
 
@@ -189,7 +189,7 @@ async def test_search_response_contract(client, researcher_factory):
     # Data contract
     assert isinstance(body['data'], list)
     assert len(body['data']) == 1
-    assert body['data'][0]['researcher_id'] == str(r.id)
+    assert body['data'][0]['id'] == str(r.id)
     assert body['data'][0]['name'] == 'Contract Test Researcher'
 
     # Pagination contract

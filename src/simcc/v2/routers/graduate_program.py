@@ -89,24 +89,18 @@ async def get_graduate_program(
     )
 
 
-for _path, _in_schema in (
-    ('/graduate-program', True),
-    ('/graduate_program', False),
-):
-    router.add_api_route(
-        _path,
-        list_graduate_programs,
-        methods=['GET'],
-        response_model=CatalogResponse,
-        responses=LIST_ERROR_RESPONSES,
-        dependencies=_LIST_DEPENDENCIES,
-        include_in_schema=_in_schema,
-    )
-    router.add_api_route(
-        f'{_path}/{{program_id}}',
-        get_graduate_program,
-        methods=['GET'],
-        response_model=DetailResponse[GraduateProgramDetail],
-        responses=ERROR_RESPONSES,
-        include_in_schema=_in_schema,
-    )
+router.add_api_route(
+    '/graduate-program',
+    list_graduate_programs,
+    methods=['GET'],
+    response_model=CatalogResponse,
+    responses=LIST_ERROR_RESPONSES,
+    dependencies=_LIST_DEPENDENCIES,
+)
+router.add_api_route(
+    '/graduate-program/{program_id}',
+    get_graduate_program,
+    methods=['GET'],
+    response_model=DetailResponse[GraduateProgramDetail],
+    responses=ERROR_RESPONSES,
+)

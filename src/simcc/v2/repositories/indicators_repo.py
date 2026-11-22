@@ -11,6 +11,7 @@ from sqlalchemy import (
     exists,
     func,
     literal_column,
+    or_,
     select,
     union_all,
 )
@@ -18,8 +19,11 @@ from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from simcc.core.db.models.graduate_program import GraduateProgramResearcher
-from simcc.core.db.models.institution import PeriodicalMagazine
+from simcc.core.db.models.graduate_program import (
+    GraduateProgram,
+    GraduateProgramResearcher,
+)
+from simcc.core.db.models.institution import Institution, PeriodicalMagazine
 from simcc.core.db.models.production import Foment
 from simcc.core.db.models.researcher import Researcher
 from simcc.core.db.models.researcher_institution import ResearcherInstitution
@@ -57,6 +61,8 @@ PRODUCTION_TABLES: dict[str, Table] = {
     'brand': search_tables.mv_canonical_brands,
     'guidance': search_tables.mv_canonical_guidance,
     'report': search_tables.mv_canonical_reports,
+    'magazine_text': search_tables.mv_canonical_magazine_texts,
+    'event_work': search_tables.mv_canonical_event_works,
 }
 
 
@@ -93,7 +99,13 @@ def _magazine_conditions(
     if filters.issn and 'issn' not in exclude:
         conds.append(m.issn.in_(filters.issn))
     if filters.qualis and 'qualis' not in exclude:
-        conds.append(m.qualis.in_([qualis_to_db(v) for v in filters.qualis]))
+        db_values = [qualis_to_db(v) for v in filters.qualis]
+        qualis_cond = m.qualis.in_(db_values)
+        if 'not_rated' in filters.qualis:
+            qualis_cond = or_(
+                qualis_cond, m.qualis.is_(None), func.trim(m.qualis) == ''
+            )
+        conds.append(qualis_cond)
     return conds
 
 
@@ -157,8 +169,10 @@ async def fetch_magazine_facets(
 ) -> dict[str, FacetResult]:
     facets = {}
     if 'qualis' in requested:
-        pairs = select(m.id, m.qualis.label('value')).where(
-            m.qualis.isnot(None),
+        normalized_qualis = func.coalesce(
+            func.nullif(func.trim(m.qualis), ''), 'SQ'
+        )
+        pairs = select(m.id, normalized_qualis.label('value')).where(
             *_magazine_conditions(filters, frozenset({'qualis'})),
         )
         facet = await rank_facet_values(
@@ -198,7 +212,7 @@ def _scholarship_conditions(
     conds = []
     if filters.researcher_id:
         conds.append(f.researcher_id.in_(filters.researcher_id))
-    if filters.institution_id:
+    if filters.institution_id and 'institution_id' not in exclude:
         ri = ResearcherInstitution
         conds.append(
             exists().where(
@@ -206,7 +220,7 @@ def _scholarship_conditions(
                 ri.institution_id.in_(filters.institution_id),
             )
         )
-    if filters.graduate_program_id:
+    if filters.graduate_program_id and 'graduate_program_id' not in exclude:
         gpr = GraduateProgramResearcher
         conds.append(
             exists().where(
@@ -270,15 +284,58 @@ async def fetch_scholarship_facets(
 ) -> dict[str, FacetResult]:
     facets = {}
     for name in requested:
-        column = _SCHOLARSHIP_COLUMNS[name]
-        pairs = select(f.id, column.label('value')).where(
-            column.isnot(None),
-            *_scholarship_conditions(filters, frozenset({name})),
-        )
-        facet = await rank_facet_values(
-            session, pairs, selected=getattr(filters, name), limit=limit
-        )
-        facet.param = name
+        if name == 'institution':
+            ri = ResearcherInstitution
+            pairs = (
+                select(f.id, ri.institution_id.label('value'))
+                .join(ri, ri.researcher_id == f.researcher_id)
+                .where(
+                    ri.institution_id.isnot(None),
+                    *_scholarship_conditions(
+                        filters, frozenset({'institution_id'})
+                    ),
+                )
+            )
+            facet = await rank_facet_values(
+                session,
+                pairs,
+                selected=filters.institution_id,
+                limit=limit,
+                entity=Institution,
+                entity_id=Institution.id,
+            )
+            facet.param = 'institution_id'
+        elif name == 'graduate_program':
+            gpr = GraduateProgramResearcher
+            pairs = (
+                select(f.id, gpr.graduate_program_id.label('value'))
+                .join(gpr, gpr.researcher_id == f.researcher_id)
+                .where(
+                    gpr.graduate_program_id.isnot(None),
+                    *_scholarship_conditions(
+                        filters, frozenset({'graduate_program_id'})
+                    ),
+                )
+            )
+            facet = await rank_facet_values(
+                session,
+                pairs,
+                selected=filters.graduate_program_id,
+                limit=limit,
+                entity=GraduateProgram,
+                entity_id=GraduateProgram.graduate_program_id,
+            )
+            facet.param = 'graduate_program_id'
+        else:
+            column = _SCHOLARSHIP_COLUMNS[name]
+            pairs = select(f.id, column.label('value')).where(
+                column.isnot(None),
+                *_scholarship_conditions(filters, frozenset({name})),
+            )
+            facet = await rank_facet_values(
+                session, pairs, selected=getattr(filters, name), limit=limit
+            )
+            facet.param = name
         facets[name] = facet
     return facets
 

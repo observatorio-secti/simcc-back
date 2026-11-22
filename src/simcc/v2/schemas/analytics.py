@@ -1,7 +1,7 @@
 """Schemas para o endpoint de métricas do Google Analytics 4 v2."""
 
 from datetime import date as date_type
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 

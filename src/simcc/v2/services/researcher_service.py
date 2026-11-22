@@ -44,14 +44,14 @@ async def _attach_affiliations(
         return
     affiliations_map = await researcher_repo.fetch_affiliations(
         session=session,
-        page_ids=[r.researcher_id for r in items],
+        page_ids=[r.id for r in items],
     )
     extra_counts = await researcher_repo.fetch_extra_counts(
-        session=session, page_ids=[r.researcher_id for r in items]
+        session=session, page_ids=[r.id for r in items]
     )
     for r in items:
-        r.affiliations = affiliations_map[r.researcher_id]
-        r.counts = r.counts.model_copy(update=extra_counts[r.researcher_id])
+        r.affiliations = affiliations_map[r.id]
+        r.counts = r.counts.model_copy(update=extra_counts[r.id])
 
 
 async def search_researchers(  # noqa: PLR0913
@@ -190,7 +190,7 @@ async def _run_search(
 
     # Inclusão de matches (evidências textuais nos documentos e perfil)
     if 'matches' in resolved_options.include and items:
-        page_ids = [r.researcher_id for r in items]
+        page_ids = [r.id for r in items]
         matches_map = await researcher_repo.fetch_matches(
             session=session,
             page_ids=page_ids,
@@ -198,8 +198,8 @@ async def _run_search(
             limit=resolved_options.matches_limit,
         )
         for r in items:
-            if r.researcher_id in matches_map:
-                r.matches = matches_map[r.researcher_id]
+            if r.id in matches_map:
+                r.matches = matches_map[r.id]
 
     # Cálculo dos facets opt-in
     facets = None
