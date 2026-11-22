@@ -3,7 +3,14 @@
 from typing import Any, Literal, Optional
 from uuid import UUID
 
-from pydantic import BaseModel, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    Field,
+    SerializeAsAny,
+    field_validator,
+    model_serializer,
+    model_validator,
+)
 
 from simcc.v2.schemas.base import V2Model
 from simcc.v2.schemas.envelope import Meta
@@ -225,13 +232,104 @@ class TermsResponse(BaseModel):
 # =========================================================================
 
 
+class ProductionMetricFilter(ProductionBaseFilter):
+    """Filtros aceitos por `GET /v2/metrics/production/{kind}`.
+
+    Reúne os filtros específicos dos tipos de produção; o roteador valida
+    quais campos pertencem ao `{kind}` informado.
+    """
+
+    qualis: list[QualisFilterValue] = Field(
+        default_factory=list,
+        description=(
+            'Estrato Qualis (A1...C) ou ausência (not_rated, '
+            'not_applicable). Aceita também SQ e NP (apenas article)'
+        ),
+    )
+    has_open_access: Optional[bool] = Field(
+        None,
+        description=(
+            'Filtrar apenas artigos com PDF em acesso aberto (article)'
+        ),
+    )
+    magazine_name: list[str] = Field(
+        default_factory=list,
+        description='Nome da revista/periódico (article)',
+    )
+    issn: list[str] = Field(
+        default_factory=list,
+        description='ISSN do periódico (article)',
+    )
+    category: list[str] = Field(
+        default_factory=list,
+        description='Categoria da patente (patent)',
+    )
+    granted: Optional[bool] = Field(
+        None,
+        description=(
+            'Apenas patentes concedidas (true) ou não (false) (patent)'
+        ),
+    )
+    nature: list[str] = Field(
+        default_factory=list,
+        description=(
+            'Natureza da produção (event, research-project, brand, '
+            'guidance, magazine-text, event-work)'
+        ),
+    )
+    type_participation: list[str] = Field(
+        default_factory=list,
+        description='Tipo de participação em evento (event)',
+    )
+    form_participation: list[str] = Field(
+        default_factory=list,
+        description='Forma de participação em evento (event)',
+    )
+    status: list[str] = Field(
+        default_factory=list,
+        description='Situação (research-project, guidance)',
+    )
+    type: list[str] = Field(
+        default_factory=list,
+        description='Tipo de orientação (guidance)',
+    )
+    event_classification: list[str] = Field(
+        default_factory=list,
+        description='Classificação do evento (event-work)',
+    )
+
+
 class SeriesPoint(BaseModel):
     period: int = Field(description='Ano')
     value: int = Field(description='Quantidade de produções no ano')
+    groups: Optional[dict[str, int]] = Field(
+        None,
+        description=(
+            'Quebra por valor da dimensão de agrupamento '
+            '(presente quando group_by é informado)'
+        ),
+    )
+
+    @model_serializer(mode='wrap')
+    def _omit_null_groups(self, handler: Any) -> dict[str, Any]:
+        data = handler(self)
+        if self.groups is None:
+            data.pop('groups', None)
+        return data
 
 
 class ProductionMetricResponse(BaseModel):
     kind: ProductionKind = Field(description='Tipo de produção contado')
+    group_by: Optional[str] = Field(
+        None, description='Dimensão de agrupamento aplicada'
+    )
     data: list[SeriesPoint] = Field(description='Série anual, ano crescente')
-    filters_applied: ProductionBaseFilter
+    filters_applied: SerializeAsAny[ProductionBaseFilter]
     meta: Meta
+
+    @model_serializer(mode='wrap')
+    def _omit_null_group_by(self, handler: Any) -> dict[str, Any]:
+        data = handler(self)
+        if self.group_by is None:
+            data.pop('group_by', None)
+        return data

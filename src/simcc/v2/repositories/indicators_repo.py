@@ -390,19 +390,80 @@ async def fetch_researcher_terms(
 # =========================================================================
 
 
+ALLOWED_GROUP_BY: dict[str, tuple[str, ...]] = {
+    'article': ('qualis',),
+    'guidance': ('nature', 'status'),
+    'event': ('nature', 'type_participation'),
+    'research_project': ('status', 'nature'),
+}
+
+
 async def fetch_production_series(
-    session: AsyncSession, kind: str, filters: ProductionBaseFilter
+    session: AsyncSession,
+    kind: str,
+    filters: ProductionBaseFilter,
+    group_by: Optional[str] = None,
 ) -> list[SeriesPoint]:
-    """Quantidade de produções por ano, com os filtros das listagens."""
+    """Quantidade de produções por ano, com os filtros das listagens.
+
+    Quando `group_by` é informado, agrega também a contagem por valor da
+    dimensão solicitada em `SeriesPoint.groups`.
+    """
     table = PRODUCTION_TABLES[kind]
-    stmt = (
-        select(table.c.year, func.count().label('n'))
-        .where(
-            table.c.year.isnot(None),
-            *build_production_conditions(table, filters, frozenset()),
+    period_col = (
+        table.c.start_year if kind == 'research_project' else table.c.year
+    )
+    conditions = [
+        period_col.isnot(None),
+        *build_production_conditions(table, filters, frozenset()),
+    ]
+
+    if group_by is None:
+        stmt = (
+            select(period_col.label('period'), func.count().label('n'))
+            .where(*conditions)
+            .group_by(period_col)
+            .order_by(period_col)
         )
-        .group_by(table.c.year)
-        .order_by(table.c.year)
+        rows = (await session.execute(stmt)).mappings().all()
+        return [
+            SeriesPoint(period=row['period'], value=row['n']) for row in rows
+        ]
+
+    group_col = table.c[group_by]
+    stmt = (
+        select(
+            period_col.label('period'),
+            group_col.label('group_val'),
+            func.count().label('n'),
+        )
+        .where(*conditions)
+        .group_by(period_col, group_col)
+        .order_by(period_col, group_col)
     )
     rows = (await session.execute(stmt)).mappings().all()
-    return [SeriesPoint(period=row['year'], value=row['n']) for row in rows]
+
+    by_period: dict[int, tuple[int, dict[str, int]]] = {}
+    for row in rows:
+        period = row['period']
+        count = row['n']
+        total, groups = by_period.setdefault(period, (0, {}))
+        total += count
+
+        raw_val = row['group_val']
+        if group_by == 'qualis':
+            key = qualis_from_db(raw_val)
+        elif raw_val:
+            key = str(raw_val)
+        else:
+            key = None
+
+        if key is not None and count > 0:
+            groups[key] = groups.get(key, 0) + count
+
+        by_period[period] = (total, groups)
+
+    return [
+        SeriesPoint(period=period, value=total, groups=groups)
+        for period, (total, groups) in by_period.items()
+    ]

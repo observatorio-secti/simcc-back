@@ -6029,48 +6029,7 @@
         "type": "object"
       },
       "ProductionMetricResponse": {
-        "properties": {
-          "data": {
-            "description": "Série anual, ano crescente",
-            "items": {
-              "$ref": "#/components/schemas/SeriesPoint"
-            },
-            "title": "Data",
-            "type": "array"
-          },
-          "filters_applied": {
-            "$ref": "#/components/schemas/ProductionBaseFilter"
-          },
-          "kind": {
-            "description": "Tipo de produção contado",
-            "enum": [
-              "article",
-              "book",
-              "book_chapter",
-              "software",
-              "patent",
-              "event",
-              "research_project",
-              "brand",
-              "guidance",
-              "report",
-              "magazine_text",
-              "event_work"
-            ],
-            "title": "Kind",
-            "type": "string"
-          },
-          "meta": {
-            "$ref": "#/components/schemas/Meta"
-          }
-        },
-        "required": [
-          "kind",
-          "data",
-          "filters_applied",
-          "meta"
-        ],
-        "title": "ProductionMetricResponse",
+        "additionalProperties": true,
         "type": "object"
       },
       "ProfessionalExperience": {
@@ -7971,23 +7930,7 @@
         "type": "object"
       },
       "SeriesPoint": {
-        "properties": {
-          "period": {
-            "description": "Ano",
-            "title": "Period",
-            "type": "integer"
-          },
-          "value": {
-            "description": "Quantidade de produções no ano",
-            "title": "Value",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "period",
-          "value"
-        ],
-        "title": "SeriesPoint",
+        "additionalProperties": true,
         "type": "object"
       },
       "SoftwareDetail": {
@@ -9367,16 +9310,14 @@
     },
     "/metrics/production/{kind}": {
       "get": {
-        "description": "Série anual de produções de um tipo, com os mesmos filtros de\n`/v2/production/{kind}`.",
+        "description": "Série anual de produções de um tipo, com os mesmos filtros de\n`/v2/production/{kind}` e agrupamento opcional (`group_by`).",
         "operationId": "get_production_metric_metrics_production__kind__get",
         "parameters": [
           {
-            "description": "Tipo de produção",
             "in": "path",
             "name": "kind",
             "required": true,
             "schema": {
-              "description": "Tipo de produção",
               "enum": [
                 "article",
                 "book",
@@ -9393,6 +9334,24 @@
               ],
               "title": "Kind",
               "type": "string"
+            }
+          },
+          {
+            "description": "Dimensão para quebra por categoria dentro de cada ano (ex.: qualis em article; nature/status em guidance; nature/type_participation em event; status/nature em research-project)",
+            "in": "query",
+            "name": "group_by",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Dimensão para quebra por categoria dentro de cada ano (ex.: qualis em article; nature/status em guidance; nature/type_participation em event; status/nature em research-project)",
+              "title": "Group By"
             }
           },
           {
@@ -9555,6 +9514,206 @@
                 "type": "string"
               },
               "title": "Collection",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Estrato Qualis (A1...C) ou ausência (not_rated, not_applicable). Aceita também SQ e NP (apenas article)",
+            "in": "query",
+            "name": "qualis",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Estrato Qualis (A1...C) ou ausência (not_rated, not_applicable). Aceita também SQ e NP (apenas article)",
+              "items": {
+                "enum": [
+                  "A1",
+                  "A2",
+                  "A3",
+                  "A4",
+                  "B1",
+                  "B2",
+                  "B3",
+                  "B4",
+                  "B5",
+                  "C",
+                  "not_rated",
+                  "not_applicable"
+                ],
+                "type": "string"
+              },
+              "title": "Qualis",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Filtrar apenas artigos com PDF em acesso aberto (article)",
+            "in": "query",
+            "name": "has_open_access",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtrar apenas artigos com PDF em acesso aberto (article)",
+              "title": "Has Open Access"
+            }
+          },
+          {
+            "description": "Nome da revista/periódico (article)",
+            "in": "query",
+            "name": "magazine_name",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Nome da revista/periódico (article)",
+              "items": {
+                "type": "string"
+              },
+              "title": "Magazine Name",
+              "type": "array"
+            }
+          },
+          {
+            "description": "ISSN do periódico (article)",
+            "in": "query",
+            "name": "issn",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "ISSN do periódico (article)",
+              "items": {
+                "type": "string"
+              },
+              "title": "Issn",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Categoria da patente (patent)",
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Categoria da patente (patent)",
+              "items": {
+                "type": "string"
+              },
+              "title": "Category",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Apenas patentes concedidas (true) ou não (false) (patent)",
+            "in": "query",
+            "name": "granted",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Apenas patentes concedidas (true) ou não (false) (patent)",
+              "title": "Granted"
+            }
+          },
+          {
+            "description": "Natureza da produção (event, research-project, brand, guidance, magazine-text, event-work)",
+            "in": "query",
+            "name": "nature",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Natureza da produção (event, research-project, brand, guidance, magazine-text, event-work)",
+              "items": {
+                "type": "string"
+              },
+              "title": "Nature",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Tipo de participação em evento (event)",
+            "in": "query",
+            "name": "type_participation",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Tipo de participação em evento (event)",
+              "items": {
+                "type": "string"
+              },
+              "title": "Type Participation",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Forma de participação em evento (event)",
+            "in": "query",
+            "name": "form_participation",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Forma de participação em evento (event)",
+              "items": {
+                "type": "string"
+              },
+              "title": "Form Participation",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Situação (research-project, guidance)",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Situação (research-project, guidance)",
+              "items": {
+                "type": "string"
+              },
+              "title": "Status",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Tipo de orientação (guidance)",
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Tipo de orientação (guidance)",
+              "items": {
+                "type": "string"
+              },
+              "title": "Type",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Classificação do evento (event-work)",
+            "in": "query",
+            "name": "event_classification",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Classificação do evento (event-work)",
+              "items": {
+                "type": "string"
+              },
+              "title": "Event Classification",
               "type": "array"
             }
           }

@@ -53,3 +53,15 @@ Precisam ser publicadas junto com a versão do front que as consome.
 - Novas MVs: `mv_canonical_brands`, `mv_canonical_guidance`, `mv_canonical_reports` (migração `a1c4e7f2b9d3`). **A rotina de refresh do ETL precisa incluí-las**, na ordem de `SEARCH_MATERIALIZED_VIEWS` (`src/simcc/v2/services/mv_refresh_service.py`), e gravar `mv_refresh_metadata`, de onde sai o `data_as_of`.
 - O cache de busca no Redis mudou de versão (`SCHEMA_VERSION = 4`): as entradas antigas deixam de ser lidas no deploy, sem limpeza manual.
 - CI: os testes rodam também em PR para `develop` e `main`; o deploy roda só em push na `main`.
+
+## 2026-11-22 — Agrupamento (`group_by`) em `/v2/metrics/production/{kind}`
+
+### Acréscimos (não quebram)
+
+- `/v2/metrics/production/{kind}` passa a aceitar o query param opcional `group_by`:
+  - `article`: `qualis` (`A1`…`C`, `not_rated`, `not_applicable`)
+  - `guidance`: `nature`, `status`
+  - `event`: `nature`, `type_participation`
+  - `research-project`: `status`, `nature` (usando `start_year` como `period`)
+- Quando `group_by` é informado, `ProductionMetricResponse` inclui `group_by` e cada item de `data` inclui `groups` (`Record<string, number>`, omitindo chaves com contagem `0`). Quando omitido, o payload permanece idêntico ao contrato anterior.
+- `/v2/metrics/production/{kind}` passa a aceitar os filtros específicos de cada `{kind}` já existentes em `/v2/production/{kind}` (ex.: `qualis` em `article`, `nature` e `status` em `guidance`).
