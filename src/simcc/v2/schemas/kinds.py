@@ -23,6 +23,8 @@ ProductionKind = Literal[
     'brand',
     'guidance',
     'report',
+    'magazine_text',
+    'event_work',
 ]
 
 # Origens de evidência na busca de pesquisadores (`mv_search_documents`)
@@ -65,6 +67,8 @@ _INPUT_ALIASES = {
     'area': 'area_specialty',
     'book-chapter': 'book_chapter',
     'research-project': 'research_project',
+    'magazine-text': 'magazine_text',
+    'event-work': 'event_work',
 }
 
 

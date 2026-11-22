@@ -62,7 +62,7 @@ async def test_list_graduate_programs_pagination(
         acronym='PPMEC',
     )
 
-    response = client.get('/v2/graduate_program?page=1&per_page=10')
+    response = client.get('/v2/graduate-program?page=1&per_page=10')
     assert response.status_code == HTTPStatus.OK
     body = response.json()
     assert 'data' in body
@@ -85,13 +85,13 @@ async def test_search_graduate_programs_by_query(
         name='Doutorado em Biotecnologia', acronym='DBIOT'
     )
 
-    res_acronym = client.get('/v2/graduate_program?q=MEEL')
+    res_acronym = client.get('/v2/graduate-program?q=MEEL')
     assert res_acronym.status_code == HTTPStatus.OK
     body = res_acronym.json()
     assert len(body['data']) == 1
     assert body['data'][0]['acronym'] == 'MEEL'
 
-    res_name = client.get('/v2/graduate_program?q=Biotecnologia')
+    res_name = client.get('/v2/graduate-program?q=Biotecnologia')
     assert res_name.status_code == HTTPStatus.OK
     body_name = res_name.json()
     assert len(body_name['data']) == 1

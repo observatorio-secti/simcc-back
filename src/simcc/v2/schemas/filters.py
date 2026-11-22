@@ -43,6 +43,13 @@ class ResearcherFilter(BaseTemporalFilter):
         None,
         description='Busca textual no perfil (nome e resumo) e nas produções',
     )
+    search_in: Literal['all', 'name', 'abstract'] = Field(
+        'all',
+        description=(
+            'Escopo da busca textual (`q`): `all` (perfil e produções), '
+            '`name` (somente nome) ou `abstract` (somente resumo)'
+        ),
+    )
     year_start: Optional[int] = Field(
         None, description='Ano inicial de produção'
     )

@@ -8,13 +8,13 @@ from sqlalchemy import text
 
 @pytest.mark.asyncio
 async def test_validation_invalid_sort_by(client):
-    response = client.get('/v2/production/article?by=invalid_column')
+    response = client.get('/v2/production/article?sort_by=invalid_column')
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.asyncio
 async def test_validation_invalid_sort_order(client):
-    response = client.get('/v2/production/article?order=sideways')
+    response = client.get('/v2/production/article?sort_order=sideways')
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 

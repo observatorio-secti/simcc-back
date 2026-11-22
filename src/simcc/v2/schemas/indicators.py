@@ -106,7 +106,7 @@ class Magazine(V2Model):
         data = dict(data)
         rank, status = parse_qualis(data.get('qualis'))
         data['qualis'] = rank
-        data.setdefault('qualis_status', status)
+        data.setdefault('qualis_status', status or ('not_rated' if rank is None else None))
         data['jcr'] = parse_jcr(data.get('jcr'))
         return data
 
@@ -124,7 +124,12 @@ class MagazineListResponse(BaseModel):
 # Bolsistas
 # =========================================================================
 
-SCHOLARSHIP_FACETS = ('modality', 'category_level')
+SCHOLARSHIP_FACETS = (
+    'institution',
+    'graduate_program',
+    'modality',
+    'category_level',
+)
 
 
 class ScholarshipFilter(BaseModel):
@@ -157,7 +162,11 @@ class ScholarshipSort(BaseModel):
 
 class ScholarshipOptions(BaseModel):
     facets: list[str] = Field(
-        default=[], description='Facets opt-in (modality, category_level)'
+        default=[],
+        description=(
+            'Facets opt-in (institution, graduate_program, modality, '
+            'category_level)'
+        ),
     )
     facet_limit: int = Field(20, ge=1, le=100)
 

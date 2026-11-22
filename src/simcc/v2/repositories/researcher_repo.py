@@ -30,7 +30,10 @@ from simcc.v2.repositories.highlight import (
 from simcc.v2.repositories.researcher_filters import (
     build_researcher_conditions,
     document_conditions,
+    documents_count,
     profile_counts,
+    profile_match,
+    profile_vector_for,
     search_tsquery,
 )
 from simcc.v2.repositories.search_tables import (
@@ -86,6 +89,8 @@ def _relevance_score(
     stmt: Select, filters: ResearcherFilter, tsq
 ) -> tuple[Select, ColumnElement]:
     """Perfil × 1.5 + melhor obra + ln(obras que contam + 1)."""
+    if not documents_count(filters):
+        return stmt, func.ts_rank(profile_vector_for(filters), tsq) * 1.5
     docs = _document_matches(filters, with_rank=True)
     stmt = stmt.outerjoin(docs, docs.c.researcher_id == r.c.researcher_id)
     doc_relevance = func.coalesce(docs.c.best, 0.0) + func.ln(
@@ -93,7 +98,10 @@ def _relevance_score(
     )
     if not profile_counts(filters):
         return stmt, doc_relevance
-    return stmt, func.ts_rank(r.c.profile_vector, tsq) * 1.5 + doc_relevance
+    return (
+        stmt,
+        func.ts_rank(profile_vector_for(filters), tsq) * 1.5 + doc_relevance,
+    )
 
 
 def _matches_score(
@@ -254,29 +262,31 @@ async def fetch_matches(
         *document_conditions(filters),
     ]
 
-    candidates = select(
-        d.c.researcher_id,
-        d.c.source_type,
-        d.c.source_id,
-        d.c.title,
-        d.c.year_,
-        func.ts_rank(d.c.search_vector, tsq).label('rank'),
-    ).where(*doc_conds)
-    if profile_counts(filters):
-        candidates = union_all(
-            candidates,
-            select(
-                r.c.researcher_id,
-                literal('PROFILE').label('source_type'),
-                r.c.researcher_id.label('source_id'),
-                r.c.name.label('title'),
-                null().cast(Integer).label('year_'),
-                func.ts_rank(r.c.profile_vector, tsq).label('rank'),
-            ).where(
-                r.c.researcher_id.in_(page_ids),
-                r.c.profile_vector.op('@@')(tsq),
-            ),
-        )
+    profile_candidates = select(
+        r.c.researcher_id,
+        literal('PROFILE').label('source_type'),
+        r.c.researcher_id.label('source_id'),
+        r.c.name.label('title'),
+        null().cast(Integer).label('year_'),
+        func.ts_rank(profile_vector_for(filters), tsq).label('rank'),
+    ).where(
+        r.c.researcher_id.in_(page_ids),
+        profile_match(filters, tsq),
+    )
+
+    if not documents_count(filters):
+        candidates = profile_candidates
+    else:
+        candidates = select(
+            d.c.researcher_id,
+            d.c.source_type,
+            d.c.source_id,
+            d.c.title,
+            d.c.year_,
+            func.ts_rank(d.c.search_vector, tsq).label('rank'),
+        ).where(*doc_conds)
+        if profile_counts(filters):
+            candidates = union_all(candidates, profile_candidates)
     candidates = candidates.subquery()
 
     ranked = select(
@@ -313,14 +323,16 @@ async def fetch_matches(
         .where(ranked.c.position <= limit)
         .order_by(ranked.c.researcher_id, ranked.c.position)
     )
-    counts_stmt = (
-        select(d.c.researcher_id, d.c.source_type, func.count().label('n'))
-        .where(*doc_conds)
-        .group_by(d.c.researcher_id, d.c.source_type)
-    )
-
     items_rows = (await session.execute(items_stmt)).mappings().all()
-    counts_rows = (await session.execute(counts_stmt)).mappings().all()
+    if documents_count(filters):
+        counts_stmt = (
+            select(d.c.researcher_id, d.c.source_type, func.count().label('n'))
+            .where(*doc_conds)
+            .group_by(d.c.researcher_id, d.c.source_type)
+        )
+        counts_rows = (await session.execute(counts_stmt)).mappings().all()
+    else:
+        counts_rows = []
 
     by_type_map: dict[UUID, dict[str, int]] = {pid: {} for pid in page_ids}
     for row in counts_rows:

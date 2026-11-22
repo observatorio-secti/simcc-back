@@ -18,8 +18,10 @@ from simcc.v2.repositories.search_tables import (
     mv_canonical_book_chapters,
     mv_canonical_books,
     mv_canonical_brands,
+    mv_canonical_event_works,
     mv_canonical_events,
     mv_canonical_guidance,
+    mv_canonical_magazine_texts,
     mv_canonical_patents,
     mv_canonical_reports,
     mv_canonical_research_projects,
@@ -47,10 +49,18 @@ from simcc.v2.schemas.production import (
     EventFilter,
     EventSearchResponse,
     EventSummary,
+    EventWorkDetail,
+    EventWorkFilter,
+    EventWorkSearchResponse,
+    EventWorkSummary,
     GuidanceDetail,
     GuidanceFilter,
     GuidanceSearchResponse,
     GuidanceSummary,
+    MagazineTextDetail,
+    MagazineTextFilter,
+    MagazineTextSearchResponse,
+    MagazineTextSummary,
     PatentDetail,
     PatentFilter,
     PatentSearchResponse,
@@ -779,4 +789,64 @@ async def get_report_detail(
         report_id,
         ReportDetail,
         'Relatório técnico',
+    )
+
+
+async def search_magazine_texts(
+    session: AsyncSession,
+    filters: Optional[MagazineTextFilter] = None,
+    pagination: Optional[PaginationParams] = None,
+    sort: Optional[ProductionSort] = None,
+) -> MagazineTextSearchResponse:
+    return await _search_simple(
+        session,
+        mv_canonical_magazine_texts,
+        filters or MagazineTextFilter(),
+        pagination or PaginationParams(),
+        sort or ProductionSort(),
+        MagazineTextSummary,
+        MagazineTextSearchResponse,
+        secondary_col='title_en',
+    )
+
+
+async def get_magazine_text_detail(
+    session: AsyncSession, text_id: UUID | str
+) -> MagazineTextDetail:
+    return await _get_simple(
+        session,
+        mv_canonical_magazine_texts,
+        text_id,
+        MagazineTextDetail,
+        'Texto em revista',
+    )
+
+
+async def search_event_works(
+    session: AsyncSession,
+    filters: Optional[EventWorkFilter] = None,
+    pagination: Optional[PaginationParams] = None,
+    sort: Optional[ProductionSort] = None,
+) -> EventWorkSearchResponse:
+    return await _search_simple(
+        session,
+        mv_canonical_event_works,
+        filters or EventWorkFilter(),
+        pagination or PaginationParams(),
+        sort or ProductionSort(),
+        EventWorkSummary,
+        EventWorkSearchResponse,
+        secondary_col='event_name',
+    )
+
+
+async def get_event_work_detail(
+    session: AsyncSession, work_id: UUID | str
+) -> EventWorkDetail:
+    return await _get_simple(
+        session,
+        mv_canonical_event_works,
+        work_id,
+        EventWorkDetail,
+        'Trabalho em evento',
     )

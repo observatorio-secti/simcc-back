@@ -27,6 +27,8 @@ SEARCH_MATERIALIZED_VIEWS = [
     'mv_canonical_brands',
     'mv_canonical_guidance',
     'mv_canonical_reports',
+    'mv_canonical_magazine_texts',
+    'mv_canonical_event_works',
 ]
 
 

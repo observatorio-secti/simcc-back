@@ -93,6 +93,48 @@
         "title": "AnalyticsMetricItem",
         "type": "object"
       },
+      "AnalyticsPageMetric": {
+        "properties": {
+          "page_path": {
+            "description": "Caminho da página sem parâmetros",
+            "title": "Page Path",
+            "type": "string"
+          },
+          "page_views": {
+            "description": "Visualizações no período",
+            "title": "Page Views",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "page_path",
+          "page_views"
+        ],
+        "title": "AnalyticsPageMetric",
+        "type": "object"
+      },
+      "AnalyticsPagesResponse": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AnalyticsPageMetric"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "total": {
+            "description": "Total de caminhos em todas as páginas",
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "data",
+          "total"
+        ],
+        "title": "AnalyticsPagesResponse",
+        "type": "object"
+      },
       "AnalyticsResponse": {
         "properties": {
           "data": {
@@ -1947,6 +1989,22 @@
         "title": "DetailResponse[EventDetail]",
         "type": "object"
       },
+      "DetailResponse_EventWorkDetail_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/EventWorkDetail"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "DetailResponse[EventWorkDetail]",
+        "type": "object"
+      },
       "DetailResponse_GraduateProgramDetail_": {
         "properties": {
           "data": {
@@ -1993,6 +2051,22 @@
           "meta"
         ],
         "title": "DetailResponse[InstitutionDetail]",
+        "type": "object"
+      },
+      "DetailResponse_MagazineTextDetail_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MagazineTextDetail"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "DetailResponse[MagazineTextDetail]",
         "type": "object"
       },
       "DetailResponse_Magazine_": {
@@ -2664,6 +2738,574 @@
           "id"
         ],
         "title": "EventSummary",
+        "type": "object"
+      },
+      "EventWorkDetail": {
+        "description": "Dossiê detalhado de trabalho publicado em evento.",
+        "properties": {
+          "all_authors_raw": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Lista bruta de autores",
+            "title": "All Authors Raw"
+          },
+          "end_page": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Página final",
+            "title": "End Page"
+          },
+          "event_city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cidade do evento",
+            "title": "Event City"
+          },
+          "event_classification": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Classificação do evento",
+            "title": "Event Classification"
+          },
+          "event_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Nome do evento",
+            "title": "Event Name"
+          },
+          "event_year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ano do evento",
+            "title": "Event Year"
+          },
+          "homepage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "URL do trabalho",
+            "title": "Homepage"
+          },
+          "id": {
+            "description": "ID canônico do trabalho em evento",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "isbn": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "ISBN dos anais",
+            "title": "Isbn"
+          },
+          "issue": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Fascículo",
+            "title": "Issue"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Idioma",
+            "title": "Language"
+          },
+          "matches": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ArticleMatch"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Matches",
+            "title": "Matches"
+          },
+          "means_divulgation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Meio de divulgação",
+            "title": "Means Divulgation"
+          },
+          "nature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Natureza do trabalho",
+            "title": "Nature"
+          },
+          "platform_authors": {
+            "description": "Autores da plataforma",
+            "items": {
+              "$ref": "#/components/schemas/ResearcherRef"
+            },
+            "title": "Platform Authors",
+            "type": "array"
+          },
+          "proceedings_title": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Título dos anais",
+            "title": "Proceedings Title"
+          },
+          "publisher_city": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Cidade da editora",
+            "title": "Publisher City"
+          },
+          "publisher_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Editora",
+            "title": "Publisher Name"
+          },
+          "relevance": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Produção relevante",
+            "title": "Relevance"
+          },
+          "scientific_divulgation": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Divulgação científica",
+            "title": "Scientific Divulgation"
+          },
+          "series": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Série",
+            "title": "Series"
+          },
+          "start_page": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Página inicial",
+            "title": "Start Page"
+          },
+          "title": {
+            "description": "Título do trabalho",
+            "title": "Title",
+            "type": "string"
+          },
+          "title_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Título em inglês",
+            "title": "Title En"
+          },
+          "volume": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Volume",
+            "title": "Volume"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ano de publicação",
+            "title": "Year"
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "EventWorkDetail",
+        "type": "object"
+      },
+      "EventWorkFilter": {
+        "description": "Filtros para busca de trabalhos em eventos.",
+        "properties": {
+          "area": {
+            "description": "Grande Área do Conhecimento dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "Area",
+            "type": "array"
+          },
+          "city_id": {
+            "description": "IDs das cidades de vínculo dos autores da plataforma",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "City Id",
+            "type": "array"
+          },
+          "collection": {
+            "description": "Slugs das coleções (sem filtro por padrão). Use 'all' ou '*' para buscar em todas as coleções",
+            "items": {
+              "type": "string"
+            },
+            "title": "Collection",
+            "type": "array"
+          },
+          "event_classification": {
+            "description": "Classificação do evento",
+            "items": {
+              "type": "string"
+            },
+            "title": "Event Classification",
+            "type": "array"
+          },
+          "graduate_program_id": {
+            "description": "Filtrar por IDs de programas de pós-graduação",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Graduate Program Id",
+            "type": "array"
+          },
+          "identity_territory": {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "Identity Territory",
+            "type": "array"
+          },
+          "institution_id": {
+            "description": "Filtrar por IDs de instituições",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Institution Id",
+            "type": "array"
+          },
+          "nature": {
+            "description": "Natureza do trabalho",
+            "items": {
+              "type": "string"
+            },
+            "title": "Nature",
+            "type": "array"
+          },
+          "q": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Termo para busca textual",
+            "title": "Q"
+          },
+          "researcher_id": {
+            "description": "Filtrar por IDs de pesquisadores da plataforma",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Researcher Id",
+            "type": "array"
+          },
+          "year_end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ano final",
+            "title": "Year End"
+          },
+          "year_start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ano inicial",
+            "title": "Year Start"
+          }
+        },
+        "title": "EventWorkFilter",
+        "type": "object"
+      },
+      "EventWorkSearchResponse": {
+        "description": "Resposta paginada da busca de trabalhos em eventos.",
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/EventWorkSummary"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "facets": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/FacetResult"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facets"
+          },
+          "filters_applied": {
+            "$ref": "#/components/schemas/EventWorkFilter"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/Sort"
+          }
+        },
+        "required": [
+          "data",
+          "pagination",
+          "filters_applied",
+          "sort",
+          "meta"
+        ],
+        "title": "EventWorkSearchResponse",
+        "type": "object"
+      },
+      "EventWorkSummary": {
+        "description": "Card resumido de trabalho publicado em evento.",
+        "properties": {
+          "event_classification": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Classificação do evento",
+            "title": "Event Classification"
+          },
+          "event_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Nome do evento",
+            "title": "Event Name"
+          },
+          "id": {
+            "description": "ID canônico do trabalho em evento",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "matches": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ArticleMatch"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Matches",
+            "title": "Matches"
+          },
+          "nature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Natureza do trabalho",
+            "title": "Nature"
+          },
+          "platform_authors": {
+            "description": "Autores da plataforma",
+            "items": {
+              "$ref": "#/components/schemas/ResearcherRef"
+            },
+            "title": "Platform Authors",
+            "type": "array"
+          },
+          "title": {
+            "description": "Título do trabalho",
+            "title": "Title",
+            "type": "string"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ano de publicação",
+            "title": "Year"
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "EventWorkSummary",
         "type": "object"
       },
       "FacetItem": {
@@ -4272,6 +4914,410 @@
         "title": "MagazineRef",
         "type": "object"
       },
+      "MagazineTextDetail": {
+        "description": "Dossiê detalhado de texto em jornal ou revista.",
+        "properties": {
+          "all_authors_raw": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Lista bruta de autores",
+            "title": "All Authors Raw"
+          },
+          "homepage": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "URL do texto",
+            "title": "Homepage"
+          },
+          "id": {
+            "description": "ID canônico do texto",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Idioma",
+            "title": "Language"
+          },
+          "matches": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ArticleMatch"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Matches",
+            "title": "Matches"
+          },
+          "means_divulgation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Meio de divulgação",
+            "title": "Means Divulgation"
+          },
+          "nature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Natureza do texto",
+            "title": "Nature"
+          },
+          "platform_authors": {
+            "description": "Autores da plataforma",
+            "items": {
+              "$ref": "#/components/schemas/ResearcherRef"
+            },
+            "title": "Platform Authors",
+            "type": "array"
+          },
+          "relevance": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Produção relevante",
+            "title": "Relevance"
+          },
+          "scientific_divulgation": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Divulgação científica",
+            "title": "Scientific Divulgation"
+          },
+          "title": {
+            "description": "Título do texto",
+            "title": "Title",
+            "type": "string"
+          },
+          "title_en": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Título em inglês",
+            "title": "Title En"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ano de publicação",
+            "title": "Year"
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "MagazineTextDetail",
+        "type": "object"
+      },
+      "MagazineTextFilter": {
+        "description": "Filtros para busca de textos em jornal ou revista.",
+        "properties": {
+          "area": {
+            "description": "Grande Área do Conhecimento dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "Area",
+            "type": "array"
+          },
+          "city_id": {
+            "description": "IDs das cidades de vínculo dos autores da plataforma",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "City Id",
+            "type": "array"
+          },
+          "collection": {
+            "description": "Slugs das coleções (sem filtro por padrão). Use 'all' ou '*' para buscar em todas as coleções",
+            "items": {
+              "type": "string"
+            },
+            "title": "Collection",
+            "type": "array"
+          },
+          "graduate_program_id": {
+            "description": "Filtrar por IDs de programas de pós-graduação",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Graduate Program Id",
+            "type": "array"
+          },
+          "identity_territory": {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "Identity Territory",
+            "type": "array"
+          },
+          "institution_id": {
+            "description": "Filtrar por IDs de instituições",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Institution Id",
+            "type": "array"
+          },
+          "nature": {
+            "description": "Natureza do texto",
+            "items": {
+              "type": "string"
+            },
+            "title": "Nature",
+            "type": "array"
+          },
+          "q": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Termo para busca textual",
+            "title": "Q"
+          },
+          "researcher_id": {
+            "description": "Filtrar por IDs de pesquisadores da plataforma",
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Researcher Id",
+            "type": "array"
+          },
+          "year_end": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ano final",
+            "title": "Year End"
+          },
+          "year_start": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ano inicial",
+            "title": "Year Start"
+          }
+        },
+        "title": "MagazineTextFilter",
+        "type": "object"
+      },
+      "MagazineTextSearchResponse": {
+        "description": "Resposta paginada da busca de textos em jornal ou revista.",
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/MagazineTextSummary"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "facets": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "$ref": "#/components/schemas/FacetResult"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Facets"
+          },
+          "filters_applied": {
+            "$ref": "#/components/schemas/MagazineTextFilter"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/Sort"
+          }
+        },
+        "required": [
+          "data",
+          "pagination",
+          "filters_applied",
+          "sort",
+          "meta"
+        ],
+        "title": "MagazineTextSearchResponse",
+        "type": "object"
+      },
+      "MagazineTextSummary": {
+        "description": "Card resumido de texto em jornal ou revista.",
+        "properties": {
+          "id": {
+            "description": "ID canônico do texto",
+            "format": "uuid",
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Idioma",
+            "title": "Language"
+          },
+          "matches": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/ArticleMatch"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Matches",
+            "title": "Matches"
+          },
+          "means_divulgation": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Meio de divulgação",
+            "title": "Means Divulgation"
+          },
+          "nature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Natureza do texto",
+            "title": "Nature"
+          },
+          "platform_authors": {
+            "description": "Autores da plataforma",
+            "items": {
+              "$ref": "#/components/schemas/ResearcherRef"
+            },
+            "title": "Platform Authors",
+            "type": "array"
+          },
+          "title": {
+            "description": "Título do texto",
+            "title": "Title",
+            "type": "string"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Ano de publicação",
+            "title": "Year"
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "MagazineTextSummary",
+        "type": "object"
+      },
       "MatchItem": {
         "examples": [
           {
@@ -5007,7 +6053,9 @@
               "research_project",
               "brand",
               "guidance",
-              "report"
+              "report",
+              "magazine_text",
+              "event_work"
             ],
             "title": "Kind",
             "type": "string"
@@ -6276,12 +7324,6 @@
           "identifiers": {
             "$ref": "#/components/schemas/ResearcherIdentifiers"
           },
-          "image": {
-            "deprecated": true,
-            "description": "Obsoleto: caminho relativo da foto; use `image_url`",
-            "title": "Image",
-            "type": "string"
-          },
           "image_url": {
             "description": "URL absoluta da foto do pesquisador",
             "title": "Image Url",
@@ -6311,21 +7353,12 @@
             },
             "title": "Research Groups",
             "type": "array"
-          },
-          "researcher_id": {
-            "deprecated": true,
-            "description": "Obsoleto: use `id`",
-            "format": "uuid",
-            "title": "Researcher Id",
-            "type": "string"
           }
         },
         "required": [
           "id",
-          "researcher_id",
           "name",
           "image_url",
-          "image",
           "identifiers"
         ],
         "title": "ResearcherDetail",
@@ -6441,6 +7474,17 @@
             },
             "title": "Researcher Id",
             "type": "array"
+          },
+          "search_in": {
+            "default": "all",
+            "description": "Escopo da busca textual (`q`): `all` (perfil e produções), `name` (somente nome) ou `abstract` (somente resumo)",
+            "enum": [
+              "all",
+              "name",
+              "abstract"
+            ],
+            "title": "Search In",
+            "type": "string"
           },
           "source_type": {
             "description": "Tipos de produção considerados. Com `q`, restringe as obras que podem casar com a busca; sem `q`, exige ao menos uma obra desses tipos",
@@ -6622,12 +7666,6 @@
             "title": "Id",
             "type": "string"
           },
-          "image": {
-            "deprecated": true,
-            "description": "Obsoleto: caminho relativo da foto; use `image_url`",
-            "title": "Image",
-            "type": "string"
-          },
           "image_url": {
             "description": "URL absoluta da foto do pesquisador",
             "title": "Image Url",
@@ -6659,21 +7697,12 @@
           "name": {
             "title": "Name",
             "type": "string"
-          },
-          "researcher_id": {
-            "deprecated": true,
-            "description": "Obsoleto: use `id`",
-            "format": "uuid",
-            "title": "Researcher Id",
-            "type": "string"
           }
         },
         "required": [
           "id",
-          "researcher_id",
           "name",
-          "image_url",
-          "image"
+          "image_url"
         ],
         "title": "ResearcherSummary",
         "type": "object"
@@ -7477,24 +8506,6 @@
             }
           },
           {
-            "description": "Filtro opcional pelo nome do evento (ex: 'page_view')",
-            "in": "query",
-            "name": "event_name",
-            "required": false,
-            "schema": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "null"
-                }
-              ],
-              "description": "Filtro opcional pelo nome do evento (ex: 'page_view')",
-              "title": "Event Name"
-            }
-          },
-          {
             "description": "Host/domínio a filtrar. Se omitido, utiliza a URL padrão do site",
             "in": "query",
             "name": "host_name",
@@ -7510,6 +8521,24 @@
               ],
               "description": "Host/domínio a filtrar. Se omitido, utiliza a URL padrão do site",
               "title": "Host Name"
+            }
+          },
+          {
+            "description": "Filtro opcional pelo nome do evento (ex: 'page_view')",
+            "in": "query",
+            "name": "event_name",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filtro opcional pelo nome do evento (ex: 'page_view')",
+              "title": "Event Name"
             }
           }
         ],
@@ -7536,6 +8565,123 @@
           }
         },
         "summary": "Get Analytics Metrics",
+        "tags": [
+          "Analytics v2"
+        ]
+      }
+    },
+    "/analytics/pages": {
+      "get": {
+        "description": "Lista os caminhos de um sistema por visualizações no GA4.",
+        "operationId": "get_analytics_pages_analytics_pages_get",
+        "parameters": [
+          {
+            "description": "Data de início no formato YYYY-MM-DD ou relativo (ex: '30daysAgo', '7daysAgo')",
+            "in": "query",
+            "name": "start_date",
+            "required": false,
+            "schema": {
+              "default": "30daysAgo",
+              "description": "Data de início no formato YYYY-MM-DD ou relativo (ex: '30daysAgo', '7daysAgo')",
+              "title": "Start Date",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Data de término no formato YYYY-MM-DD ou relativo (ex: 'today', 'yesterday')",
+            "in": "query",
+            "name": "end_date",
+            "required": false,
+            "schema": {
+              "default": "today",
+              "description": "Data de término no formato YYYY-MM-DD ou relativo (ex: 'today', 'yesterday')",
+              "title": "End Date",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Host/domínio a filtrar. Se omitido, utiliza a URL padrão do site",
+            "in": "query",
+            "name": "host_name",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Host/domínio a filtrar. Se omitido, utiliza a URL padrão do site",
+              "title": "Host Name"
+            }
+          },
+          {
+            "description": "Sistema do Observatório a consultar",
+            "in": "query",
+            "name": "system",
+            "required": false,
+            "schema": {
+              "default": "simcc",
+              "description": "Sistema do Observatório a consultar",
+              "enum": [
+                "simcc",
+                "ictite",
+                "licuri"
+              ],
+              "title": "System",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Linhas por página",
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 15,
+              "description": "Linhas por página",
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Posição da primeira linha",
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "description": "Posição da primeira linha",
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalyticsPagesResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Parâmetros inválidos"
+          }
+        },
+        "summary": "Get Analytics Pages",
         "tags": [
           "Analytics v2"
         ]
@@ -8241,7 +9387,9 @@
                 "research-project",
                 "brand",
                 "guidance",
-                "report"
+                "report",
+                "magazine-text",
+                "event-work"
               ],
               "title": "Kind",
               "type": "string"
@@ -10192,6 +11340,368 @@
         ]
       }
     },
+    "/production/event-work": {
+      "get": {
+        "operationId": "list_event_work_production_event_work_get",
+        "parameters": [
+          {
+            "description": "Termo para busca textual",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Termo para busca textual",
+              "title": "Q"
+            }
+          },
+          {
+            "description": "Ano inicial",
+            "in": "query",
+            "name": "year_start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Ano inicial",
+              "title": "Year Start"
+            }
+          },
+          {
+            "description": "Ano final",
+            "in": "query",
+            "name": "year_end",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Ano final",
+              "title": "Year End"
+            }
+          },
+          {
+            "description": "Filtrar por IDs de pesquisadores da plataforma",
+            "in": "query",
+            "name": "researcher_id",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Filtrar por IDs de pesquisadores da plataforma",
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "title": "Researcher Id",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Filtrar por IDs de instituições",
+            "in": "query",
+            "name": "institution_id",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Filtrar por IDs de instituições",
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "title": "Institution Id",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Filtrar por IDs de programas de pós-graduação",
+            "in": "query",
+            "name": "graduate_program_id",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Filtrar por IDs de programas de pós-graduação",
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "title": "Graduate Program Id",
+              "type": "array"
+            }
+          },
+          {
+            "description": "IDs das cidades de vínculo dos autores da plataforma",
+            "in": "query",
+            "name": "city_id",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "IDs das cidades de vínculo dos autores da plataforma",
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "title": "City Id",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "in": "query",
+            "name": "identity_territory",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "Identity Territory",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Grande Área do Conhecimento dos autores da plataforma",
+            "in": "query",
+            "name": "area",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Grande Área do Conhecimento dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "Area",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Slugs das coleções (sem filtro por padrão). Use 'all' ou '*' para buscar em todas as coleções",
+            "in": "query",
+            "name": "collection",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Slugs das coleções (sem filtro por padrão). Use 'all' ou '*' para buscar em todas as coleções",
+              "items": {
+                "type": "string"
+              },
+              "title": "Collection",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Natureza do trabalho",
+            "in": "query",
+            "name": "nature",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Natureza do trabalho",
+              "items": {
+                "type": "string"
+              },
+              "title": "Nature",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Classificação do evento",
+            "in": "query",
+            "name": "event_classification",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Classificação do evento",
+              "items": {
+                "type": "string"
+              },
+              "title": "Event Classification",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Número da página",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "description": "Número da página",
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Itens por página",
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Itens por página",
+              "title": "Per Page",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Campo para ordenação",
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "relevance",
+              "description": "Campo para ordenação",
+              "enum": [
+                "relevance",
+                "year",
+                "title"
+              ],
+              "title": "Sort By",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Direção da ordenação (asc/desc)",
+            "in": "query",
+            "name": "sort_order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "description": "Direção da ordenação (asc/desc)",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "title": "Sort Order",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+            "in": "query",
+            "name": "facets",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+              "items": {
+                "type": "string"
+              },
+              "title": "Facets",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Número máximo de valores por facet",
+            "in": "query",
+            "name": "facet_limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Número máximo de valores por facet",
+              "title": "Facet Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventWorkSearchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Parâmetros inválidos"
+          }
+        },
+        "summary": "Busca e listagem paginada de trabalhos em eventos",
+        "tags": [
+          "Produções v2"
+        ]
+      }
+    },
+    "/production/event-work/{item_id}": {
+      "get": {
+        "operationId": "get_event_work_production_event_work__item_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailResponse_EventWorkDetail_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Recurso não encontrado"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Parâmetros inválidos"
+          }
+        },
+        "summary": "Detalhe de trabalhos em eventos",
+        "tags": [
+          "Produções v2"
+        ]
+      }
+    },
     "/production/event/{event_id}": {
       "get": {
         "description": "Retorna detalhes de uma participação em evento pelo ID canônico.",
@@ -10617,6 +12127,353 @@
           }
         },
         "summary": "Detalhe de orientações",
+        "tags": [
+          "Produções v2"
+        ]
+      }
+    },
+    "/production/magazine-text": {
+      "get": {
+        "operationId": "list_magazine_text_production_magazine_text_get",
+        "parameters": [
+          {
+            "description": "Termo para busca textual",
+            "in": "query",
+            "name": "q",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Termo para busca textual",
+              "title": "Q"
+            }
+          },
+          {
+            "description": "Ano inicial",
+            "in": "query",
+            "name": "year_start",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Ano inicial",
+              "title": "Year Start"
+            }
+          },
+          {
+            "description": "Ano final",
+            "in": "query",
+            "name": "year_end",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Ano final",
+              "title": "Year End"
+            }
+          },
+          {
+            "description": "Filtrar por IDs de pesquisadores da plataforma",
+            "in": "query",
+            "name": "researcher_id",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Filtrar por IDs de pesquisadores da plataforma",
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "title": "Researcher Id",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Filtrar por IDs de instituições",
+            "in": "query",
+            "name": "institution_id",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Filtrar por IDs de instituições",
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "title": "Institution Id",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Filtrar por IDs de programas de pós-graduação",
+            "in": "query",
+            "name": "graduate_program_id",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Filtrar por IDs de programas de pós-graduação",
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "title": "Graduate Program Id",
+              "type": "array"
+            }
+          },
+          {
+            "description": "IDs das cidades de vínculo dos autores da plataforma",
+            "in": "query",
+            "name": "city_id",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "IDs das cidades de vínculo dos autores da plataforma",
+              "items": {
+                "format": "uuid",
+                "type": "string"
+              },
+              "title": "City Id",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "in": "query",
+            "name": "identity_territory",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "Identity Territory",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Grande Área do Conhecimento dos autores da plataforma",
+            "in": "query",
+            "name": "area",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Grande Área do Conhecimento dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "Area",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Slugs das coleções (sem filtro por padrão). Use 'all' ou '*' para buscar em todas as coleções",
+            "in": "query",
+            "name": "collection",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Slugs das coleções (sem filtro por padrão). Use 'all' ou '*' para buscar em todas as coleções",
+              "items": {
+                "type": "string"
+              },
+              "title": "Collection",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Natureza do texto",
+            "in": "query",
+            "name": "nature",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Natureza do texto",
+              "items": {
+                "type": "string"
+              },
+              "title": "Nature",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Número da página",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "description": "Número da página",
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Itens por página",
+            "in": "query",
+            "name": "per_page",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Itens por página",
+              "title": "Per Page",
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Campo para ordenação",
+            "in": "query",
+            "name": "sort_by",
+            "required": false,
+            "schema": {
+              "default": "relevance",
+              "description": "Campo para ordenação",
+              "enum": [
+                "relevance",
+                "year",
+                "title"
+              ],
+              "title": "Sort By",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Direção da ordenação (asc/desc)",
+            "in": "query",
+            "name": "sort_order",
+            "required": false,
+            "schema": {
+              "default": "desc",
+              "description": "Direção da ordenação (asc/desc)",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "title": "Sort Order",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+            "in": "query",
+            "name": "facets",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+              "items": {
+                "type": "string"
+              },
+              "title": "Facets",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Número máximo de valores por facet",
+            "in": "query",
+            "name": "facet_limit",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "description": "Número máximo de valores por facet",
+              "title": "Facet Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MagazineTextSearchResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Parâmetros inválidos"
+          }
+        },
+        "summary": "Busca e listagem paginada de textos em revista",
+        "tags": [
+          "Produções v2"
+        ]
+      }
+    },
+    "/production/magazine-text/{item_id}": {
+      "get": {
+        "operationId": "get_magazine_text_production_magazine_text__item_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailResponse_MagazineTextDetail_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Recurso não encontrado"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Parâmetros inválidos"
+          }
+        },
+        "summary": "Detalhe de textos em revista",
         "tags": [
           "Produções v2"
         ]
@@ -12079,6 +13936,23 @@
             }
           },
           {
+            "description": "Escopo da busca textual (`q`): `all` (perfil e produções), `name` (somente nome) ou `abstract` (somente resumo)",
+            "in": "query",
+            "name": "search_in",
+            "required": false,
+            "schema": {
+              "default": "all",
+              "description": "Escopo da busca textual (`q`): `all` (perfil e produções), `name` (somente nome) ou `abstract` (somente resumo)",
+              "enum": [
+                "all",
+                "name",
+                "abstract"
+              ],
+              "title": "Search In",
+              "type": "string"
+            }
+          },
+          {
             "description": "IDs dos pesquisadores",
             "in": "query",
             "name": "researcher_id",
@@ -12728,13 +14602,13 @@
             }
           },
           {
-            "description": "Facets opt-in (modality, category_level)",
+            "description": "Facets opt-in (institution, graduate_program, modality, category_level)",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Facets opt-in (modality, category_level)",
+              "description": "Facets opt-in (institution, graduate_program, modality, category_level)",
               "items": {
                 "type": "string"
               },

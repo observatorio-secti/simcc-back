@@ -54,10 +54,10 @@ async def test_researcher_has_id_and_absolute_image_url(
     item = client.get('/v2/researcher?q=Identificador').json()['data'][0]
 
     assert item['id'] == str(researcher.id)
-    assert item['researcher_id'] == item['id']
+    assert 'researcher_id' not in item
     assert item['image_url'].startswith('http')
     assert item['image_url'].endswith(f'/v2/researcher/{researcher.id}/image')
-    assert item['image'] == f'/v2/researcher/{researcher.id}/image'
+    assert 'image' not in item
 
 
 @pytest.mark.asyncio
@@ -81,15 +81,15 @@ async def test_detail_uses_data_meta_envelope(client, researcher_factory):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    'query', ['sort_by=year&sort_order=asc', 'by=year&order=asc']
-)
-async def test_production_sort_accepts_new_and_legacy_names(client, query):
-    response = client.get(f'/v2/production/book?{query}')
+async def test_production_sort_accepts_sort_by_and_rejects_legacy_by(client):
+    response = client.get('/v2/production/book?sort_by=year&sort_order=asc')
 
     assert response.status_code == HTTPStatus.OK, response.text
     assert response.json()['sort'] == {'by': 'year', 'order': 'asc'}
     assert response.json()['filters_applied'] is not None
+
+    legacy = client.get('/v2/production/book?by=year&order=asc')
+    assert legacy.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 
 @pytest.mark.asyncio
@@ -167,10 +167,12 @@ async def test_graduate_program_hyphen_path_alias_facets_and_detail(
     await session.commit()
 
     new = client.get('/v2/graduate-program?q=PHIF&facets=modality').json()
-    old = client.get('/v2/graduate_program?q=PHIF').json()
-    assert new['data'] == old['data']
+    assert len(new['data']) == 1
     assert new['data'][0]['modality'] == 'Profissional'
     assert new['facets']['modality']['param'] == 'modality'
+    assert client.get('/v2/graduate_program?q=PHIF').status_code == (
+        HTTPStatus.NOT_FOUND
+    )
 
     detail = client.get(
         f'/v2/graduate-program/{gp.graduate_program_id}'
@@ -180,12 +182,12 @@ async def test_graduate_program_hyphen_path_alias_facets_and_detail(
 
 
 @pytest.mark.asyncio
-async def test_v2_openapi_declares_error_and_deprecations(client):
+async def test_v2_openapi_declares_error_and_removes_deprecated(client):
     schema = client.get('/v2/openapi.json').json()
 
     researcher = schema['components']['schemas']['ResearcherSummary']
-    assert researcher['properties']['researcher_id']['deprecated'] is True
-    assert researcher['properties']['image']['deprecated'] is True
+    assert 'researcher_id' not in researcher['properties']
+    assert 'image' not in researcher['properties']
     detail = schema['paths']['/researcher/{researcher_id}']['get']
     assert '404' in detail['responses']
     assert '/graduate-program' in schema['paths']

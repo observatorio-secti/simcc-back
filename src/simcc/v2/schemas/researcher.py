@@ -102,15 +102,8 @@ class ResearcherCounts(BaseModel):
 
 class ResearcherBase(V2Model):
     id: UUID = Field(description='Identificador do pesquisador')
-    researcher_id: UUID = Field(
-        description='Obsoleto: use `id`', deprecated=True
-    )
     name: str
     image_url: str = Field(description='URL absoluta da foto do pesquisador')
-    image: str = Field(
-        description='Obsoleto: caminho relativo da foto; use `image_url`',
-        deprecated=True,
-    )
     graduation: Optional[str] = Field(None, description='Maior titulação')
     classification: Optional[str] = Field(
         None, description='Classificação do pesquisador'
@@ -127,7 +120,7 @@ class ResearcherBase(V2Model):
     @model_validator(mode='before')
     @classmethod
     def _fill_ids_and_image(cls, data: Any) -> Any:
-        """Aceita `id` ou `researcher_id` e deriva os campos de imagem."""
+        """Aceita `id` ou `researcher_id` na entrada e deriva `image_url`."""
         if not isinstance(data, dict):
             return data
         data = dict(data)
@@ -135,8 +128,6 @@ class ResearcherBase(V2Model):
         if rid is None:
             return data
         data.setdefault('id', rid)
-        data.setdefault('researcher_id', rid)
-        data.setdefault('image', researcher_image_url(rid))
         data.setdefault('image_url', researcher_absolute_image_url(rid))
         return data
 
