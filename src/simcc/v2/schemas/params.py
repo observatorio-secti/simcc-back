@@ -83,6 +83,7 @@ ALLOWED_FACETS = {
     'graduate_program',
     'city',
     'identity_territory',
+    'territory_city',
     'graduation',
     'classification',
     'year',
@@ -96,6 +97,7 @@ FACET_PARAMS: dict[str, str | list[str]] = {
     'institution': 'institution_id',
     'graduate_program': 'graduate_program_id',
     'city': 'city_id',
+    'territory_city': ['identity_territory', 'city_code'],
     'year': ['year_start', 'year_end'],
 }
 

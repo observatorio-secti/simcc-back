@@ -35,6 +35,7 @@ from sqlalchemy import (
 from simcc.core.db.models.expertise import GreatAreaExpertise
 from simcc.core.db.models.production import Foment
 from simcc.core.db.models.researcher import ResearcherAreaExpertise
+from simcc.v2.repositories.geo import city_codes_array, territory_codes_array
 from simcc.v2.repositories.search_tables import (
     mv_researcher_search,
     mv_search_documents,
@@ -193,12 +194,22 @@ def _by_cities(filters: ResearcherFilter) -> Optional[ColumnElement[bool]]:
     return r.c.city_ids.overlap(filters.city_id)
 
 
+def _by_city_codes(
+    filters: ResearcherFilter,
+) -> Optional[ColumnElement[bool]]:
+    if not filters.city_code:
+        return None
+    return r.c.ibge_codes.overlap(city_codes_array(filters.city_code))
+
+
 def _by_identity_territories(
     filters: ResearcherFilter,
 ) -> Optional[ColumnElement[bool]]:
     if not filters.identity_territory:
         return None
-    return r.c.identity_territories.overlap(filters.identity_territory)
+    return r.c.territory_codes.op('&&')(
+        territory_codes_array(filters.identity_territory)
+    )
 
 
 def _by_graduation(
@@ -280,6 +291,7 @@ _FILTER_BUILDERS: list[
     _by_institutions,
     _by_graduate_programs,
     _by_cities,
+    _by_city_codes,
     _by_identity_territories,
     _by_graduation,
     _by_classification,

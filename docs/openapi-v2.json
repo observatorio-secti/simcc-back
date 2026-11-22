@@ -375,6 +375,14 @@
             "title": "Area",
             "type": "array"
           },
+          "city_code": {
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "City Code",
+            "type": "array"
+          },
           "city_id": {
             "description": "IDs das cidades de vínculo dos autores da plataforma",
             "items": {
@@ -414,7 +422,7 @@
             "title": "Has Open Access"
           },
           "identity_territory": {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "items": {
               "type": "string"
             },
@@ -943,6 +951,14 @@
             "title": "Area",
             "type": "array"
           },
+          "city_code": {
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "City Code",
+            "type": "array"
+          },
           "city_id": {
             "description": "IDs das cidades de vínculo dos autores da plataforma",
             "items": {
@@ -970,7 +986,7 @@
             "type": "array"
           },
           "identity_territory": {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "items": {
               "type": "string"
             },
@@ -1311,6 +1327,14 @@
             "title": "Area",
             "type": "array"
           },
+          "city_code": {
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "City Code",
+            "type": "array"
+          },
           "city_id": {
             "description": "IDs das cidades de vínculo dos autores da plataforma",
             "items": {
@@ -1338,7 +1362,7 @@
             "type": "array"
           },
           "identity_territory": {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "items": {
               "type": "string"
             },
@@ -1623,6 +1647,14 @@
             "title": "Area",
             "type": "array"
           },
+          "city_code": {
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "City Code",
+            "type": "array"
+          },
           "city_id": {
             "description": "IDs das cidades de vínculo dos autores da plataforma",
             "items": {
@@ -1650,7 +1682,7 @@
             "type": "array"
           },
           "identity_territory": {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "items": {
               "type": "string"
             },
@@ -2478,6 +2510,14 @@
             "title": "Area",
             "type": "array"
           },
+          "city_code": {
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "City Code",
+            "type": "array"
+          },
           "city_id": {
             "description": "IDs das cidades de vínculo dos autores da plataforma",
             "items": {
@@ -2513,7 +2553,7 @@
             "type": "array"
           },
           "identity_territory": {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "items": {
               "type": "string"
             },
@@ -3060,6 +3100,14 @@
             "title": "Area",
             "type": "array"
           },
+          "city_code": {
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "City Code",
+            "type": "array"
+          },
           "city_id": {
             "description": "IDs das cidades de vínculo dos autores da plataforma",
             "items": {
@@ -3095,7 +3143,7 @@
             "type": "array"
           },
           "identity_territory": {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "items": {
               "type": "string"
             },
@@ -3309,103 +3357,11 @@
         "type": "object"
       },
       "FacetItem": {
-        "properties": {
-          "acronym": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Sigla, quando o valor for uma entidade",
-            "title": "Acronym"
-          },
-          "count": {
-            "description": "Itens do resultado com esse valor",
-            "title": "Count",
-            "type": "integer"
-          },
-          "label": {
-            "description": "Texto de exibição",
-            "title": "Label",
-            "type": "string"
-          },
-          "selected": {
-            "default": false,
-            "description": "Se o valor está aplicado no filtro atual",
-            "title": "Selected",
-            "type": "boolean"
-          },
-          "value": {
-            "description": "Valor a enviar no filtro correspondente",
-            "title": "Value",
-            "type": "string"
-          }
-        },
-        "required": [
-          "value",
-          "label",
-          "count"
-        ],
-        "title": "FacetItem",
+        "additionalProperties": true,
         "type": "object"
       },
       "FacetResult": {
-        "examples": [
-          {
-            "items": [
-              {
-                "acronym": "UESC",
-                "count": 120,
-                "label": "Universidade Estadual de Santa Cruz",
-                "selected": true,
-                "value": "3f2a9c1e-5b7d-4e8a-9c21-7d4e5f6a8b90"
-              }
-            ],
-            "param": "institution_id",
-            "total": 2
-          }
-        ],
-        "properties": {
-          "items": {
-            "description": "Valores mais frequentes e os valores selecionados",
-            "items": {
-              "$ref": "#/components/schemas/FacetItem"
-            },
-            "title": "Items",
-            "type": "array"
-          },
-          "param": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Parâmetro de filtro correspondente à faceta. Lista quando a faceta mapeia para um intervalo (ex.: year → year_start, year_end)",
-            "title": "Param"
-          },
-          "total": {
-            "description": "Quantidade de valores distintos com resultados",
-            "title": "Total",
-            "type": "integer"
-          }
-        },
-        "required": [
-          "total",
-          "items"
-        ],
-        "title": "FacetResult",
+        "additionalProperties": true,
         "type": "object"
       },
       "Foment": {
@@ -3777,6 +3733,22 @@
             "title": "City",
             "type": "array"
           },
+          "city_code": {
+            "description": "Código IBGE (7 dígitos) do município da sede",
+            "items": {
+              "type": "string"
+            },
+            "title": "City Code",
+            "type": "array"
+          },
+          "identity_territory": {
+            "description": "Território de identidade da sede: código SEI (1 a 27) ou nome",
+            "items": {
+              "type": "string"
+            },
+            "title": "Identity Territory",
+            "type": "array"
+          },
           "institution_id": {
             "description": "IDs das instituições",
             "items": {
@@ -4105,6 +4077,14 @@
             "title": "Area",
             "type": "array"
           },
+          "city_code": {
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "City Code",
+            "type": "array"
+          },
           "city_id": {
             "description": "IDs das cidades de vínculo dos autores da plataforma",
             "items": {
@@ -4132,7 +4112,7 @@
             "type": "array"
           },
           "identity_territory": {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "items": {
               "type": "string"
             },
@@ -4381,10 +4361,28 @@
             "title": "Graduate Programs",
             "type": "integer"
           },
+          "labs": {
+            "default": 0,
+            "description": "Laboratórios vinculados à instituição",
+            "title": "Labs",
+            "type": "integer"
+          },
+          "research_groups": {
+            "default": 0,
+            "description": "Grupos de pesquisa vinculados à instituição",
+            "title": "Research Groups",
+            "type": "integer"
+          },
           "researchers": {
             "default": 0,
             "description": "Pesquisadores vinculados",
             "title": "Researchers",
+            "type": "integer"
+          },
+          "scholarship_holders": {
+            "default": 0,
+            "description": "Pesquisadores bolsistas vinculados à instituição",
+            "title": "Scholarship Holders",
             "type": "integer"
           }
         },
@@ -4490,6 +4488,14 @@
             "description": "Nome da instituição",
             "title": "Name",
             "type": "string"
+          },
+          "scholarships": {
+            "description": "Detalhamento de bolsistas por modalidade e nível",
+            "items": {
+              "$ref": "#/components/schemas/ScholarshipBreakdownItem"
+            },
+            "title": "Scholarships",
+            "type": "array"
           }
         },
         "required": [
@@ -5078,6 +5084,14 @@
             "title": "Area",
             "type": "array"
           },
+          "city_code": {
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "City Code",
+            "type": "array"
+          },
           "city_id": {
             "description": "IDs das cidades de vínculo dos autores da plataforma",
             "items": {
@@ -5105,7 +5119,7 @@
             "type": "array"
           },
           "identity_territory": {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "items": {
               "type": "string"
             },
@@ -5693,6 +5707,14 @@
             "title": "Category",
             "type": "array"
           },
+          "city_code": {
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "City Code",
+            "type": "array"
+          },
           "city_id": {
             "description": "IDs das cidades de vínculo dos autores da plataforma",
             "items": {
@@ -5732,7 +5754,7 @@
             "title": "Granted"
           },
           "identity_territory": {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "items": {
               "type": "string"
             },
@@ -5936,6 +5958,14 @@
             "title": "Area",
             "type": "array"
           },
+          "city_code": {
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "City Code",
+            "type": "array"
+          },
           "city_id": {
             "description": "IDs das cidades de vínculo dos autores da plataforma",
             "items": {
@@ -5963,7 +5993,7 @@
             "type": "array"
           },
           "identity_territory": {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "items": {
               "type": "string"
             },
@@ -6222,6 +6252,14 @@
             "title": "Area",
             "type": "array"
           },
+          "city_code": {
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "City Code",
+            "type": "array"
+          },
           "city_id": {
             "description": "IDs das cidades de vínculo dos autores da plataforma",
             "items": {
@@ -6249,7 +6287,7 @@
             "type": "array"
           },
           "identity_territory": {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "items": {
               "type": "string"
             },
@@ -6768,6 +6806,14 @@
             "title": "Area",
             "type": "array"
           },
+          "city_code": {
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "City Code",
+            "type": "array"
+          },
           "city_id": {
             "description": "IDs das cidades de vínculo dos autores da plataforma",
             "items": {
@@ -6795,7 +6841,7 @@
             "type": "array"
           },
           "identity_territory": {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "items": {
               "type": "string"
             },
@@ -7334,6 +7380,14 @@
             "title": "Area",
             "type": "array"
           },
+          "city_code": {
+            "description": "Códigos IBGE (7 dígitos) dos municípios de vínculo",
+            "items": {
+              "type": "string"
+            },
+            "title": "City Code",
+            "type": "array"
+          },
           "city_id": {
             "description": "IDs das cidades de vínculo",
             "items": {
@@ -7389,7 +7443,7 @@
             "type": "array"
           },
           "identity_territory": {
-            "description": "Territórios de identidade dos vínculos",
+            "description": "Territórios de identidade dos vínculos: código SEI (1 a 27) ou nome",
             "items": {
               "type": "string"
             },
@@ -7769,6 +7823,44 @@
         "title": "Scholarship",
         "type": "object"
       },
+      "ScholarshipBreakdownItem": {
+        "properties": {
+          "category_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Categoria/nível (ex.: 1A, 1B, 2)",
+            "title": "Category Level"
+          },
+          "modality": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Modalidade da bolsa",
+            "title": "Modality"
+          },
+          "researchers": {
+            "description": "Quantidade distinta de pesquisadores bolsistas",
+            "title": "Researchers",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "researchers"
+        ],
+        "title": "ScholarshipBreakdownItem",
+        "type": "object"
+      },
       "ScholarshipFilter": {
         "properties": {
           "category_level": {
@@ -8061,6 +8153,14 @@
             "title": "Area",
             "type": "array"
           },
+          "city_code": {
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "items": {
+              "type": "string"
+            },
+            "title": "City Code",
+            "type": "array"
+          },
           "city_id": {
             "description": "IDs das cidades de vínculo dos autores da plataforma",
             "items": {
@@ -8088,7 +8188,7 @@
             "type": "array"
           },
           "identity_territory": {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "items": {
               "type": "string"
             },
@@ -8769,6 +8869,36 @@
             }
           },
           {
+            "description": "Código IBGE (7 dígitos) do município da sede",
+            "in": "query",
+            "name": "city_code",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Código IBGE (7 dígitos) do município da sede",
+              "items": {
+                "type": "string"
+              },
+              "title": "City Code",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Território de identidade da sede: código SEI (1 a 27) ou nome",
+            "in": "query",
+            "name": "identity_territory",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Território de identidade da sede: código SEI (1 a 27) ou nome",
+              "items": {
+                "type": "string"
+              },
+              "title": "Identity Territory",
+              "type": "array"
+            }
+          },
+          {
             "description": "Campo para ordenação",
             "in": "query",
             "name": "sort_by",
@@ -8801,13 +8931,13 @@
             }
           },
           {
-            "description": "Lista de facets opt-in (institution, area, modality, rating, state, city)",
+            "description": "Lista de facets opt-in (institution, area, modality, rating, state, city, identity_territory, territory_city)",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Lista de facets opt-in (institution, area, modality, rating, state, city)",
+              "description": "Lista de facets opt-in (institution, area, modality, rating, state, city, identity_territory, territory_city)",
               "items": {
                 "type": "string"
               },
@@ -9473,13 +9603,28 @@
             }
           },
           {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "in": "query",
+            "name": "city_code",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "City Code",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "in": "query",
             "name": "identity_territory",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+              "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
               "items": {
                 "type": "string"
               },
@@ -9870,13 +10015,28 @@
             }
           },
           {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "in": "query",
+            "name": "city_code",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "City Code",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "in": "query",
             "name": "identity_territory",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+              "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
               "items": {
                 "type": "string"
               },
@@ -10050,13 +10210,13 @@
             }
           },
           {
-            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
               "items": {
                 "type": "string"
               },
@@ -10282,13 +10442,28 @@
             }
           },
           {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "in": "query",
+            "name": "city_code",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "City Code",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "in": "query",
             "name": "identity_territory",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+              "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
               "items": {
                 "type": "string"
               },
@@ -10384,13 +10559,13 @@
             }
           },
           {
-            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
               "items": {
                 "type": "string"
               },
@@ -10563,13 +10738,28 @@
             }
           },
           {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "in": "query",
+            "name": "city_code",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "City Code",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "in": "query",
             "name": "identity_territory",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+              "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
               "items": {
                 "type": "string"
               },
@@ -10665,13 +10855,13 @@
             }
           },
           {
-            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
               "items": {
                 "type": "string"
               },
@@ -10949,13 +11139,28 @@
             }
           },
           {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "in": "query",
+            "name": "city_code",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "City Code",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "in": "query",
             "name": "identity_territory",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+              "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
               "items": {
                 "type": "string"
               },
@@ -11066,13 +11271,13 @@
             }
           },
           {
-            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
               "items": {
                 "type": "string"
               },
@@ -11297,13 +11502,28 @@
             }
           },
           {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "in": "query",
+            "name": "city_code",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "City Code",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "in": "query",
             "name": "identity_territory",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+              "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
               "items": {
                 "type": "string"
               },
@@ -11444,13 +11664,13 @@
             }
           },
           {
-            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
               "items": {
                 "type": "string"
               },
@@ -11622,13 +11842,28 @@
             }
           },
           {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "in": "query",
+            "name": "city_code",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "City Code",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "in": "query",
             "name": "identity_territory",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+              "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
               "items": {
                 "type": "string"
               },
@@ -11754,13 +11989,13 @@
             }
           },
           {
-            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
               "items": {
                 "type": "string"
               },
@@ -12037,13 +12272,28 @@
             }
           },
           {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "in": "query",
+            "name": "city_code",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "City Code",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "in": "query",
             "name": "identity_territory",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+              "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
               "items": {
                 "type": "string"
               },
@@ -12184,13 +12434,13 @@
             }
           },
           {
-            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
               "items": {
                 "type": "string"
               },
@@ -12414,13 +12664,28 @@
             }
           },
           {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "in": "query",
+            "name": "city_code",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "City Code",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "in": "query",
             "name": "identity_territory",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+              "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
               "items": {
                 "type": "string"
               },
@@ -12531,13 +12796,13 @@
             }
           },
           {
-            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
               "items": {
                 "type": "string"
               },
@@ -12762,13 +13027,28 @@
             }
           },
           {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "in": "query",
+            "name": "city_code",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "City Code",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "in": "query",
             "name": "identity_territory",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+              "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
               "items": {
                 "type": "string"
               },
@@ -12897,13 +13177,13 @@
             }
           },
           {
-            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
               "items": {
                 "type": "string"
               },
@@ -13128,13 +13408,28 @@
             }
           },
           {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "in": "query",
+            "name": "city_code",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "City Code",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "in": "query",
             "name": "identity_territory",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+              "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
               "items": {
                 "type": "string"
               },
@@ -13230,13 +13525,13 @@
             }
           },
           {
-            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
               "items": {
                 "type": "string"
               },
@@ -13461,13 +13756,28 @@
             }
           },
           {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "in": "query",
+            "name": "city_code",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "City Code",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "in": "query",
             "name": "identity_territory",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+              "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
               "items": {
                 "type": "string"
               },
@@ -13593,13 +13903,13 @@
             }
           },
           {
-            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
               "items": {
                 "type": "string"
               },
@@ -13825,13 +14135,28 @@
             }
           },
           {
-            "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+            "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+            "in": "query",
+            "name": "city_code",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Códigos IBGE dos municípios de vínculo dos autores da plataforma",
+              "items": {
+                "type": "string"
+              },
+              "title": "City Code",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
             "in": "query",
             "name": "identity_territory",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Territórios de identidade dos vínculos dos autores da plataforma",
+              "description": "Territórios de identidade dos vínculos dos autores da plataforma: código SEI (1 a 27) ou nome",
               "items": {
                 "type": "string"
               },
@@ -13927,13 +14252,13 @@
             }
           },
           {
-            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+            "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
+              "description": "Lista de facets opt-in. Comuns: institution, graduate_program, city, identity_territory, territory_city, year, area. Cada tipo de produção aceita também os facets dos seus filtros próprios",
               "items": {
                 "type": "string"
               },
@@ -14176,13 +14501,28 @@
             }
           },
           {
-            "description": "Territórios de identidade dos vínculos",
+            "description": "Códigos IBGE (7 dígitos) dos municípios de vínculo",
+            "in": "query",
+            "name": "city_code",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Códigos IBGE (7 dígitos) dos municípios de vínculo",
+              "items": {
+                "type": "string"
+              },
+              "title": "City Code",
+              "type": "array"
+            }
+          },
+          {
+            "description": "Territórios de identidade dos vínculos: código SEI (1 a 27) ou nome",
             "in": "query",
             "name": "identity_territory",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Territórios de identidade dos vínculos",
+              "description": "Territórios de identidade dos vínculos: código SEI (1 a 27) ou nome",
               "items": {
                 "type": "string"
               },
@@ -14366,13 +14706,13 @@
             }
           },
           {
-            "description": "Lista de facets opt-in (area, city, classification, graduate_program, graduation, identity_territory, institution, modality, source_type, year)",
+            "description": "Lista de facets opt-in (area, city, classification, graduate_program, graduation, identity_territory, institution, modality, source_type, territory_city, year)",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Lista de facets opt-in (area, city, classification, graduate_program, graduation, identity_territory, institution, modality, source_type, year)",
+              "description": "Lista de facets opt-in (area, city, classification, graduate_program, graduation, identity_territory, institution, modality, source_type, territory_city, year)",
               "items": {
                 "type": "string"
               },

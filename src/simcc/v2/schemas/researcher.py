@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, Optional, Union
 from uuid import UUID
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_serializer, model_validator
 
 from simcc.core.dependencies import get_settings
 from simcc.v2.schemas.base import V2Model
@@ -264,15 +264,41 @@ class ResearcherDetail(ResearcherBase):
 
 
 class FacetItem(BaseModel):
-    value: str = Field(description='Valor a enviar no filtro correspondente')
+    value: Optional[str] = Field(
+        description=(
+            'Valor a enviar no filtro correspondente. Nulo só no grupo sem '
+            'território da faceta territory_city'
+        )
+    )
     label: str = Field(description='Texto de exibição')
     count: int = Field(description='Itens do resultado com esse valor')
     acronym: Optional[str] = Field(
         None, description='Sigla, quando o valor for uma entidade'
     )
+    code: Optional[int] = Field(
+        None,
+        description=(
+            'Código estável: SEI (1 a 27) para território, IBGE (7 dígitos) '
+            'para cidade'
+        ),
+    )
     selected: bool = Field(
         False, description='Se o valor está aplicado no filtro atual'
     )
+    children: Optional[list['FacetItem']] = Field(
+        None,
+        description=(
+            'Valores do nível seguinte, em facetas hierárquicas (ex.: '
+            'municípios de um território). O facet_limit vale por nível'
+        ),
+    )
+
+    @model_serializer(mode='wrap')
+    def _omit_null_children(self, handler: Any) -> dict[str, Any]:
+        data = handler(self)
+        if self.children is None:
+            data.pop('children', None)
+        return data
 
 
 class FacetResult(BaseModel):
@@ -307,9 +333,24 @@ class FacetResult(BaseModel):
     total: int = Field(
         description='Quantidade de valores distintos com resultados'
     )
+    covered: Optional[int] = Field(
+        None,
+        description=(
+            'Itens distintos do resultado com algum valor na faceta. Use no '
+            'lugar da soma dos count, que conta em dobro itens com mais de '
+            'um valor'
+        ),
+    )
     items: list[FacetItem] = Field(
         description='Valores mais frequentes e os valores selecionados'
     )
+
+    @model_serializer(mode='wrap')
+    def _omit_null_covered(self, handler: Any) -> dict[str, Any]:
+        data = handler(self)
+        if self.covered is None:
+            data.pop('covered', None)
+        return data
 
 
 class Sort(BaseModel):

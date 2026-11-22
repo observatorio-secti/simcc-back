@@ -216,10 +216,17 @@ class ProductionBaseFilter(BaseModel):
         default_factory=list,
         description='IDs das cidades de vínculo dos autores da plataforma',
     )
+    city_code: list[str] = Field(
+        default_factory=list,
+        description=(
+            'Códigos IBGE dos municípios de vínculo dos autores da plataforma'
+        ),
+    )
     identity_territory: list[str] = Field(
         default_factory=list,
         description=(
-            'Territórios de identidade dos vínculos dos autores da plataforma'
+            'Territórios de identidade dos vínculos dos autores da '
+            'plataforma: código SEI (1 a 27) ou nome'
         ),
     )
     area: list[str] = Field(
@@ -314,6 +321,7 @@ COMMON_PRODUCTION_FACETS = (
     'graduate_program',
     'city',
     'identity_territory',
+    'territory_city',
     'year',
     'area',
 )
