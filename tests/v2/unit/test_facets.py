@@ -60,12 +60,14 @@ async def test_graduate_program_facet(
     assert response.json()['facets']['graduate_program'] == {
         'param': 'graduate_program_id',
         'total': 1,
+        'covered': 1,
         'items': [
             {
                 'value': str(gp.graduate_program_id),
                 'label': 'Programa Facet',
                 'count': 1,
                 'acronym': gp.acronym,
+                'code': None,
                 'selected': False,
             }
         ],
@@ -88,12 +90,14 @@ async def test_facet_items_ordered_by_count_then_name(
     assert facet['institution'] == {
         'param': 'institution_id',
         'total': 3,
+        'covered': 4,
         'items': [
             {
                 'value': str(gamma.id),
                 'label': 'Gamma',
                 'count': 2,
                 'acronym': None,
+                'code': None,
                 'selected': False,
             },
             {
@@ -101,6 +105,7 @@ async def test_facet_items_ordered_by_count_then_name(
                 'label': 'Alpha',
                 'count': 1,
                 'acronym': 'AL',
+                'code': None,
                 'selected': False,
             },
             {
@@ -108,6 +113,7 @@ async def test_facet_items_ordered_by_count_then_name(
                 'label': 'Beta',
                 'count': 1,
                 'acronym': 'BT',
+                'code': None,
                 'selected': False,
             },
         ],

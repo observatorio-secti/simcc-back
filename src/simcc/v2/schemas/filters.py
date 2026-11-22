@@ -66,9 +66,16 @@ class ResearcherFilter(BaseTemporalFilter):
     city_id: list[UUID] = Field(
         default_factory=list, description='IDs das cidades de vínculo'
     )
+    city_code: list[str] = Field(
+        default_factory=list,
+        description='Códigos IBGE (7 dígitos) dos municípios de vínculo',
+    )
     identity_territory: list[str] = Field(
         default_factory=list,
-        description='Territórios de identidade dos vínculos',
+        description=(
+            'Territórios de identidade dos vínculos: código SEI (1 a 27) '
+            'ou nome'
+        ),
     )
     graduation: list[str] = Field(
         default_factory=list, description='Maior titulação (ex.: Doutorado)'

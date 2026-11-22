@@ -22,6 +22,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from simcc.core.db.models.expertise import GreatAreaExpertise
 from simcc.core.db.models.researcher import ResearcherAreaExpertise
+from simcc.v2.repositories.geo import city_codes_array, territory_codes_array
 from simcc.v2.repositories.highlight import (
     HEADLINE_ALL_OPTIONS,
     HEADLINE_EXCERPT_OPTIONS,
@@ -137,12 +138,23 @@ def build_production_conditions(  # noqa: PLR0912
             )
         )
 
+    if filters.city_code:
+        conds.append(
+            table.c.researcher_ids.op('&&')(
+                _researchers_where(
+                    mv_researcher_search.c.ibge_codes.overlap(
+                        city_codes_array(filters.city_code)
+                    )
+                )
+            )
+        )
+
     if filters.identity_territory:
         conds.append(
             table.c.researcher_ids.op('&&')(
                 _researchers_where(
-                    mv_researcher_search.c.identity_territories.overlap(
-                        filters.identity_territory
+                    mv_researcher_search.c.territory_codes.op('&&')(
+                        territory_codes_array(filters.identity_territory)
                     )
                 )
             )

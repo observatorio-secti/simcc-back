@@ -32,6 +32,8 @@ mv_researcher_search = Table(
     Column('institution_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=False),
     Column('city_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=False),
     Column('identity_territories', ARRAY(String), nullable=False),
+    Column('ibge_codes', ARRAY(Text), nullable=False),
+    Column('territory_codes', ARRAY(Integer), nullable=False),
     Column(
         'graduate_program_ids', ARRAY(PG_UUID(as_uuid=True)), nullable=False
     ),

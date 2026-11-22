@@ -131,15 +131,18 @@ async def test_identity_territory_filter_and_facet(  # noqa: PLR0913, PLR0917
     researcher_factory,
     researcher_institution_factory,
     article_factory,
+    geo_city,
     refresh_mvs,
 ):
+    serrinha = await geo_city('Serrinha', '2930501', 4, 'Sisal')
+    cachoeira = await geo_city('Cachoeira', '2904902', 21, 'Recôncavo')
     sisal = await researcher_factory(name='Autora Sisal')
     reconcavo = await researcher_factory(name='Autor Reconcavo')
     await researcher_institution_factory(
-        researcher_id=sisal.id, identity_territory='Sisal'
+        researcher_id=sisal.id, city_id=serrinha.id
     )
     await researcher_institution_factory(
-        researcher_id=reconcavo.id, identity_territory='Recôncavo'
+        researcher_id=reconcavo.id, city_id=cachoeira.id
     )
     await article_factory(sisal, 'Artigo do Sisal Um')
     await article_factory(sisal, 'Artigo do Sisal Dois')
