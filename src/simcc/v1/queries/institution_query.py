@@ -99,7 +99,7 @@ class InstitutionQuery(BaseQuery):
             LEFT JOIN research_group_count rgc ON rgc.institution_id = i.id
             LEFT JOIN researchers rl ON rl.institution_id = i.id
             WHERE i.acronym IS NOT NULL
-            AND i.acronym <> 'EXTERNA';
+            AND i.acronym <> 'EXTERNA'
               {filters};
         """
 
