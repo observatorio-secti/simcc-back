@@ -102,6 +102,7 @@ def get_analytics_metrics(  # noqa: PLR0914
     settings: Settings = Depends(get_settings),
 ) -> AnalyticsResponse:
     """Consulta métricas consolidadas do GA4."""
+    start_time = time.perf_counter()
     property_name = _get_property(settings)
     target_host = params.host_name or settings.GA4_SITE_URL
     filters = []
@@ -187,9 +188,15 @@ def get_analytics_metrics(  # noqa: PLR0914
     )
 
 
+def _parse_ga_date(value: str) -> date:
+    """O GA4 devolve datas como YYYYMMDD."""
+    return datetime.strptime(value, '%Y%m%d').date()
+
+
 @router.get(
     '/analytics/pages',
     response_model=AnalyticsPagesResponse,
+    responses=LIST_ERROR_RESPONSES,
     dependencies=[Depends(forbid_unknown_params(AnalyticsPagesParams))],
 )
 def get_analytics_pages(
