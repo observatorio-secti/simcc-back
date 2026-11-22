@@ -25,7 +25,7 @@ from simcc.v2.schemas.catalog import (
     ResearchLine,
 )
 from simcc.v2.schemas.institution import InstitutionRef
-from simcc.v2.schemas.params import PaginationParams, facet_param
+from simcc.v2.schemas.params import PaginationParams
 from simcc.v2.schemas.researcher import FacetResult
 
 GP = GraduateProgram
@@ -163,6 +163,9 @@ _GP_COLUMNS = {
     'city': GP.city,
 }
 
+# Nome da faceta → campo de filtro em GraduateProgramFilter (quando difere)
+_GP_FACET_PARAMS = {'institution': 'institution_id'}
+
 
 def _gp_conditions(
     filters: GraduateProgramFilter, exclude: frozenset[str] = frozenset()
@@ -236,7 +239,7 @@ async def fetch_graduate_program_facets(
     """Facetas disjuntivas: cada uma ignora o próprio filtro."""
     facets = {}
     for name in requested_facets:
-        field = facet_param(name)
+        field = _GP_FACET_PARAMS.get(name, name)
         column = _GP_COLUMNS[field]
         pairs = select(GP.graduate_program_id, column.label('value')).where(
             column.isnot(None), *_gp_conditions(filters, frozenset({field}))

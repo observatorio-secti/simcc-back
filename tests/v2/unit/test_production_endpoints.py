@@ -12,7 +12,7 @@ from sqlalchemy import text
 
 @pytest.mark.asyncio
 async def test_book_validation_invalid_sort(client):
-    response = client.get('/v2/production/book?by=invalid_field')
+    response = client.get('/v2/production/book?sort_by=invalid_field')
     assert response.status_code == HTTPStatus.UNPROCESSABLE_ENTITY
 
 

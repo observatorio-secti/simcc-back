@@ -193,6 +193,8 @@ _KIND_PATHS = {
     'brand': 'brand',
     'guidance': 'guidance',
     'report': 'report',
+    'magazine-text': 'magazine_text',
+    'event-work': 'event_work',
 }
 KindPath = Literal[
     'article',
@@ -205,6 +207,8 @@ KindPath = Literal[
     'brand',
     'guidance',
     'report',
+    'magazine-text',
+    'event-work',
 ]
 
 

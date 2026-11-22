@@ -287,14 +287,8 @@ class ArticleFilter(ProductionBaseFilter):
     )
 
 
-# Nomes antigos dos parâmetros de ordenação, ainda aceitos na query
-SORT_QUERY_ALIASES = {'by': 'sort_by', 'order': 'sort_order'}
-
-
 class ArticleSort(BaseModel):
     """Critério e direção de ordenação para artigos."""
-
-    QUERY_ALIASES: ClassVar[dict[str, str]] = SORT_QUERY_ALIASES
 
     sort_by: Literal['relevance', 'year', 'citations', 'title'] = Field(
         'relevance', description='Campo para ordenação'
@@ -306,8 +300,6 @@ class ArticleSort(BaseModel):
 
 class ProductionSort(BaseModel):
     """Critério e direção de ordenação padrão para produções."""
-
-    QUERY_ALIASES: ClassVar[dict[str, str]] = SORT_QUERY_ALIASES
 
     sort_by: Literal['relevance', 'year', 'title'] = Field(
         'relevance', description='Campo para ordenação'
@@ -879,6 +871,136 @@ class ReportSearchResponse(BaseModel):
     data: list[ReportSummary]
     pagination: Pagination
     filters_applied: ReportFilter
+    sort: Sort
+    meta: Meta
+    facets: Optional[dict[str, FacetResult]] = None
+
+
+# =========================================================================
+# 10. TEXTOS EM REVISTA / JORNAL
+# =========================================================================
+
+
+class MagazineTextSummary(V2Model):
+    """Card resumido de texto em jornal ou revista."""
+
+    id: UUID = Field(description='ID canônico do texto')
+    title: str = Field(description='Título do texto')
+    year: Optional[int] = Field(None, description='Ano de publicação')
+    nature: Optional[str] = Field(None, description='Natureza do texto')
+    language: Optional[str] = Field(None, description='Idioma')
+    means_divulgation: Optional[str] = Field(
+        None, description='Meio de divulgação'
+    )
+    platform_authors: list[ResearcherRef] = Field(
+        default_factory=list, description='Autores da plataforma'
+    )
+    matches: Optional[list[ArticleMatch]] = Field(None, description='Matches')
+
+
+class MagazineTextDetail(MagazineTextSummary):
+    """Dossiê detalhado de texto em jornal ou revista."""
+
+    title_en: Optional[str] = Field(None, description='Título em inglês')
+    homepage: Optional[str] = Field(None, description='URL do texto')
+    relevance: Optional[bool] = Field(None, description='Produção relevante')
+    scientific_divulgation: Optional[bool] = Field(
+        None, description='Divulgação científica'
+    )
+    all_authors_raw: Optional[str] = Field(
+        None, description='Lista bruta de autores'
+    )
+
+
+class MagazineTextFilter(ProductionBaseFilter):
+    """Filtros para busca de textos em jornal ou revista."""
+
+    nature: list[str] = Field(
+        default_factory=list, description='Natureza do texto'
+    )
+
+
+class MagazineTextSearchResponse(BaseModel):
+    """Resposta paginada da busca de textos em jornal ou revista."""
+
+    data: list[MagazineTextSummary]
+    pagination: Pagination
+    filters_applied: MagazineTextFilter
+    sort: Sort
+    meta: Meta
+    facets: Optional[dict[str, FacetResult]] = None
+
+
+# =========================================================================
+# 11. TRABALHOS EM EVENTOS
+# =========================================================================
+
+
+class EventWorkSummary(V2Model):
+    """Card resumido de trabalho publicado em evento."""
+
+    id: UUID = Field(description='ID canônico do trabalho em evento')
+    title: str = Field(description='Título do trabalho')
+    year: Optional[int] = Field(None, description='Ano de publicação')
+    nature: Optional[str] = Field(None, description='Natureza do trabalho')
+    event_name: Optional[str] = Field(None, description='Nome do evento')
+    event_classification: Optional[str] = Field(
+        None, description='Classificação do evento'
+    )
+    platform_authors: list[ResearcherRef] = Field(
+        default_factory=list, description='Autores da plataforma'
+    )
+    matches: Optional[list[ArticleMatch]] = Field(None, description='Matches')
+
+
+class EventWorkDetail(EventWorkSummary):
+    """Dossiê detalhado de trabalho publicado em evento."""
+
+    title_en: Optional[str] = Field(None, description='Título em inglês')
+    language: Optional[str] = Field(None, description='Idioma')
+    means_divulgation: Optional[str] = Field(
+        None, description='Meio de divulgação'
+    )
+    homepage: Optional[str] = Field(None, description='URL do trabalho')
+    relevance: Optional[bool] = Field(None, description='Produção relevante')
+    scientific_divulgation: Optional[bool] = Field(
+        None, description='Divulgação científica'
+    )
+    all_authors_raw: Optional[str] = Field(
+        None, description='Lista bruta de autores'
+    )
+    event_city: Optional[str] = Field(None, description='Cidade do evento')
+    event_year: Optional[int] = Field(None, description='Ano do evento')
+    proceedings_title: Optional[str] = Field(
+        None, description='Título dos anais'
+    )
+    volume: Optional[str] = Field(None, description='Volume')
+    issue: Optional[str] = Field(None, description='Fascículo')
+    series: Optional[str] = Field(None, description='Série')
+    start_page: Optional[str] = Field(None, description='Página inicial')
+    end_page: Optional[str] = Field(None, description='Página final')
+    publisher_name: Optional[str] = Field(None, description='Editora')
+    publisher_city: Optional[str] = Field(None, description='Cidade da editora')
+    isbn: Optional[str] = Field(None, description='ISBN dos anais')
+
+
+class EventWorkFilter(ProductionBaseFilter):
+    """Filtros para busca de trabalhos em eventos."""
+
+    nature: list[str] = Field(
+        default_factory=list, description='Natureza do trabalho'
+    )
+    event_classification: list[str] = Field(
+        default_factory=list, description='Classificação do evento'
+    )
+
+
+class EventWorkSearchResponse(BaseModel):
+    """Resposta paginada da busca de trabalhos em eventos."""
+
+    data: list[EventWorkSummary]
+    pagination: Pagination
+    filters_applied: EventWorkFilter
     sort: Sort
     meta: Meta
     facets: Optional[dict[str, FacetResult]] = None

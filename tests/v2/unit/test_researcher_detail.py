@@ -39,7 +39,7 @@ async def test_list_returns_summary_card(
 
     item = client.get('/v2/researcher?q=Card').json()['data'][0]
 
-    assert item['image'] == f'/v2/researcher/{researcher.id}/image'
+    assert item['image_url'].endswith(f'/v2/researcher/{researcher.id}/image')
     assert item['graduation'] == 'Doutorado'
     assert item['classification'] == 'E+'
     assert item['lattes_update'] is not None
@@ -82,7 +82,7 @@ async def test_detail_minimal_profile(client, researcher_factory):
 
     body = client.get(f'/v2/researcher/{researcher.id}').json()['data']
 
-    assert body['researcher_id'] == str(researcher.id)
+    assert body['id'] == str(researcher.id)
     assert body['identifiers'] == {
         'lattes_id': researcher.lattes_id,
         'lattes_10_id': 'K1234567A8',

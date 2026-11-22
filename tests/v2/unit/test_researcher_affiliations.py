@@ -110,6 +110,6 @@ async def test_researcher_affiliations_are_scoped_per_researcher(
 
     response = client.get('/v2/researcher?q=Escopo')
 
-    data = {r['researcher_id']: r for r in response.json()['data']}
+    data = {r['id']: r for r in response.json()['data']}
     assert len(data[str(alice.id)]['affiliations']) == 1
     assert data[str(bob.id)]['affiliations'] == []
