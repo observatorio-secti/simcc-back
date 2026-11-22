@@ -23,11 +23,13 @@ from typing import Optional
 
 from sqlalchemy import (
     ColumnElement,
+    Select,
     and_,
     func,
     literal_column,
     or_,
     select,
+    union,
 )
 
 from simcc.core.db.models.expertise import GreatAreaExpertise
@@ -109,32 +111,31 @@ def profile_match(
     return and_(base, profile_vector_for(filters).op('@@')(tsq))
 
 
-def _documents_exist(filters: ResearcherFilter) -> ColumnElement[bool]:
-    return (
-        select(literal_column('1'))
-        .select_from(d)
-        .where(
-            d.c.researcher_id == r.c.researcher_id,
-            *document_conditions(filters),
-        )
-        .exists()
-    )
+def _matching_document_researchers(filters: ResearcherFilter) -> Select:
+    """Ids de pesquisadores com ao menos uma obra que casa com os filtros."""
+    return select(d.c.researcher_id).where(*document_conditions(filters))
 
 
 def _by_search_query(
     filters: ResearcherFilter,
 ) -> Optional[ColumnElement[bool]]:
     """Pesquisadores cujo perfil (ou alguma obra, se `search_in == 'all'`)
-    casa com o termo."""
+    casa com o termo.
+
+    Usa `UNION` descorrelacionado em vez de `OR EXISTS` para que o PostgreSQL
+    use os índices GIN de `mv_researcher_search` e `mv_search_documents` sem
+    recorrer a `Seq Scan` + `SubPlan` correlacionado nos facets.
+    """
     tsq = search_tsquery(filters)
     if tsq is None:
         return None
     if not documents_count(filters):
         return profile_match(filters, tsq)
-    docs_match = _documents_exist(filters)
+    doc_ids = _matching_document_researchers(filters)
     if not profile_counts(filters):
-        return docs_match
-    return or_(profile_match(filters, tsq), docs_match)
+        return r.c.researcher_id.in_(doc_ids)
+    profile_ids = select(r.c.researcher_id).where(profile_match(filters, tsq))
+    return r.c.researcher_id.in_(union(profile_ids, doc_ids))
 
 
 def _by_source_type(
@@ -144,7 +145,7 @@ def _by_source_type(
     anos, se houver). Com `q`, o tipo já é aplicado na busca textual."""
     if not filters.source_type or search_tsquery(filters) is not None:
         return None
-    return _documents_exist(filters)
+    return r.c.researcher_id.in_(_matching_document_researchers(filters))
 
 
 def _by_year_range(
