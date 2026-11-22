@@ -128,6 +128,26 @@ async def test_list_institutions_returns_institution_ref(
 
 
 @pytest.mark.asyncio
+async def test_list_institutions_excludes_without_acronym(
+    client, institution_factory
+):
+    with_acronym = await institution_factory(
+        name='Filtro Acronimo Com Sigla', acronym='FACS'
+    )
+    await institution_factory(name='Filtro Acronimo Sem Sigla', acronym=None)
+    await institution_factory(name='Filtro Acronimo Vazio', acronym='   ')
+
+    response = client.get(
+        '/v2/institution?q=Filtro%20Acronimo&page=1&per_page=20'
+        '&sort_by=name&sort_order=asc'
+    )
+    assert response.status_code == HTTPStatus.OK
+    body = response.json()
+    assert body['pagination']['total_items'] == 1
+    assert [item['id'] for item in body['data']] == [str(with_acronym.id)]
+
+
+@pytest.mark.asyncio
 async def test_graduate_program_facets_including_city(
     client, graduate_program_factory
 ):

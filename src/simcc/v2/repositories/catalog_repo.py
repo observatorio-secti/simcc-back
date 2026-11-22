@@ -73,24 +73,32 @@ async def fetch_institutions(
     pagination: Optional[PaginationParams] = None,
     sort: Optional[CatalogSort] = None,
 ) -> tuple[list[InstitutionRef], int]:
-    """Lista paginada e total de instituições cadastradas."""
+    """Lista paginada e total de instituições cadastradas com acrônimo."""
     filters = filters or InstitutionFilter()
     pagination = pagination or PaginationParams()
     sort = sort or CatalogSort()
+    conditions = [
+        Institution.acronym.is_not(None),
+        func.length(func.trim(Institution.acronym)) > 0,
+    ]
     cond = _text_match(filters.q, Institution.name, Institution.acronym)
-
-    stmt = select(
-        Institution.id,
-        Institution.name,
-        Institution.acronym,
-        Institution.image,
-    ).order_by(
-        *_order(sort, Institution.name, Institution.acronym, Institution.id)
-    )
-    count_stmt = select(func.count(Institution.id))
     if cond is not None:
-        stmt = stmt.where(cond)
-        count_stmt = count_stmt.where(cond)
+        conditions.append(cond)
+
+    order_cols = _order(
+        sort, Institution.name, Institution.acronym, Institution.id
+    )
+    stmt = (
+        select(
+            Institution.id,
+            Institution.name,
+            Institution.acronym,
+            Institution.image,
+        )
+        .where(*conditions)
+        .order_by(*order_cols)
+    )
+    count_stmt = select(func.count(Institution.id)).where(*conditions)
 
     rows, total = await _paginate(session, stmt, count_stmt, pagination)
     return [InstitutionRef.from_row(row) for row in rows], total
