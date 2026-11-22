@@ -125,3 +125,60 @@ async def test_list_institutions_returns_institution_ref(
     # Sem arquivo em disco, o logo cai para a coluna `institution.image`
     assert items['ISI']['image'] == 'https://example.com/isi.png'
     assert items['ISI']['cover'] is None
+
+
+@pytest.mark.asyncio
+async def test_graduate_program_facets_including_city(
+    client, graduate_program_factory
+):
+    await graduate_program_factory(
+        name='Programa A',
+        acronym='PPA',
+        area='Ciência da Computação',
+        modality='Acadêmico',
+        rating='5',
+        state='BA',
+        city='Salvador',
+    )
+    await graduate_program_factory(
+        name='Programa B',
+        acronym='PPB',
+        area='Engenharia Elétrica',
+        modality='Profissional',
+        rating='4',
+        state='BA',
+        city='Feira de Santana',
+    )
+
+    response = client.get(
+        '/v2/graduate-program'
+        '?page=1&per_page=20&sort_by=name&sort_order=asc'
+        '&facets=institution&facets=area&facets=modality'
+        '&facets=rating&facets=state&facets=city'
+    )
+    assert response.status_code == HTTPStatus.OK
+    body = response.json()
+    facets = body['facets']
+    assert set(facets) == {
+        'institution',
+        'area',
+        'modality',
+        'rating',
+        'state',
+        'city',
+    }
+    assert facets['institution']['param'] == 'institution_id'
+    assert facets['city']['param'] == 'city'
+    city_values = {item['value'] for item in facets['city']['items']}
+    assert {'Salvador', 'Feira de Santana'} <= city_values
+
+    # Faceta disjuntiva: filtrar por city ainda retorna todas as cidades
+    filtered = client.get('/v2/graduate-program?city=Salvador&facets=city')
+    assert filtered.status_code == HTTPStatus.OK
+    filtered_body = filtered.json()
+    assert len(filtered_body['data']) == 1
+    assert filtered_body['data'][0]['city'] == 'Salvador'
+    filtered_cities = {
+        item['value'] for item in filtered_body['facets']['city']['items']
+    }
+    assert {'Salvador', 'Feira de Santana'} <= filtered_cities
