@@ -56,6 +56,14 @@ async def test_general_metrics_counts_unique_productions_and_cache(
 ):
     r1 = await researcher_factory(name='Pesquisador Um')
     r2 = await researcher_factory(name='Pesquisador Dois')
+    mag_id = uuid.uuid4()
+    await session.execute(
+        text(
+            'INSERT INTO periodical_magazine (id, name, issn, qualis) '
+            "VALUES (:id, 'Revista Teste', '1234-5678', 'A1')"
+        ),
+        {'id': mag_id},
+    )
 
     # Mesmo artigo (mesmo DOI e título) para dois pesquisadores: deve contar 1
     for idx, researcher in enumerate((r1, r2)):
@@ -73,16 +81,17 @@ async def test_general_metrics_counts_unique_productions_and_cache(
         await session.execute(
             text(
                 'INSERT INTO bibliographic_production_article '
-                '(bibliographic_production_id, qualis) VALUES (:id, :qualis)'
+                '(bibliographic_production_id, periodical_magazine_id, qualis) '
+                'VALUES (:id, :mag_id, :qualis)'
             ),
-            {'id': prod_id, 'qualis': 'A1'},
+            {'id': prod_id, 'mag_id': mag_id, 'qualis': 'A1'},
         )
 
     await session.execute(
         text(
             'INSERT INTO patent '
-            '(id, title, development_year, researcher_id) '
-            "VALUES (:id, 'Patente Unica', '2023', :r)"
+            '(id, sequence_code, title, development_year, researcher_id) '
+            "VALUES (:id, 1, 'Patente Unica', '2023', :r)"
         ),
         {'id': uuid.uuid4(), 'r': r1.id},
     )
