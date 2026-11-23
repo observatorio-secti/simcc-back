@@ -8,7 +8,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, Path, Query, Request
 
 from simcc.core.dependencies import AsyncSession
-from simcc.v2.dependencies import PaginationDep
+from simcc.v2.dependencies import PaginationDep, SearchCacheDep
 from simcc.v2.errors import ApiError, unknown_parameter
 from simcc.v2.repositories import indicators_repo
 from simcc.v2.schemas.envelope import (
@@ -18,6 +18,7 @@ from simcc.v2.schemas.envelope import (
     ErrorDetail,
 )
 from simcc.v2.schemas.indicators import (
+    GeneralMetrics,
     Magazine,
     MagazineFilter,
     MagazineListResponse,
@@ -322,4 +323,35 @@ async def get_production_metric(
         data=series,
         filters_applied=kind_filters,
         meta=await build_meta(session, start),
+    )
+
+
+@router.get(
+    '/metrics/general',
+    response_model=DetailResponse[GeneralMetrics],
+    responses=ERROR_RESPONSES,
+    tags=['Metrics v2'],
+)
+async def get_general_metrics(
+    session: AsyncSession,
+    cache: SearchCacheDep,
+) -> DetailResponse[GeneralMetrics]:
+    """Métricas gerais únicas da plataforma (MVs canônicas + cache Redis)."""
+    start = time.perf_counter()
+    cache_key = await cache.build_key('general_metrics', {})
+    if cache_key:
+        cached = await cache.get(cache_key)
+        if cached is not None:
+            metrics = GeneralMetrics.model_validate(cached)
+            return DetailResponse(
+                data=metrics,
+                meta=await build_meta(session, start, cached=True),
+            )
+
+    metrics = await indicators_repo.fetch_general_metrics(session)
+    if cache_key:
+        await cache.set(cache_key, metrics.model_dump())
+    return DetailResponse(
+        data=metrics,
+        meta=await build_meta(session, start, cached=False),
     )

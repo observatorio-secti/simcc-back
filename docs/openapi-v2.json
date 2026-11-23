@@ -2037,6 +2037,22 @@
         "title": "DetailResponse[EventWorkDetail]",
         "type": "object"
       },
+      "DetailResponse_GeneralMetrics_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GeneralMetrics"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "DetailResponse[GeneralMetrics]",
+        "type": "object"
+      },
       "DetailResponse_GraduateProgramDetail_": {
         "properties": {
           "data": {
@@ -3602,6 +3618,60 @@
           }
         },
         "title": "Foment",
+        "type": "object"
+      },
+      "GeneralMetrics": {
+        "properties": {
+          "articles": {
+            "default": 0,
+            "description": "Total de artigos únicos",
+            "title": "Articles",
+            "type": "integer"
+          },
+          "book_chapters": {
+            "default": 0,
+            "description": "Total de capítulos de livros únicos",
+            "title": "Book Chapters",
+            "type": "integer"
+          },
+          "books": {
+            "default": 0,
+            "description": "Total de livros únicos",
+            "title": "Books",
+            "type": "integer"
+          },
+          "brands": {
+            "default": 0,
+            "description": "Total de marcas únicas",
+            "title": "Brands",
+            "type": "integer"
+          },
+          "patents": {
+            "default": 0,
+            "description": "Total de patentes únicas",
+            "title": "Patents",
+            "type": "integer"
+          },
+          "researchers": {
+            "default": 0,
+            "description": "Total de pesquisadores cadastrados",
+            "title": "Researchers",
+            "type": "integer"
+          },
+          "software": {
+            "default": 0,
+            "description": "Total de softwares únicos",
+            "title": "Software",
+            "type": "integer"
+          },
+          "work_in_event": {
+            "default": 0,
+            "description": "Total de trabalhos em eventos únicos",
+            "title": "Work In Event",
+            "type": "integer"
+          }
+        },
+        "title": "GeneralMetrics",
         "type": "object"
       },
       "GraduateProgramCounts": {
@@ -9657,6 +9727,48 @@
         "summary": "Get Magazine",
         "tags": [
           "Magazine v2"
+        ]
+      }
+    },
+    "/metrics/general": {
+      "get": {
+        "description": "Métricas gerais únicas da plataforma (MVs canônicas + cache Redis).",
+        "operationId": "get_general_metrics_metrics_general_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailResponse_GeneralMetrics_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Recurso não encontrado"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Parâmetros inválidos"
+          }
+        },
+        "summary": "Get General Metrics",
+        "tags": [
+          "Metrics v2"
         ]
       }
     },

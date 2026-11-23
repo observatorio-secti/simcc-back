@@ -137,11 +137,13 @@ async def swagger_ui_html(req: Request) -> HTMLResponse:
             f'{base}/docs/oauth2-redirect' if base else '/docs/oauth2-redirect'
         ),
         swagger_ui_parameters={
+            'layout': 'StandaloneLayout',
             'urls': [
                 {'name': 'SIMCC - Todas as rotas', 'url': openapi_all},
                 {'name': 'SIMCC v2 (Atual)', 'url': openapi_v2},
                 {'name': 'SIMCC v1', 'url': openapi_v1},
             ],
+            'urls.primaryName': 'SIMCC - Todas as rotas',
             'persistAuthorization': True,
         },
     )

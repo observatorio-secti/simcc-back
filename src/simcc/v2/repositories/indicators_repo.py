@@ -32,6 +32,7 @@ from simcc.v2.repositories import search_tables
 from simcc.v2.repositories.production_repo import build_production_conditions
 from simcc.v2.repositories.researcher_facets_repo import rank_facet_values
 from simcc.v2.schemas.indicators import (
+    GeneralMetrics,
     Magazine,
     MagazineFilter,
     MagazineSort,
@@ -467,3 +468,43 @@ async def fetch_production_series(
         SeriesPoint(period=period, value=total, groups=groups)
         for period, (total, groups) in by_period.items()
     ]
+
+
+async def fetch_general_metrics(session: AsyncSession) -> GeneralMetrics:
+    """Contagem única de produções (MVs canônicas) e pesquisadores."""
+    stmt = select(
+        select(func.count())
+        .select_from(search_tables.mv_canonical_articles)
+        .scalar_subquery()
+        .label('articles'),
+        select(func.count())
+        .select_from(search_tables.mv_canonical_books)
+        .scalar_subquery()
+        .label('books'),
+        select(func.count())
+        .select_from(search_tables.mv_canonical_book_chapters)
+        .scalar_subquery()
+        .label('book_chapters'),
+        select(func.count())
+        .select_from(search_tables.mv_canonical_event_works)
+        .scalar_subquery()
+        .label('work_in_event'),
+        select(func.count())
+        .select_from(search_tables.mv_canonical_patents)
+        .scalar_subquery()
+        .label('patents'),
+        select(func.count())
+        .select_from(search_tables.mv_canonical_software)
+        .scalar_subquery()
+        .label('software'),
+        select(func.count())
+        .select_from(search_tables.mv_canonical_brands)
+        .scalar_subquery()
+        .label('brands'),
+        select(func.count())
+        .select_from(Researcher)
+        .scalar_subquery()
+        .label('researchers'),
+    )
+    row = (await session.execute(stmt)).mappings().one()
+    return GeneralMetrics(**row)
