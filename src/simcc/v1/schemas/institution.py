@@ -14,6 +14,7 @@ class Institution(BaseModel):
     count_gps: int
     count_foment: int
     count_rg: int
+    count_labs: int = 0
     count_d: int
     count_t: int
     researchers: List[str]

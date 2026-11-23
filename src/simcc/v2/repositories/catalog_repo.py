@@ -3,7 +3,7 @@
 from typing import Optional
 from uuid import UUID
 
-from sqlalchemy import ColumnElement, Select, func, or_, select, union
+from sqlalchemy import ColumnElement, Select, and_, func, or_, select, union
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from simcc.core.db.models.graduate_program import (
@@ -197,11 +197,20 @@ async def _fetch_institution_research_groups_count(
 async def _fetch_institution_labs_count(
     session: AsyncSession, institution_id: UUID
 ) -> int:
-    """Conta laboratórios vinculados diretamente à instituição."""
+    """Conta laboratórios da instituição (diretamente ou via pesquisador)."""
+    inst_researchers = select(ResearcherInstitution.researcher_id).where(
+        ResearcherInstitution.institution_id == institution_id
+    )
     return (
         await session.execute(
-            select(func.count(Labs.id)).where(
-                Labs.institution_id == institution_id
+            select(func.count(func.distinct(Labs.id))).where(
+                or_(
+                    Labs.institution_id == institution_id,
+                    and_(
+                        Labs.institution_id.is_(None),
+                        Labs.researcher_id.in_(inst_researchers),
+                    ),
+                )
             )
         )
     ).scalar() or 0
