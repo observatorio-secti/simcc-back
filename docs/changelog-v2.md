@@ -89,3 +89,8 @@ Precisam ser publicadas junto com a versão do front que as consome.
 - Migração `a7c3e9f1b2d4` (depois de `f1a2b3c4d5e6`, de labs): tabelas `identity_territory` e `municipality`, coluna `city.ibge_code` e `mv_researcher_search` com `ibge_codes` e `territory_codes`.
 - Os dados vêm da rotina `seed_geo_reference` do simcc-etl (rotina padrão, antes de `enrich_researcher_institution`). Sem ela, as facetas geográficas saem vazias.
 - Cache de busca: `SCHEMA_VERSION = 5`.
+
+## 2026-11-23 — Correção do contrato: schemas de faceta e métrica
+
+- `FacetItem`, `FacetResult`, `SeriesPoint` e `ProductionMetricResponse` voltam a publicar os campos no OpenAPI. Desde a faceta `territory_city` (e, nas métricas, desde o `group_by`), saíam como objeto sem propriedades, e os tipos gerados no front perdiam os campos. As respostas não mudam: `children`, `covered`, `groups` e `group_by` continuam omitidos quando são nulos.
+- Teste novo em `tests/v2/unit/test_openapi_contract.py`: nenhum modelo pode sair como objeto sem propriedades.

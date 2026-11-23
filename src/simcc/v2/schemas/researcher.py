@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Any, Optional, Union
 from uuid import UUID
 
-from pydantic import BaseModel, Field, model_serializer, model_validator
+from pydantic import BaseModel, Field, model_validator
 
 from simcc.core.dependencies import get_settings
 from simcc.v2.schemas.base import V2Model
@@ -287,18 +287,12 @@ class FacetItem(BaseModel):
     )
     children: Optional[list['FacetItem']] = Field(
         None,
+        exclude_if=lambda v: v is None,
         description=(
             'Valores do nível seguinte, em facetas hierárquicas (ex.: '
             'municípios de um território). O facet_limit vale por nível'
         ),
     )
-
-    @model_serializer(mode='wrap')
-    def _omit_null_children(self, handler: Any) -> dict[str, Any]:
-        data = handler(self)
-        if self.children is None:
-            data.pop('children', None)
-        return data
 
 
 class FacetResult(BaseModel):
@@ -335,6 +329,7 @@ class FacetResult(BaseModel):
     )
     covered: Optional[int] = Field(
         None,
+        exclude_if=lambda v: v is None,
         description=(
             'Itens distintos do resultado com algum valor na faceta. Use no '
             'lugar da soma dos count, que conta em dobro itens com mais de '
@@ -344,13 +339,6 @@ class FacetResult(BaseModel):
     items: list[FacetItem] = Field(
         description='Valores mais frequentes e os valores selecionados'
     )
-
-    @model_serializer(mode='wrap')
-    def _omit_null_covered(self, handler: Any) -> dict[str, Any]:
-        data = handler(self)
-        if self.covered is None:
-            data.pop('covered', None)
-        return data
 
 
 class Sort(BaseModel):

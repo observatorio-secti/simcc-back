@@ -8,7 +8,6 @@ from pydantic import (
     Field,
     SerializeAsAny,
     field_validator,
-    model_serializer,
     model_validator,
 )
 
@@ -304,32 +303,21 @@ class SeriesPoint(BaseModel):
     value: int = Field(description='Quantidade de produções no ano')
     groups: Optional[dict[str, int]] = Field(
         None,
+        exclude_if=lambda v: v is None,
         description=(
             'Quebra por valor da dimensão de agrupamento '
             '(presente quando group_by é informado)'
         ),
     )
 
-    @model_serializer(mode='wrap')
-    def _omit_null_groups(self, handler: Any) -> dict[str, Any]:
-        data = handler(self)
-        if self.groups is None:
-            data.pop('groups', None)
-        return data
-
 
 class ProductionMetricResponse(BaseModel):
     kind: ProductionKind = Field(description='Tipo de produção contado')
     group_by: Optional[str] = Field(
-        None, description='Dimensão de agrupamento aplicada'
+        None,
+        exclude_if=lambda v: v is None,
+        description='Dimensão de agrupamento aplicada',
     )
     data: list[SeriesPoint] = Field(description='Série anual, ano crescente')
     filters_applied: SerializeAsAny[ProductionBaseFilter]
     meta: Meta
-
-    @model_serializer(mode='wrap')
-    def _omit_null_group_by(self, handler: Any) -> dict[str, Any]:
-        data = handler(self)
-        if self.group_by is None:
-            data.pop('group_by', None)
-        return data
