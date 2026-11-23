@@ -16,15 +16,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from simcc.core.db.models.expertise import GreatAreaExpertise
 from simcc.core.db.models.graduate_program import GraduateProgram
 from simcc.core.db.models.institution import Institution
-from simcc.core.db.models.location import City
+from simcc.core.db.models.location import City, IdentityTerritory
 from simcc.core.db.models.researcher import ResearcherAreaExpertise
+from simcc.v2.repositories.geo import resolve_territory_codes
 from simcc.v2.repositories.production_repo import (
     COLUMN_FILTERS,
     COLUMN_VALUE_FROM_DB,
     COLUMN_VALUE_TO_DB,
     build_production_conditions,
 )
-from simcc.v2.repositories.researcher_facets_repo import rank_facet_values
+from simcc.v2.repositories.researcher_facets_repo import (
+    TERRITORY_CITY_EXCLUDE,
+    rank_facet_values,
+    rank_pivot_values,
+    researcher_geo_pairs,
+)
 from simcc.v2.repositories.search_tables import mv_researcher_search
 from simcc.v2.schemas.params import facet_param
 from simcc.v2.schemas.production import (
@@ -59,7 +65,13 @@ def _researcher_pairs(table: Table, filters, field: str, column) -> Select:
             func.unnest(table.c.researcher_ids).label('researcher_id'),
         )
         .where(
-            *build_production_conditions(table, filters, frozenset({field}))
+            *build_production_conditions(
+                table,
+                filters,
+                frozenset({'city_id', 'city_code'})
+                if field == 'city_id'
+                else frozenset({field}),
+            )
         )
         .subquery()
     )
@@ -105,6 +117,7 @@ async def _city_facet(session, table, filters, limit):
         limit=limit,
         entity=City,
         entity_id=City.id,
+        code=City.ibge_code,
     )
 
 
@@ -112,9 +125,39 @@ async def _identity_territory_facet(session, table, filters, limit):
     return await rank_facet_values(
         session,
         _researcher_pairs(
-            table, filters, 'identity_territory', r.c.identity_territories
+            table, filters, 'identity_territory', r.c.territory_codes
         ),
-        selected=filters.identity_territory,
+        selected=await resolve_territory_codes(
+            session, filters.identity_territory
+        ),
+        limit=limit,
+        entity=IdentityTerritory,
+        entity_id=IdentityTerritory.code,
+        code=IdentityTerritory.code,
+    )
+
+
+async def _territory_city_facet(session, table, filters, limit):
+    """Produções por território e município dos vínculos dos autores."""
+    source = (
+        select(
+            table.c.canonical_id.label('item_id'),
+            func.unnest(table.c.researcher_ids).label('researcher_id'),
+        )
+        .where(
+            *build_production_conditions(
+                table, filters, TERRITORY_CITY_EXCLUDE
+            )
+        )
+        .subquery()
+    )
+    return await rank_pivot_values(
+        session,
+        researcher_geo_pairs(source),
+        selected_parents=await resolve_territory_codes(
+            session, filters.identity_territory
+        ),
+        selected_children=filters.city_code,
         limit=limit,
     )
 
@@ -219,6 +262,7 @@ _COMMON_BUILDERS = {
     'graduate_program': _graduate_program_facet,
     'city': _city_facet,
     'identity_territory': _identity_territory_facet,
+    'territory_city': _territory_city_facet,
     'year': _year_facet,
     'area': _area_facet,
 }

@@ -104,6 +104,8 @@ GRADUATE_PROGRAM_FACETS = (
     'rating',
     'state',
     'city',
+    'identity_territory',
+    'territory_city',
 )
 
 
@@ -129,6 +131,16 @@ class GraduateProgramFilter(BaseModel):
     )
     state: list[str] = Field(default_factory=list, description='UF')
     city: list[str] = Field(default_factory=list, description='Cidade')
+    city_code: list[str] = Field(
+        default_factory=list,
+        description='Código IBGE (7 dígitos) do município da sede',
+    )
+    identity_territory: list[str] = Field(
+        default_factory=list,
+        description=(
+            'Território de identidade da sede: código SEI (1 a 27) ou nome'
+        ),
+    )
 
     split_lists = field_validator(
         'institution_id',
@@ -137,6 +149,8 @@ class GraduateProgramFilter(BaseModel):
         'rating',
         'state',
         'city',
+        'city_code',
+        'identity_territory',
         mode='before',
     )(_split)
 

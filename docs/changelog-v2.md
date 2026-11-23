@@ -66,6 +66,30 @@ Precisam ser publicadas junto com a versão do front que as consome.
 - Quando `group_by` é informado, `ProductionMetricResponse` inclui `group_by` e cada item de `data` inclui `groups` (`Record<string, number>`, omitindo chaves com contagem `0`). Quando omitido, o payload permanece idêntico ao contrato anterior.
 - `/v2/metrics/production/{kind}` passa a aceitar os filtros específicos de cada `{kind}` já existentes em `/v2/production/{kind}` (ex.: `qualis` em `article`, `nature` e `status` em `guidance`).
 
+## 2026-11-22 — Territórios e municípios com código (faceta `territory_city`)
+
+### Mudanças que quebram o front atual
+
+| Onde | Antes | Agora | Ajuste no front |
+| --- | --- | --- | --- |
+| Faceta `identity_territory` (pesquisadores e produções) | `value` = nome gravado no vínculo | `value` = código SEI (`"5"`), `code` = 5, `label` = nome da referência | Casar pelo `code`. O filtro aceita o código e o nome |
+| Território de pesquisadores e produções | Texto livre do vínculo, divisão antiga de 26 territórios | Derivado do município do vínculo, com 27 territórios (Costa do Descobrimento separada do Extremo Sul) | Contagens de Extremo Sul caem e Costa do Descobrimento (27) aparece |
+
+### Acréscimos (não quebram)
+
+- Faceta hierárquica `territory_city` em `/v2/researcher`, `/v2/production/{kind}` e `/v2/graduate-program`: cada território (`value`/`code` SEI) traz `children` com os municípios (`value`/`code` IBGE). O `facet_limit` vale por nível, então os 27 territórios e todos os municípios cabem numa chamada sem passar de 100. A contagem do território é de itens distintos, não a soma dos filhos. Municípios fora da BA ficam num grupo com `value: null`, por último. `param` = `["identity_territory", "city_code"]`; a faceta ignora os filtros de território e de cidade.
+- `code` em `FacetItem`: SEI nas facetas de território, IBGE na faceta `city`.
+- `covered` em `FacetResult`: itens distintos com algum valor na faceta. Use no lugar da soma dos `count` (ex.: KPI de bolsistas em `modality`).
+- Filtro `city_code` (IBGE, lista) em pesquisadores, produções e programas.
+- `/v2/graduate-program`: filtro e faceta `identity_territory`, derivados da cidade e UF da sede. Programas cuja sede não casa com um município da referência ficam fora das facetas geográficas.
+- O máximo de `facet_limit` é 100 em todas as rotas, por nível nas facetas hierárquicas.
+
+### Operação
+
+- Migração `a7c3e9f1b2d4` (depois de `f1a2b3c4d5e6`, de labs): tabelas `identity_territory` e `municipality`, coluna `city.ibge_code` e `mv_researcher_search` com `ibge_codes` e `territory_codes`.
+- Os dados vêm da rotina `seed_geo_reference` do simcc-etl (rotina padrão, antes de `enrich_researcher_institution`). Sem ela, as facetas geográficas saem vazias.
+- Cache de busca: `SCHEMA_VERSION = 5`.
+
 ## 2026-11-23 — Métricas gerais (`/v2/metrics/general`)
 
 ### Acréscimos (não quebram)

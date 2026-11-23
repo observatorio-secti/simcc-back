@@ -257,6 +257,19 @@ SETUP_MVS_STATEMENTS = [
         FROM researcher_institution
         GROUP BY researcher_id
     ),
+    geo_agg AS (
+        SELECT
+            ri.researcher_id,
+            array_agg(DISTINCT c.ibge_code::text)
+                FILTER (WHERE c.ibge_code IS NOT NULL) AS ibge_codes,
+            array_agg(DISTINCT m.territory_code)
+                FILTER (WHERE m.territory_code IS NOT NULL)
+                AS territory_codes
+        FROM researcher_institution ri
+        JOIN city c ON c.id = ri.city_id
+        LEFT JOIN municipality m ON m.ibge_code = c.ibge_code
+        GROUP BY ri.researcher_id
+    ),
     years_agg AS (
         SELECT
             researcher_id,
@@ -298,6 +311,8 @@ SETUP_MVS_STATEMENTS = [
         coalesce(ia.institution_ids, '{}') AS institution_ids,
         coalesce(ia.city_ids, '{}') AS city_ids,
         coalesce(ia.identity_territories, '{}') AS identity_territories,
+        coalesce(ga.ibge_codes, '{}') AS ibge_codes,
+        coalesce(ga.territory_codes, '{}') AS territory_codes,
         coalesce(gp.graduate_program_ids, '{}') AS graduate_program_ids,
         coalesce(ya.production_years, '{}') AS production_years,
         coalesce(ca.collection_slugs, '{}') AS collection_slugs,
@@ -310,6 +325,7 @@ SETUP_MVS_STATEMENTS = [
     FROM researcher r
     LEFT JOIN researcher_production rp ON rp.researcher_id = r.id
     LEFT JOIN inst_agg ia ON ia.researcher_id = r.id
+    LEFT JOIN geo_agg ga ON ga.researcher_id = r.id
     LEFT JOIN gp_agg gp ON gp.researcher_id = r.id
     LEFT JOIN years_agg ya ON ya.researcher_id = r.id
     LEFT JOIN coll_agg ca ON ca.researcher_id = r.id;

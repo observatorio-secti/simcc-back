@@ -22,33 +22,44 @@ def _facet(response, name):
 
 @pytest.mark.asyncio
 async def test_identity_territory_filter_and_facet(
-    client, researcher_factory, researcher_institution_factory, refresh_mvs
+    client, researcher_factory, researcher_institution_factory, geo_city,
+    refresh_mvs,
 ):
+    """O território vem do município do vínculo, não do texto gravado."""
+    serrinha = await geo_city('Serrinha', '2930501', 4, 'SISAL')
+    cachoeira = await geo_city('Cachoeira', '2904902', 21, 'RECÔNCAVO')
     sisal = await researcher_factory(name='Pesquisador Sisal')
     reconcavo = await researcher_factory(name='Pesquisador Reconcavo')
     await researcher_factory(name='Sem Territorio')
     await researcher_institution_factory(
-        researcher_id=sisal.id, identity_territory='Sisal'
+        researcher_id=sisal.id,
+        city_id=serrinha.id,
+        identity_territory='TEXTO ANTIGO',
     )
     await researcher_institution_factory(
-        researcher_id=reconcavo.id, identity_territory='Recôncavo'
+        researcher_id=reconcavo.id, city_id=cachoeira.id
     )
     await refresh_mvs()
 
-    response = client.get(
-        '/v2/researcher?identity_territory=Sisal&facets=identity_territory'
-    )
+    # Código SEI e nome (compatibilidade) dão o mesmo resultado
+    for value in ('4', 'Sisal'):
+        response = client.get(
+            f'/v2/researcher?identity_territory={value}'
+            '&facets=identity_territory'
+        )
 
-    assert _names(response) == {'Pesquisador Sisal'}
-    # Disjuntivo: o próprio filtro não esconde os outros territórios
-    assert _facet(response, 'identity_territory') == {
-        'Recôncavo': (1, False),
-        'Sisal': (1, True),
-    }
+        assert _names(response) == {'Pesquisador Sisal'}
+        # Disjuntivo: o próprio filtro não esconde os outros territórios
+        assert _facet(response, 'identity_territory') == {
+            'RECÔNCAVO': (1, False),
+            'SISAL': (1, True),
+        }
+    items = response.json()['facets']['identity_territory']['items']
+    assert {(i['value'], i['code']) for i in items} == {('4', 4), ('21', 21)}
 
 
 @pytest.mark.asyncio
-async def test_identity_territory_selected_without_results_is_kept(
+async def test_identity_territory_unknown_value_returns_nothing(
     client, researcher_factory
 ):
     await researcher_factory()
@@ -60,19 +71,8 @@ async def test_identity_territory_selected_without_results_is_kept(
 
     assert response.json()['data'] == []
     facet = response.json()['facets']['identity_territory']
-    assert facet == {
-        'param': 'identity_territory',
-        'total': 0,
-        'items': [
-            {
-                'value': 'Inexistente',
-                'label': 'Inexistente',
-                'count': 0,
-                'acronym': None,
-                'selected': True,
-            }
-        ],
-    }
+    assert facet['total'] == 0
+    assert facet['items'] == []
 
 
 # --- cidade ---------------------------------------------------------------

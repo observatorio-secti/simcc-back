@@ -12,11 +12,22 @@ from simcc.core.db.models.graduate_program import (
     ResearchLinesPrograms,
 )
 from simcc.core.db.models.institution import Institution
+from simcc.core.db.models.location import IdentityTerritory, Municipality
 from simcc.core.db.models.miscellaneous import Labs
 from simcc.core.db.models.production import Foment
 from simcc.core.db.models.research_group import ResearchGroup
 from simcc.core.db.models.researcher_institution import ResearcherInstitution
-from simcc.v2.repositories.researcher_facets_repo import rank_facet_values
+from simcc.v2.repositories.geo import (
+    gp_city_code_condition,
+    gp_municipality_join,
+    gp_territory_code,
+    gp_territory_condition,
+    resolve_territory_codes,
+)
+from simcc.v2.repositories.researcher_facets_repo import (
+    rank_facet_values,
+    rank_pivot_values,
+)
 from simcc.v2.schemas.catalog import (
     CatalogSort,
     GraduateProgramDetail,
@@ -287,6 +298,18 @@ _GP_COLUMNS = {
 # Nome da faceta → campo de filtro em GraduateProgramFilter (quando difere)
 _GP_FACET_PARAMS = {'institution': 'institution_id'}
 
+# Filtros geográficos derivados da sede (cidade + UF → município)
+_GP_GEO_CONDITIONS = {
+    'identity_territory': gp_territory_condition,
+    'city_code': gp_city_code_condition,
+}
+# A faceta hierárquica ignora todos os filtros de território e cidade
+_GP_TERRITORY_CITY_EXCLUDE = frozenset({
+    'identity_territory',
+    'city',
+    'city_code',
+})
+
 
 def _gp_conditions(
     filters: GraduateProgramFilter, exclude: frozenset[str] = frozenset()
@@ -299,6 +322,10 @@ def _gp_conditions(
         values = getattr(filters, field)
         if values and field not in exclude:
             conditions.append(column.in_(values))
+    for field, build in _GP_GEO_CONDITIONS.items():
+        cond = build(getattr(filters, field))
+        if cond is not None and field not in exclude:
+            conditions.append(cond)
     return conditions
 
 
@@ -360,6 +387,9 @@ async def fetch_graduate_program_facets(
     """Facetas disjuntivas: cada uma ignora o próprio filtro."""
     facets = {}
     for name in requested_facets:
+        if name in _GP_GEO_FACETS:
+            facets[name] = await _GP_GEO_FACETS[name](session, filters, limit)
+            continue
         field = _GP_FACET_PARAMS.get(name, name)
         column = _GP_COLUMNS[field]
         pairs = select(GP.graduate_program_id, column.label('value')).where(
@@ -382,6 +412,57 @@ async def fetch_graduate_program_facets(
         facet.param = field
         facets[name] = facet
     return facets
+
+
+async def _gp_identity_territory_facet(session, filters, limit):
+    territory = gp_territory_code()
+    pairs = select(GP.graduate_program_id, territory.label('value')).where(
+        territory.isnot(None),
+        *_gp_conditions(filters, frozenset({'identity_territory'})),
+    )
+    facet = await rank_facet_values(
+        session,
+        pairs,
+        selected=await resolve_territory_codes(
+            session, filters.identity_territory
+        ),
+        limit=limit,
+        entity=IdentityTerritory,
+        entity_id=IdentityTerritory.code,
+        code=IdentityTerritory.code,
+    )
+    facet.param = 'identity_territory'
+    return facet
+
+
+async def _gp_territory_city_facet(session, filters, limit):
+    pairs = (
+        select(
+            GP.graduate_program_id,
+            Municipality.territory_code.label('parent'),
+            Municipality.ibge_code.label('child'),
+        )
+        .select_from(GP)
+        .join(Municipality, gp_municipality_join())
+        .where(*_gp_conditions(filters, _GP_TERRITORY_CITY_EXCLUDE))
+    )
+    facet = await rank_pivot_values(
+        session,
+        pairs,
+        selected_parents=await resolve_territory_codes(
+            session, filters.identity_territory
+        ),
+        selected_children=filters.city_code,
+        limit=limit,
+    )
+    facet.param = ['identity_territory', 'city_code']
+    return facet
+
+
+_GP_GEO_FACETS = {
+    'identity_territory': _gp_identity_territory_facet,
+    'territory_city': _gp_territory_city_facet,
+}
 
 
 async def fetch_graduate_program(
