@@ -47,6 +47,18 @@ def _researcher_lookup_clause(researcher_id: UUID | str):
         return Researcher.lattes_id == researcher_id
 
 
+async def fetch_researcher_uuid(
+    session: AsyncSession,
+    researcher_id: UUID | str,
+) -> Optional[UUID]:
+    """Resolve UUID ou lattes_id para o UUID do pesquisador."""
+    stmt = select(Researcher.id).where(
+        _researcher_lookup_clause(researcher_id)
+    )
+    result = await session.execute(stmt)
+    return result.scalar_one_or_none()
+
+
 async def fetch_researcher_profile(
     session: AsyncSession,
     researcher_id: UUID | str,

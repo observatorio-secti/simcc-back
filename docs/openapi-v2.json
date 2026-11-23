@@ -14984,13 +14984,22 @@
         "operationId": "get_researcher_image_researcher__researcher_id__image_get",
         "parameters": [
           {
+            "description": "ID (UUID) ou Lattes ID do pesquisador",
             "in": "path",
             "name": "researcher_id",
             "required": true,
             "schema": {
-              "format": "uuid",
-              "title": "Researcher Id",
-              "type": "string"
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "string"
+                }
+              ],
+              "description": "ID (UUID) ou Lattes ID do pesquisador",
+              "title": "Researcher Id"
             }
           }
         ],

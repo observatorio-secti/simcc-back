@@ -222,6 +222,43 @@ async def test_image_not_found_without_lattes_10_id(
 
 
 @pytest.mark.asyncio
+async def test_image_serves_cached_file_by_lattes_id(
+    client, researcher_factory, tmp_path, monkeypatch
+):
+    monkeypatch.setattr(utils, 'RESEARCHER_IMAGE_DIR', tmp_path)
+    researcher = await researcher_factory(lattes_id='1234567890123456')
+    (tmp_path / f'{researcher.id}.jpg').write_bytes(b'fake-jpeg')
+
+    response = client.get(f'/v2/researcher/{researcher.lattes_id}/image')
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.content == b'fake-jpeg'
+
+
+@pytest.mark.asyncio
+async def test_image_by_lattes_id_not_found(
+    client, tmp_path, monkeypatch
+):
+    monkeypatch.setattr(utils, 'RESEARCHER_IMAGE_DIR', tmp_path)
+
+    response = client.get('/v2/researcher/9999999999999999/image')
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_image_by_lattes_id_without_image_returns_404(
+    client, researcher_factory, tmp_path, monkeypatch
+):
+    monkeypatch.setattr(utils, 'RESEARCHER_IMAGE_DIR', tmp_path)
+    researcher = await researcher_factory(lattes_id='6543210987654321')
+
+    response = client.get(f'/v2/researcher/{researcher.lattes_id}/image')
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.asyncio
 async def test_detail_by_lattes_id(
     client,
     session,

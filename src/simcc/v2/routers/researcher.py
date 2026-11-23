@@ -100,7 +100,10 @@ async def get_researcher(
 )
 async def get_researcher_image(
     session: AsyncSession,
-    researcher_id: UUID,
+    researcher_id: Annotated[
+        UUID | str,
+        Path(description='ID (UUID) ou Lattes ID do pesquisador'),
+    ],
 ) -> FileResponse:
     """Retorna a foto do pesquisador."""
     path = await researcher_service.get_researcher_image_path(

@@ -282,15 +282,35 @@ async def get_researcher(
     return researcher
 
 
+def _parse_uuid(value: UUID | str) -> UUID | None:
+    if isinstance(value, UUID):
+        return value
+    try:
+        return UUID(value)
+    except ValueError:
+        return None
+
+
 async def get_researcher_image_path(
     session: AsyncSession,
-    researcher_id: UUID,
+    researcher_id: UUID | str,
 ) -> Path:
     """Retorna a foto do pesquisador, baixando do CNPq na primeira vez."""
-    path = utils.RESEARCHER_IMAGE_DIR / f'{researcher_id}.jpg'
+    resolved_id = _parse_uuid(researcher_id)
+    if resolved_id is None:
+        resolved_id = await researcher_profile_repo.fetch_researcher_uuid(
+            session=session, researcher_id=researcher_id
+        )
+        if resolved_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail='Foto do pesquisador não encontrada.',
+            )
+
+    path = utils.RESEARCHER_IMAGE_DIR / f'{resolved_id}.jpg'
     if not path.exists():
         await utils.download_researcher_image(
-            str(researcher_id), session=session
+            str(resolved_id), session=session
         )
     if not path.exists():
         raise HTTPException(
