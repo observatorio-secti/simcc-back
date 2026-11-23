@@ -7,8 +7,8 @@ IBGE), acrescenta `city.ibge_code` e recria `mv_researcher_search` com
 Os dados das tabelas de referência vêm da rotina `seed_geo_reference` do
 simcc-etl.
 
-Revision ID: f1a2b3c4d5e6
-Revises: e4f5a6b7c8d9
+Revision ID: a7c3e9f1b2d4
+Revises: f1a2b3c4d5e6
 Create Date: 2026-11-22 21:00:00.000000
 
 """
@@ -17,8 +17,8 @@ from typing import Sequence, Union
 
 from alembic import op
 
-revision: str = 'f1a2b3c4d5e6'
-down_revision: Union[str, Sequence[str], None] = 'e4f5a6b7c8d9'
+revision: str = 'a7c3e9f1b2d4'
+down_revision: Union[str, Sequence[str], None] = 'f1a2b3c4d5e6'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
