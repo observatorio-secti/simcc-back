@@ -250,7 +250,7 @@ async def _run_search(
 
 async def get_researcher(
     session: AsyncSession,
-    researcher_id: UUID,
+    researcher_id: UUID | str,
     include: Optional[list[str]] = None,
 ) -> ResearcherDetail:
     """Retorna o perfil completo de um pesquisador."""
@@ -260,15 +260,16 @@ async def get_researcher(
     if researcher is None:
         raise ApiError(404, 'Pesquisador não encontrado.')
 
+    resolved_id = researcher.id
     await _attach_affiliations(session, [researcher])
     researcher.graduate_programs = (
         await researcher_profile_repo.fetch_graduate_programs(
-            session=session, researcher_id=researcher_id
+            session=session, researcher_id=resolved_id
         )
     )
     researcher.research_groups = (
         await researcher_profile_repo.fetch_research_groups(
-            session=session, researcher_id=researcher_id
+            session=session, researcher_id=resolved_id
         )
     )
     sections = {
@@ -277,7 +278,7 @@ async def get_researcher(
         'foment': researcher_profile_repo.fetch_foment,
     }
     for name in include or []:
-        setattr(researcher, name, await sections[name](session, researcher_id))
+        setattr(researcher, name, await sections[name](session, resolved_id))
     return researcher
 
 

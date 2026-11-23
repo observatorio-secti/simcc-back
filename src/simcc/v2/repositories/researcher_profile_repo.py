@@ -37,9 +37,19 @@ from simcc.v2.schemas.researcher import (
 )
 
 
+def _researcher_lookup_clause(researcher_id: UUID | str):
+    """Retorna a condição de busca por `id` (UUID) ou `lattes_id`."""
+    if isinstance(researcher_id, UUID):
+        return Researcher.id == researcher_id
+    try:
+        return Researcher.id == UUID(researcher_id)
+    except ValueError:
+        return Researcher.lattes_id == researcher_id
+
+
 async def fetch_researcher_profile(
     session: AsyncSession,
-    researcher_id: UUID,
+    researcher_id: UUID | str,
 ) -> Optional[ResearcherDetail]:
     """Busca os dados escalares do perfil, sem as coleções."""
     r = Researcher
@@ -73,7 +83,7 @@ async def fetch_researcher_profile(
         )
         .outerjoin(rp, rp.researcher_id == r.id)
         .outerjoin(opr, opr.researcher_id == r.id)
-        .where(r.id == researcher_id)
+        .where(_researcher_lookup_clause(researcher_id))
     )
     row = (await session.execute(stmt)).mappings().one_or_none()
     if row is None:

@@ -12,7 +12,7 @@ from simcc.core.db.models.research_group import (
     ResearchGroup,
     ResearchGroupResearcher,
 )
-from simcc.core.db.models.researcher import ResearcherProduction
+from simcc.core.db.models.researcher import Education, ResearcherProduction
 
 
 async def _add_production(session, refresh_mvs, researcher_id, **counts):
@@ -219,3 +219,101 @@ async def test_image_not_found_without_lattes_10_id(
     response = client.get(f'/v2/researcher/{researcher.id}/image')
 
     assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_detail_by_lattes_id(
+    client,
+    session,
+    researcher_factory,
+    institution_factory,
+    graduate_program_factory,
+):
+    institution = await institution_factory(name='Instituto Lattes')
+    researcher = await researcher_factory(
+        name='Perfil por Lattes',
+        lattes_id='1234567890123456',
+        institution_id=institution.id,
+    )
+    gp = await graduate_program_factory(name='Programa Lattes', acronym='PL')
+    group = ResearchGroup(name='Grupo Lattes')
+    session.add(group)
+    await session.flush()
+    session.add_all([
+        GraduateProgramResearcher(
+            graduate_program_id=gp.graduate_program_id,
+            researcher_id=researcher.id,
+            type_='PERMANENTE',
+        ),
+        ResearchGroupResearcher(
+            research_group_id=group.id, researcher_id=researcher.id
+        ),
+    ])
+    await session.commit()
+
+    by_uuid = client.get(f'/v2/researcher/{researcher.id}')
+    by_lattes = client.get(f'/v2/researcher/{researcher.lattes_id}')
+
+    assert by_lattes.status_code == HTTPStatus.OK
+    assert by_lattes.json()['data'] == by_uuid.json()['data']
+
+
+@pytest.mark.asyncio
+async def test_detail_by_lattes_id_with_include(
+    client, session, researcher_factory
+):
+    researcher = await researcher_factory(
+        name='Perfil Lattes Include', lattes_id='6543210987654321'
+    )
+    session.add(
+        Education(
+            researcher_id=researcher.id,
+            degree='DOUTORADO',
+            education_name='Ciencia da Computacao',
+            institution='UFBA',
+            education_start=2015,
+            education_end=2019,
+        )
+    )
+    await session.commit()
+
+    response = client.get(
+        f'/v2/researcher/{researcher.lattes_id}?include=education'
+    )
+
+    assert response.status_code == HTTPStatus.OK
+    data = response.json()['data']
+    assert data['id'] == str(researcher.id)
+    assert len(data['education']) == 1
+    assert data['education'][0]['institution'] == 'UFBA'
+
+
+@pytest.mark.asyncio
+async def test_detail_by_lattes_id_not_found(client):
+    response = client.get('/v2/researcher/9999999999999999')
+    assert response.status_code == HTTPStatus.NOT_FOUND
+
+
+@pytest.mark.asyncio
+async def test_detail_by_lattes_id_query_budget(
+    client, researcher_factory, engine
+):
+    researcher = await researcher_factory(lattes_id='1111222233334444')
+    statements = []
+
+    def count_queries(*args, **kwargs):
+        statement = args[2] if len(args) > 2 else kwargs.get('statement', '')
+        if statement.strip().upper().startswith('SELECT'):
+            statements.append(statement)
+
+    client.get(f'/v2/researcher/{researcher.lattes_id}')
+    event.listen(engine.sync_engine, 'before_cursor_execute', count_queries)
+    try:
+        response = client.get(f'/v2/researcher/{researcher.lattes_id}')
+    finally:
+        event.remove(
+            engine.sync_engine, 'before_cursor_execute', count_queries
+        )
+
+    assert response.status_code == HTTPStatus.OK
+    assert len(statements) == 5

@@ -4,7 +4,7 @@ import time
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path
 from fastapi.responses import FileResponse
 
 from simcc.core.dependencies import AsyncSession
@@ -72,7 +72,10 @@ async def list_researchers(  # noqa: PLR0913, PLR0917
 )
 async def get_researcher(
     session: AsyncSession,
-    researcher_id: UUID,
+    researcher_id: Annotated[
+        UUID | str,
+        Path(description='ID (UUID) ou Lattes ID do pesquisador'),
+    ],
     options: Annotated[
         ResearcherDetailOptions, Depends(as_query(ResearcherDetailOptions))
     ],
