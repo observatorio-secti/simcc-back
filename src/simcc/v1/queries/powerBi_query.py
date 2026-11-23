@@ -301,19 +301,22 @@ class DimResearcherQuery(BaseQuery):
     @override
     def build_sql(self) -> str:
         return """
-        SELECT r.name::TEXT AS researcher, r.id::TEXT AS researcher_id,
-            TO_CHAR(r.last_update,'dd/mm/yyyy')::TEXT AS last_update,
-            r.graduation::TEXT AS graduation, ri.institution_id::TEXT, r.docente::TEXT,
-            regexp_replace(r.abstract, E'[\\\\n\\\\r]+', ' - ', 'g' )::TEXT AS abstract,
-            :origin || 'ResearcherData/Image?researcher_id=' || r.id::TEXT AS image,
-            r.orcid::TEXT
-        FROM researcher r
-        LEFT JOIN LATERAL (
-            SELECT ri.institution_id
-            FROM researcher_institution ri
-            WHERE ri.researcher_id = r.id
-            LIMIT 1
-        ) ri ON TRUE;
+SELECT r.name::TEXT AS researcher, r.id::TEXT AS researcher_id,
+	TO_CHAR(r.last_update,'dd/mm/yyyy')::TEXT AS last_update,
+	r.graduation::TEXT AS graduation, ri.institution_id::TEXT, r.docente::TEXT,
+	regexp_replace(r.abstract, E'[\\\\n\\\\r]+', ' - ', 'g' )::TEXT AS abstract,
+	:origin || 'ResearcherData/Image?researcher_id=' || r.id::TEXT AS image,
+	r.orcid::TEXT
+FROM researcher r
+LEFT JOIN LATERAL (
+	SELECT ri.institution_id
+	FROM researcher_institution ri
+	WHERE ri.researcher_id = r.id
+	LIMIT 1
+) ri ON TRUE
+LEFT JOIN researcher_collection rc ON rc.researcher_id = r.id
+LEFT JOIN collection c ON c.id = rc.collection_id
+WHERE c.slug = 'simcc';
         """
 
 
@@ -1018,8 +1021,8 @@ class FatSdgAlignmentResearcherQuery(BaseQuery):
     def build_sql(self) -> str:
         return """
         WITH sdg_counts AS (
-            SELECT 
-                bp.researcher_id, 
+            SELECT
+                bp.researcher_id,
                 s.number AS sdg_number,
                 s.name AS sdg_name,
                 COUNT(*) AS total_articles
@@ -1029,8 +1032,8 @@ class FatSdgAlignmentResearcherQuery(BaseQuery):
             GROUP BY bp.researcher_id, s.number, s.name
         ),
         ranking AS (
-            SELECT 
-                researcher_id, 
+            SELECT
+                researcher_id,
                 sdg_number,
                 sdg_name,
                 total_articles,
@@ -1038,10 +1041,10 @@ class FatSdgAlignmentResearcherQuery(BaseQuery):
                 RANK() OVER(PARTITION BY researcher_id ORDER BY total_articles DESC) as rank
             FROM sdg_counts
         )
-        SELECT 
-            researcher_id::TEXT, 
+        SELECT
+            researcher_id::TEXT,
             sdg_number::TEXT,
-            sdg_name::TEXT AS primary_sdg_name, 
+            sdg_name::TEXT AS primary_sdg_name,
             total_articles::TEXT,
             ROUND((total_articles * 100.0) / researcher_total, 2)::TEXT AS percentage
         FROM ranking
