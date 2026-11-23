@@ -338,7 +338,7 @@ async def test_institution_detail_scholarships_groups_and_labs(
             institution='OUTR',
             first_leader_id=r_other.id,
         ),
-        # Laboratórios
+        # Laboratórios (com pesquisador, sem pesquisador, e via pesquisador)
         Labs(
             hashed_id='lab-1',
             type='Pesquisa',
@@ -350,8 +350,15 @@ async def test_institution_detail_scholarships_groups_and_labs(
             hashed_id='lab-2',
             type='Ensino',
             name='Lab 2',
-            researcher_id=r2.id,
+            researcher_id=None,
             institution_id=inst.id,
+        ),
+        Labs(
+            hashed_id='lab-3',
+            type='Extensão',
+            name='Lab 3',
+            researcher_id=r2.id,
+            institution_id=None,
         ),
         Labs(
             hashed_id='lab-other',
@@ -372,7 +379,7 @@ async def test_institution_detail_scholarships_groups_and_labs(
         'graduate_programs': 0,
         'scholarship_holders': 2,
         'research_groups': 3,
-        'labs': 2,
+        'labs': 3,
     }
     assert data['scholarships'] == [
         {

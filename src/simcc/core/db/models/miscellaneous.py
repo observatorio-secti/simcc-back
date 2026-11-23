@@ -27,8 +27,8 @@ class Labs:
     hashed_id: Mapped[str] = mapped_column(String)
     type: Mapped[str] = mapped_column(String)
     name: Mapped[str] = mapped_column(Text)
-    researcher_id: Mapped[UUID] = mapped_column(
-        ForeignKey('researcher.id', ondelete='CASCADE')
+    researcher_id: Mapped[Optional[UUID]] = mapped_column(
+        ForeignKey('researcher.id', ondelete='SET NULL'), default=None
     )
     location: Mapped[Optional[str]] = mapped_column(Text, default=None)
     description: Mapped[Optional[str]] = mapped_column(Text, default=None)

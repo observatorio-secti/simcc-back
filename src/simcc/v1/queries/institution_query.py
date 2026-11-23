@@ -67,6 +67,12 @@ class InstitutionQuery(BaseQuery):
             INNER JOIN researcher r ON gl.leader_id = r.id
             GROUP BY r.institution_id
             ),
+            labs_count AS (
+            SELECT institution_id, COUNT(DISTINCT id) AS count_labs
+            FROM labs
+            WHERE institution_id IS NOT NULL
+            GROUP BY institution_id
+            ),
             ranked_researchers AS (
             SELECT lattes_id, institution_id, ROW_NUMBER() OVER (PARTITION BY institution_id ORDER BY random()) AS rn
             FROM researcher
@@ -86,6 +92,7 @@ class InstitutionQuery(BaseQuery):
             COALESCE(gps.count_gps, 0) AS count_gps,
             COALESCE(fc.count_foment, 0) AS count_foment,
             COALESCE(rgc.count_rg, 0) AS count_rg,
+            COALESCE(lc.count_labs, 0) AS count_labs,
             0::BIGINT AS count_d, 
             0::BIGINT AS count_t,
             i.acronym, 
@@ -97,6 +104,7 @@ class InstitutionQuery(BaseQuery):
             LEFT JOIN graduate_program_student_count gps ON gps.institution_id = i.id
             LEFT JOIN foment_count fc ON fc.institution_id = i.id
             LEFT JOIN research_group_count rgc ON rgc.institution_id = i.id
+            LEFT JOIN labs_count lc ON lc.institution_id = i.id
             LEFT JOIN researchers rl ON rl.institution_id = i.id
             WHERE i.acronym IS NOT NULL
             AND i.acronym <> 'EXTERNA'
