@@ -93,6 +93,11 @@ from simcc.core.db.models.researcher import (
     ResearcherProfessionalExperience,
 )
 from simcc.core.db.models.researcher_institution import ResearcherInstitution
+from simcc.data_consistency.models import (
+    DataConsistencyResult,
+    DataLoadRun,
+    DataSnapshotMetric,
+)
 
 __all__ = [
     'AdvisoryActivity',
@@ -108,6 +113,9 @@ __all__ = [
     'City',
     'Collection',
     'Country',
+    'DataConsistencyResult',
+    'DataLoadRun',
+    'DataSnapshotMetric',
     'DidacticMaterial',
     'Education',
     'EventOrganization',

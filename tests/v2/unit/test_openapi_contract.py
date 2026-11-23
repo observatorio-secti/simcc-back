@@ -44,3 +44,37 @@ def test_openapi_has_no_untyped_fields():
         if spec in ({}, {'title': spec.get('title')})
     ]
     assert untyped == []
+
+
+def test_openapi_schemas_publish_their_fields():
+    """Nenhum modelo de resposta publicado como objeto sem propriedades.
+
+    Um `model_serializer(mode='wrap')` faz o pydantic publicar o schema de
+    saída como dicionário qualquer, e o gerador do front perde os campos.
+    Para omitir campos nulos, use `Field(exclude_if=...)`."""
+    schemas = json.loads(_current())['components']['schemas']
+    opaque = [
+        name
+        for name, schema in schemas.items()
+        if schema.get('type') == 'object' and 'properties' not in schema
+    ]
+    assert opaque == []
+
+
+def test_openapi_facet_schemas_have_all_fields():
+    schemas = json.loads(_current())['components']['schemas']
+    assert set(schemas['FacetItem']['properties']) == {
+        'value',
+        'label',
+        'count',
+        'acronym',
+        'code',
+        'selected',
+        'children',
+    }
+    assert set(schemas['FacetResult']['properties']) == {
+        'param',
+        'total',
+        'covered',
+        'items',
+    }

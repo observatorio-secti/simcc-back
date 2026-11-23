@@ -90,8 +90,17 @@ Precisam ser publicadas junto com a versão do front que as consome.
 - Os dados vêm da rotina `seed_geo_reference` do simcc-etl (rotina padrão, antes de `enrich_researcher_institution`). Sem ela, as facetas geográficas saem vazias.
 - Cache de busca: `SCHEMA_VERSION = 5`.
 
+## 2026-11-23 — Correção do contrato: schemas de faceta e métrica
+
+- `FacetItem`, `FacetResult`, `SeriesPoint` e `ProductionMetricResponse` voltam a publicar os campos no OpenAPI. Desde a faceta `territory_city` (e, nas métricas, desde o `group_by`), saíam como objeto sem propriedades, e os tipos gerados no front perdiam os campos. As respostas não mudam: `children`, `covered`, `groups` e `group_by` continuam omitidos quando são nulos.
+- Teste novo em `tests/v2/unit/test_openapi_contract.py`: nenhum modelo pode sair como objeto sem propriedades.
+
 ## 2026-11-23 — Métricas gerais (`/v2/metrics/general`)
 
 ### Acréscimos (não quebram)
 
 - `GET /v2/metrics/general`: retorna as contagens únicas de produções (`articles`, `books`, `book_chapters`, `work_in_event`, `patents`, `software`, `brands`) a partir das MVs canônicas e o total de pesquisadores (`researchers`), no envelope `{ data, meta }` com cache Redis (`SearchCacheDep`).
+
+### Operação
+
+- Migração de merge `d9b4f2c6a8e1`: une a linha geográfica (`a7c3e9f1b2d4`) à do módulo de consistência (`c7e2a41f9b36`). A `main` com o PR #24 tem duas heads e o `alembic upgrade head` falha nela; com este merge, há uma head só. A partir de `f1a2b3c4d5e6` (produção), o upgrade roda `4a1b2c3d4e5f`, `c7e2a41f9b36`, `a7c3e9f1b2d4` e `d9b4f2c6a8e1`.

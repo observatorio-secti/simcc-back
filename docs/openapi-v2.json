@@ -3373,11 +3373,149 @@
         "type": "object"
       },
       "FacetItem": {
-        "additionalProperties": true,
+        "properties": {
+          "acronym": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Sigla, quando o valor for uma entidade",
+            "title": "Acronym"
+          },
+          "children": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/FacetItem"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Valores do nível seguinte, em facetas hierárquicas (ex.: municípios de um território). O facet_limit vale por nível",
+            "title": "Children"
+          },
+          "code": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Código estável: SEI (1 a 27) para território, IBGE (7 dígitos) para cidade",
+            "title": "Code"
+          },
+          "count": {
+            "description": "Itens do resultado com esse valor",
+            "title": "Count",
+            "type": "integer"
+          },
+          "label": {
+            "description": "Texto de exibição",
+            "title": "Label",
+            "type": "string"
+          },
+          "selected": {
+            "default": false,
+            "description": "Se o valor está aplicado no filtro atual",
+            "title": "Selected",
+            "type": "boolean"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Valor a enviar no filtro correspondente. Nulo só no grupo sem território da faceta territory_city",
+            "title": "Value"
+          }
+        },
+        "required": [
+          "value",
+          "label",
+          "count"
+        ],
+        "title": "FacetItem",
         "type": "object"
       },
       "FacetResult": {
-        "additionalProperties": true,
+        "examples": [
+          {
+            "items": [
+              {
+                "acronym": "UESC",
+                "count": 120,
+                "label": "Universidade Estadual de Santa Cruz",
+                "selected": true,
+                "value": "3f2a9c1e-5b7d-4e8a-9c21-7d4e5f6a8b90"
+              }
+            ],
+            "param": "institution_id",
+            "total": 2
+          }
+        ],
+        "properties": {
+          "covered": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Itens distintos do resultado com algum valor na faceta. Use no lugar da soma dos count, que conta em dobro itens com mais de um valor",
+            "title": "Covered"
+          },
+          "items": {
+            "description": "Valores mais frequentes e os valores selecionados",
+            "items": {
+              "$ref": "#/components/schemas/FacetItem"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "param": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Parâmetro de filtro correspondente à faceta. Lista quando a faceta mapeia para um intervalo (ex.: year → year_start, year_end)",
+            "title": "Param"
+          },
+          "total": {
+            "description": "Quantidade de valores distintos com resultados",
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "total",
+          "items"
+        ],
+        "title": "FacetResult",
         "type": "object"
       },
       "Foment": {
@@ -6129,7 +6267,60 @@
         "type": "object"
       },
       "ProductionMetricResponse": {
-        "additionalProperties": true,
+        "properties": {
+          "data": {
+            "description": "Série anual, ano crescente",
+            "items": {
+              "$ref": "#/components/schemas/SeriesPoint"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "filters_applied": {
+            "$ref": "#/components/schemas/ProductionBaseFilter"
+          },
+          "group_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Dimensão de agrupamento aplicada",
+            "title": "Group By"
+          },
+          "kind": {
+            "description": "Tipo de produção contado",
+            "enum": [
+              "article",
+              "book",
+              "book_chapter",
+              "software",
+              "patent",
+              "event",
+              "research_project",
+              "brand",
+              "guidance",
+              "report",
+              "magazine_text",
+              "event_work"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "kind",
+          "data",
+          "filters_applied",
+          "meta"
+        ],
+        "title": "ProductionMetricResponse",
         "type": "object"
       },
       "ProfessionalExperience": {
@@ -8092,7 +8283,38 @@
         "type": "object"
       },
       "SeriesPoint": {
-        "additionalProperties": true,
+        "properties": {
+          "groups": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "integer"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Quebra por valor da dimensão de agrupamento (presente quando group_by é informado)",
+            "title": "Groups"
+          },
+          "period": {
+            "description": "Ano",
+            "title": "Period",
+            "type": "integer"
+          },
+          "value": {
+            "description": "Quantidade de produções no ano",
+            "title": "Value",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "period",
+          "value"
+        ],
+        "title": "SeriesPoint",
         "type": "object"
       },
       "SoftwareDetail": {

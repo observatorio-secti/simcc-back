@@ -1,3 +1,6 @@
+import asyncio
+import sys
+
 import pytest
 import pytest_asyncio
 import redis.asyncio as aioredis
@@ -13,6 +16,12 @@ from simcc.core.db.models import table_registry
 from simcc.v2.dependencies import get_search_cache
 from simcc.v2.services.search_cache import SearchCache
 from tests.setup_mvs import drop_test_mvs, init_test_mvs
+
+if sys.platform == 'win32':
+    asyncio.set_event_loop_policy(
+        asyncio.WindowsSelectorEventLoopPolicy()
+    )
+
 
 pytest_plugins = [
     'tests.fixtures.graduate_program',
