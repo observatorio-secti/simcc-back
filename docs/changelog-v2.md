@@ -65,3 +65,9 @@ Precisam ser publicadas junto com a versão do front que as consome.
   - `research-project`: `status`, `nature` (usando `start_year` como `period`)
 - Quando `group_by` é informado, `ProductionMetricResponse` inclui `group_by` e cada item de `data` inclui `groups` (`Record<string, number>`, omitindo chaves com contagem `0`). Quando omitido, o payload permanece idêntico ao contrato anterior.
 - `/v2/metrics/production/{kind}` passa a aceitar os filtros específicos de cada `{kind}` já existentes em `/v2/production/{kind}` (ex.: `qualis` em `article`, `nature` e `status` em `guidance`).
+
+## 2026-11-23 — Métricas gerais (`/v2/metrics/general`)
+
+### Acréscimos (não quebram)
+
+- `GET /v2/metrics/general`: retorna as contagens únicas de produções (`articles`, `books`, `book_chapters`, `work_in_event`, `patents`, `software`, `brands`) a partir das MVs canônicas e o total de pesquisadores (`researchers`), no envelope `{ data, meta }` com cache Redis (`SearchCacheDep`).

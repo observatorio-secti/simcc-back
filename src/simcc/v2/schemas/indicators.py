@@ -333,3 +333,20 @@ class ProductionMetricResponse(BaseModel):
         if self.group_by is None:
             data.pop('group_by', None)
         return data
+
+
+class GeneralMetrics(BaseModel):
+    articles: int = Field(0, description='Total de artigos únicos')
+    books: int = Field(0, description='Total de livros únicos')
+    book_chapters: int = Field(
+        0, description='Total de capítulos de livros únicos'
+    )
+    work_in_event: int = Field(
+        0, description='Total de trabalhos em eventos únicos'
+    )
+    patents: int = Field(0, description='Total de patentes únicas')
+    software: int = Field(0, description='Total de softwares únicos')
+    brands: int = Field(0, description='Total de marcas únicas')
+    researchers: int = Field(
+        0, description='Total de pesquisadores cadastrados'
+    )

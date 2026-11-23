@@ -2005,6 +2005,22 @@
         "title": "DetailResponse[EventWorkDetail]",
         "type": "object"
       },
+      "DetailResponse_GeneralMetrics_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GeneralMetrics"
+          },
+          "meta": {
+            "$ref": "#/components/schemas/Meta"
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ],
+        "title": "DetailResponse[GeneralMetrics]",
+        "type": "object"
+      },
       "DetailResponse_GraduateProgramDetail_": {
         "properties": {
           "data": {
@@ -3510,6 +3526,60 @@
         "title": "Foment",
         "type": "object"
       },
+      "GeneralMetrics": {
+        "properties": {
+          "articles": {
+            "default": 0,
+            "description": "Total de artigos únicos",
+            "title": "Articles",
+            "type": "integer"
+          },
+          "book_chapters": {
+            "default": 0,
+            "description": "Total de capítulos de livros únicos",
+            "title": "Book Chapters",
+            "type": "integer"
+          },
+          "books": {
+            "default": 0,
+            "description": "Total de livros únicos",
+            "title": "Books",
+            "type": "integer"
+          },
+          "brands": {
+            "default": 0,
+            "description": "Total de marcas únicas",
+            "title": "Brands",
+            "type": "integer"
+          },
+          "patents": {
+            "default": 0,
+            "description": "Total de patentes únicas",
+            "title": "Patents",
+            "type": "integer"
+          },
+          "researchers": {
+            "default": 0,
+            "description": "Total de pesquisadores cadastrados",
+            "title": "Researchers",
+            "type": "integer"
+          },
+          "software": {
+            "default": 0,
+            "description": "Total de softwares únicos",
+            "title": "Software",
+            "type": "integer"
+          },
+          "work_in_event": {
+            "default": 0,
+            "description": "Total de trabalhos em eventos únicos",
+            "title": "Work In Event",
+            "type": "integer"
+          }
+        },
+        "title": "GeneralMetrics",
+        "type": "object"
+      },
       "GraduateProgramCounts": {
         "properties": {
           "researchers": {
@@ -4381,10 +4451,28 @@
             "title": "Graduate Programs",
             "type": "integer"
           },
+          "labs": {
+            "default": 0,
+            "description": "Laboratórios vinculados à instituição",
+            "title": "Labs",
+            "type": "integer"
+          },
+          "research_groups": {
+            "default": 0,
+            "description": "Grupos de pesquisa vinculados à instituição",
+            "title": "Research Groups",
+            "type": "integer"
+          },
           "researchers": {
             "default": 0,
             "description": "Pesquisadores vinculados",
             "title": "Researchers",
+            "type": "integer"
+          },
+          "scholarship_holders": {
+            "default": 0,
+            "description": "Pesquisadores bolsistas vinculados à instituição",
+            "title": "Scholarship Holders",
             "type": "integer"
           }
         },
@@ -4490,6 +4578,14 @@
             "description": "Nome da instituição",
             "title": "Name",
             "type": "string"
+          },
+          "scholarships": {
+            "description": "Detalhamento de bolsistas por modalidade e nível",
+            "items": {
+              "$ref": "#/components/schemas/ScholarshipBreakdownItem"
+            },
+            "title": "Scholarships",
+            "type": "array"
           }
         },
         "required": [
@@ -7769,6 +7865,44 @@
         "title": "Scholarship",
         "type": "object"
       },
+      "ScholarshipBreakdownItem": {
+        "properties": {
+          "category_level": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Categoria/nível (ex.: 1A, 1B, 2)",
+            "title": "Category Level"
+          },
+          "modality": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Modalidade da bolsa",
+            "title": "Modality"
+          },
+          "researchers": {
+            "description": "Quantidade distinta de pesquisadores bolsistas",
+            "title": "Researchers",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "researchers"
+        ],
+        "title": "ScholarshipBreakdownItem",
+        "type": "object"
+      },
       "ScholarshipFilter": {
         "properties": {
           "category_level": {
@@ -9305,6 +9439,48 @@
         "summary": "Get Magazine",
         "tags": [
           "Magazine v2"
+        ]
+      }
+    },
+    "/metrics/general": {
+      "get": {
+        "description": "Métricas gerais únicas da plataforma (MVs canônicas + cache Redis).",
+        "operationId": "get_general_metrics_metrics_general_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DetailResponse_GeneralMetrics_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Recurso não encontrado"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Parâmetros inválidos"
+          }
+        },
+        "summary": "Get General Metrics",
+        "tags": [
+          "Metrics v2"
         ]
       }
     },
