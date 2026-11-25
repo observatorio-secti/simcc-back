@@ -207,6 +207,7 @@ async def test_graduate_program_facets_including_city(
         acronym='PPA',
         area='Ciência da Computação',
         modality='Acadêmico',
+        type='Mestrado/Doutorado',
         rating='5',
         state='BA',
         city='Salvador',
@@ -216,32 +217,66 @@ async def test_graduate_program_facets_including_city(
         acronym='PPB',
         area='Engenharia Elétrica',
         modality='Profissional',
+        type='Mestrado Profissional',
         rating='4',
         state='BA',
         city='Feira de Santana',
+    )
+    await graduate_program_factory(
+        name='Programa Sem Tipo',
+        acronym='PPST',
+        area='Física',
+        modality='Acadêmico',
+        type='',
+        rating='3',
+        state='BA',
+        city='Ilhéus',
     )
 
     response = client.get(
         '/v2/graduate-program'
         '?page=1&per_page=20&sort_by=name&sort_order=asc'
-        '&facets=institution&facets=area&facets=modality'
+        '&facets=institution&facets=area&facets=modality&facets=type'
         '&facets=rating&facets=state&facets=city'
     )
     assert response.status_code == HTTPStatus.OK
     body = response.json()
+    by_acronym = {item['acronym']: item for item in body['data']}
+    assert by_acronym['PPA']['type'] == 'Mestrado/Doutorado'
+    assert by_acronym['PPB']['type'] == 'Mestrado Profissional'
+
     facets = body['facets']
     assert set(facets) == {
         'institution',
         'area',
         'modality',
+        'type',
         'rating',
         'state',
         'city',
     }
     assert facets['institution']['param'] == 'institution_id'
+    assert facets['type']['param'] == 'type'
+    type_values = {item['value'] for item in facets['type']['items']}
+    assert {'Mestrado/Doutorado', 'Mestrado Profissional'} <= type_values
+    assert '' not in type_values
     assert facets['city']['param'] == 'city'
     city_values = {item['value'] for item in facets['city']['items']}
     assert {'Salvador', 'Feira de Santana'} <= city_values
+
+    # Filtro por type + faceta disjuntiva de type
+    filtered_type = client.get(
+        '/v2/graduate-program?type=Mestrado%20Profissional&facets=type'
+    )
+    assert filtered_type.status_code == HTTPStatus.OK
+    filtered_type_body = filtered_type.json()
+    assert filtered_type_body['filters_applied']['type'] == [
+        'Mestrado Profissional'
+    ]
+    assert [item['acronym'] for item in filtered_type_body['data']] == ['PPB']
+    assert {
+        item['value'] for item in filtered_type_body['facets']['type']['items']
+    } >= {'Mestrado/Doutorado', 'Mestrado Profissional'}
 
     # Faceta disjuntiva: filtrar por city ainda retorna todas as cidades
     filtered = client.get('/v2/graduate-program?city=Salvador&facets=city')

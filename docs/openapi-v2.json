@@ -4001,6 +4001,14 @@
             },
             "title": "State",
             "type": "array"
+          },
+          "type": {
+            "description": "Tipo do programa (ex.: Mestrado, Doutorado)",
+            "items": {
+              "type": "string"
+            },
+            "title": "Type",
+            "type": "array"
           }
         },
         "title": "GraduateProgramFilter",
@@ -4160,6 +4168,18 @@
             ],
             "description": "UF",
             "title": "State"
+          },
+          "type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Tipo (ex.: Mestrado)",
+            "title": "Type"
           }
         },
         "required": [
@@ -9116,6 +9136,21 @@
             }
           },
           {
+            "description": "Tipo do programa (ex.: Mestrado, Doutorado)",
+            "in": "query",
+            "name": "type",
+            "required": false,
+            "schema": {
+              "default": [],
+              "description": "Tipo do programa (ex.: Mestrado, Doutorado)",
+              "items": {
+                "type": "string"
+              },
+              "title": "Type",
+              "type": "array"
+            }
+          },
+          {
             "description": "Conceito CAPES",
             "in": "query",
             "name": "rating",
@@ -9223,13 +9258,13 @@
             }
           },
           {
-            "description": "Lista de facets opt-in (institution, area, modality, rating, state, city, identity_territory, territory_city)",
+            "description": "Lista de facets opt-in (institution, area, modality, type, rating, state, city, identity_territory, territory_city)",
             "in": "query",
             "name": "facets",
             "required": false,
             "schema": {
               "default": [],
-              "description": "Lista de facets opt-in (institution, area, modality, rating, state, city, identity_territory, territory_city)",
+              "description": "Lista de facets opt-in (institution, area, modality, type, rating, state, city, identity_territory, territory_city)",
               "items": {
                 "type": "string"
               },

@@ -104,3 +104,9 @@ Precisam ser publicadas junto com a versão do front que as consome.
 ### Operação
 
 - Migração de merge `d9b4f2c6a8e1`: une a linha geográfica (`a7c3e9f1b2d4`) à do módulo de consistência (`c7e2a41f9b36`). A `main` com o PR #24 tem duas heads e o `alembic upgrade head` falha nela; com este merge, há uma head só. A partir de `f1a2b3c4d5e6` (produção), o upgrade roda `4a1b2c3d4e5f`, `c7e2a41f9b36`, `a7c3e9f1b2d4` e `d9b4f2c6a8e1`.
+
+## 2026-11-25 — Tipo do programa (`type`) em `/v2/graduate-program`
+
+### Acréscimos (não quebram)
+
+- `GET /v2/graduate-program`: cada item de `data` (`GraduateProgramSummary`) passa a incluir `type` (ex.: `Mestrado`, `Mestrado/Doutorado`), além do filtro `?type=` e da faceta disjuntiva `facets=type`.

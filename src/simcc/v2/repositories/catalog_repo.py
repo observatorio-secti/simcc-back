@@ -290,6 +290,7 @@ _GP_COLUMNS = {
     'institution_id': GP.institution_id,
     'area': GP.area,
     'modality': GP.modality,
+    'type': GP.type,
     'rating': GP.rating,
     'state': GP.state,
     'city': GP.city,
@@ -337,6 +338,7 @@ def _gp_summary(row) -> GraduateProgramSummary:
         institution_id=row['institution_id'],
         area=row['area'],
         modality=row['modality'],
+        type=row['type'],
         rating=row['rating'],
         state=row['state'],
         city=row['city'],
@@ -350,6 +352,7 @@ _GP_SUMMARY_COLUMNS = (
     GP.institution_id,
     GP.area,
     GP.modality,
+    GP.type,
     GP.rating,
     GP.state,
     GP.city,
@@ -392,8 +395,11 @@ async def fetch_graduate_program_facets(
             continue
         field = _GP_FACET_PARAMS.get(name, name)
         column = _GP_COLUMNS[field]
+        non_empty = [column.isnot(None)]
+        if field != 'institution_id':
+            non_empty.append(func.length(func.trim(column)) > 0)
         pairs = select(GP.graduate_program_id, column.label('value')).where(
-            column.isnot(None), *_gp_conditions(filters, frozenset({field}))
+            *non_empty, *_gp_conditions(filters, frozenset({field}))
         )
         selected = getattr(filters, field)
         if name == 'institution':
@@ -476,7 +482,6 @@ async def fetch_graduate_program(
                     *_GP_SUMMARY_COLUMNS,
                     GP.code,
                     GP.name_en,
-                    GP.type,
                     GP.description,
                     GP.site,
                     GP.coordinator,
@@ -545,7 +550,6 @@ async def fetch_graduate_program(
         institution=institution,
         code=row['code'],
         name_en=row['name_en'],
-        type=row['type'],
         description=row['description'],
         site=row['site'],
         coordinator=row['coordinator'],

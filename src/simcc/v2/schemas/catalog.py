@@ -101,6 +101,7 @@ GRADUATE_PROGRAM_FACETS = (
     'institution',
     'area',
     'modality',
+    'type',
     'rating',
     'state',
     'city',
@@ -126,6 +127,10 @@ class GraduateProgramFilter(BaseModel):
         default_factory=list,
         description='Modalidade (ex.: Acadêmico, Profissional)',
     )
+    type: list[str] = Field(
+        default_factory=list,
+        description='Tipo do programa (ex.: Mestrado, Doutorado)',
+    )
     rating: list[str] = Field(
         default_factory=list, description='Conceito CAPES'
     )
@@ -146,6 +151,7 @@ class GraduateProgramFilter(BaseModel):
         'institution_id',
         'area',
         'modality',
+        'type',
         'rating',
         'state',
         'city',
@@ -195,6 +201,7 @@ class GraduateProgramSummary(CatalogItem):
     )
     area: Optional[str] = Field(None, description='Área de avaliação')
     modality: Optional[str] = Field(None, description='Modalidade')
+    type: Optional[str] = Field(None, description='Tipo (ex.: Mestrado)')
     rating: Optional[str] = Field(None, description='Conceito CAPES')
     state: Optional[str] = Field(None, description='UF')
     city: Optional[str] = Field(None, description='Cidade')
@@ -215,7 +222,6 @@ class GraduateProgramDetail(GraduateProgramSummary):
     institution: Optional[InstitutionRef] = None
     code: Optional[str] = Field(None, description='Código CAPES')
     name_en: Optional[str] = Field(None, description='Nome em inglês')
-    type: Optional[str] = Field(None, description='Tipo (ex.: Mestrado)')
     description: Optional[str] = Field(None, description='Descrição')
     site: Optional[str] = Field(None, description='Site do programa')
     coordinator: Optional[str] = Field(None, description='Coordenação')
